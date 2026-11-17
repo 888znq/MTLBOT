@@ -1,0 +1,10 @@
+<body style="margin:0;background:#000;font:12px monospace">
+<div style="overflow-x:auto;height:100vh"><canvas id=c style="display:block"></canvas></div>
+<script>
+const N=17280,H=innerHeight-20,x=c.getContext('2d');c.width=N;c.height=H;
+let p=100,d=[...Array(N)].map(()=>p+=Math.random()-.5),lo=Math.min(...d),hi=Math.max(...d);
+x.strokeStyle='#0f0';x.beginPath();
+d.forEach((v,i)=>x[i?'lineTo':'moveTo'](i,H-30-(v-lo)/(hi-lo)*(H-60)));x.stroke();
+x.fillStyle='#555';
+for(let h=0;h<=24;h++){let X=Math.min(h*720,N-1);x.fillRect(X,0,1,H);x.textAlign=h>23?'right':'left';x.fillText(String((5+h)%24).padStart(2,0)+':30',X+3,12)}
+</script>
