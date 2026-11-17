@@ -328,7 +328,8 @@ function primeEngine(prices, n, minC, maxC, baseTs, preArr) {
     updateAll(inc);
   }
   for (var c = minC; c <= maxC; c++) {
-    curC = c; rowColor = new Int8Array(c); rowStreak = new Int16Array(c); rowCol = new Int32Array(c).fill(-2);
+    self.postMessage({ prog: 50 + Math.round((c - minC) / (maxC - minC + 1) * 50) });
+        curC = c; rowColor = new Int8Array(c); rowStreak = new Int16Array(c); rowCol = new Int32Array(c).fill(-2);
     maxLen = [new Int16Array(c), new Int16Array(c)]; hist = [new Array(c).fill(null), new Array(c).fill(null)];
     cur = [{}, {}]; leaders = [{}, {}]; var nextEval = baseTs;
     for (var i = 0; i < n; i++) {
@@ -364,7 +365,8 @@ self.onmessage = function(e) {
   const rowColor = new Int8Array(maxC), rowStreak = new Int16Array(maxC), rowCol = new Int32Array(maxC), shGMax = new Int16Array(maxC), shRMax = new Int16Array(maxC);
   const revs = [], moms = [];
   for (let c = minC; c <= maxC; c++) {
-    rowColor.fill(0, 0, c); rowStreak.fill(0, 0, c); rowCol.fill(-2, 0, c); shGMax.fill(0, 0, c); shRMax.fill(0, 0, c);
+    self.postMessage({ prog: Math.round((c - minC) / (maxC - minC + 1) * 50) });
+        rowColor.fill(0, 0, c); rowStreak.fill(0, 0, c); rowCol.fill(-2, 0, c); shGMax.fill(0, 0, c); shRMax.fill(0, 0, c);
     const shG = new Array(c).fill(null), shR = new Array(c).fill(null), termLenG = new Array(c).fill(null), termLenR = new Array(c).fill(null);
     for (let i = sStart; i < sEnd; i++) {
       const p = prices[i]; let prevP = -1.0;
@@ -730,6 +732,8 @@ function primeSelect(kings, fb, pair, rawRevs, rawMoms) {
 }
 
 function handleWorkerMessage(e) {
+  if (e.data && e.data.prog !== undefined) { window._scanProg = e.data.prog; _scanUi(); return; }
+  window._scanProg = -1;
   var { pair, bestRevs, bestMoms, pk } = e.data;
   globalRevs = bestRevs.slice(); globalMoms = bestMoms.slice();
   if (pk) {
@@ -749,6 +753,7 @@ function applyCycleRange() {
   lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; highlightRow = -1;
   CYCLE = Math.min(a, b);
     window._scanRestart = true;
+      window._scanProg = -1;
   window._autoSelectAfterScan = true;
   dispatchMultiCycleScan();
 }
@@ -757,7 +762,7 @@ function _scanUi() {
   var e1 = document.getElementById("scanTimerDisplay"), e2 = document.getElementById("scanChartTimer");
   var a = document.getElementById("scanMin"), b = document.getElementById("scanMax");
   if (scanPending) {
-    var s = Math.floor((Date.now() - _scanStartedAt) / 1000), txt = "SCAN " + s + "s";
+    var s = Math.floor((Date.now() - _scanStartedAt) / 1000), pg = window._scanProg >= 0 ? window._scanProg : 0, txt = "SCAN " + pg + "% · " + s + "s";
     if (e2) { e2.textContent = txt; e2.style.fontSize = "22px"; e2.style.color = "#FFD700"; e2.style.opacity = ".9"; e2.style.whiteSpace = "nowrap"; }
     if (e1) e1.textContent = txt;
     if (a) a.style.borderColor = "#FFD700";
