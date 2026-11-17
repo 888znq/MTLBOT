@@ -1,26 +1,38 @@
 <body style="margin:0;background:#000;font:12px monospace">
 <canvas id=c style="display:block;cursor:grab;touch-action:none"></canvas>
 <script>
-const S=12,D=86400,W=innerWidth,H=innerHeight,x=c.getContext('2d'),g=m=>fetch('https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1s&limit=1000&startTime='+m).then(r=>r.json()).then(j=>{if(!Array.isArray(j))throw j.msg;return j});
-var t=new Date(),d=[],o=0,q=null,b=0,n,s,z,lo,hi,Y,X,v,i;
+var S=innerWidth/86400,pz=1,po=0,rg=1,st,P=new Map,pd=0;const D=86400,W=innerWidth,H=innerHeight,x=c.getContext('2d'),g=m=>fetch('https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1s&limit=1000&startTime='+m).then(r=>r.json()).then(j=>{if(!Array.isArray(j))throw j.msg;return j});
+var t=new Date(),d=[],o=0,q=null,b=0,n,s,z,lo,hi,Y,X,v,i,rd=0,fl,k,w,C=[],j,cw,y1,y2,B=300;
 c.width=W;c.height=H;x.font='12px monospace';
 t.setHours(5,30,0,0);if(t>Date.now())t.setDate(t.getDate()-1);t=+t;
 function f(){
-x.clearRect(0,0,W,H);s=Math.floor(o/S);z=Math.min(D,Math.ceil((o+W)/S)+1);lo=1e15;hi=0;
-for(i=s;i<z;i++)if((v=d[i])!=null){lo=Math.min(lo,v);hi=Math.max(hi,v)}
+o=0;x.clearRect(0,0,W,H);s=Math.floor(o/S);z=Math.min(D,Math.ceil((o+W)/S)+1);lo=1e15;hi=0;
+C=[];for(i=0;i<d.length;i++)if((v=d[i])!=null){j=(i/B)|0;if(!C[j])C[j]=[v,v,v,v];else{C[j][1]=Math.max(C[j][1],v);C[j][2]=Math.min(C[j][2],v);C[j][3]=v}}for(j=0;j<C.length;j++)if(C[j]){lo=Math.min(lo,C[j][2]);hi=Math.max(hi,C[j][1])}
 if(lo>hi){lo=0;hi=1}if(lo==hi)hi++;
+rg=(hi-lo)/pz;v=(lo+hi)/2+po;lo=v-rg/2;hi=v+rg/2;
 Y=u=>H-30-(u-lo)/(hi-lo)*(H-60);
-for(i=Math.ceil(s/10)*10;i<z;i+=10){X=i*S-o;x.fillStyle=i%3600?'#222':'#666';x.fillRect(X,0,1,H);x.fillStyle='#888';x.textAlign='left';x.fillText(new Date(t+i*1000).toTimeString().slice(0,8),X+3,H-10)}
+st=[1,5,10,30,60,300,600,1800,3600,7200,14400].find(u=>u*S>=90)||14400;for(i=Math.ceil(s/st)*st;i<z;i+=st){X=i*S-o;x.fillStyle=i%3600?'#222':'#666';x.fillRect(X,0,1,H);x.fillStyle='#888';x.textAlign='left';x.fillText(new Date(t+i*1000).toTimeString().slice(0,8),X+3,H-10)}
 for(i=0;i<=4;i++){v=lo+(hi-lo)*i/4;x.fillStyle='#222';x.fillRect(0,Y(v),W,1);x.fillStyle='#fff';x.textAlign='right';x.fillText(v.toFixed(2),W-4,Y(v)-3)}
-for(i=Math.max(s,1);i<z;i++){if(d[i]==null||d[i-1]==null)continue;X=i*S-o;x.strokeStyle=x.fillStyle=d[i]>d[i-1]?'#0f0':d[i]<d[i-1]?'#f33':'#888';x.beginPath();x.moveTo(X-S,Y(d[i-1]));x.lineTo(X,Y(d[i]));x.stroke();x.fillRect(X-2,Y(d[i])-2,4,4)}
+var e=(Date.now()-t)/1000,cj=(e/B)|0,fr=(e%B)/B,cols=24,rows=12,gp=6,M=20,gc='#2dbd7e',rc='#e5484d',tw=(W-2*M+gp)/cols,th=(H*.6-2*M+gp)/rows,px,py;x.clearRect(0,0,W,H);x.fillStyle='#07090c';x.fillRect(0,0,W,H);x.beginPath();if(x.roundRect)x.roundRect(6,6,W-12,H*.6-12,16);else x.rect(6,6,W-12,H*.6-12);x.strokeStyle='#1b222a';x.lineWidth=1;x.stroke();for(j=0;j<288;j++){px=M+(j%cols)*tw;py=M+((j/cols)|0)*th;x.beginPath();if(x.roundRect)x.roundRect(px,py,tw-gp,th-gp,Math.min(tw-gp,th-gp)*.16);else x.rect(px,py,tw-gp,th-gp);x.shadowBlur=0;x.fillStyle=(!C[j]||j==cj)?'#11161b':C[j][3]>=C[j][0]?gc:rc;x.fill();if(j==cj){x.save();x.clip();x.shadowBlur=0;x.fillStyle=C[j]&&C[j][3]<C[j][0]?rc:gc;x.fillRect(px,py+(th-gp)*(1-fr),tw-gp,(th-gp)*fr);x.restore();x.strokeStyle='#fff';x.lineWidth=1.5;x.stroke();var rm=Math.max(0,Math.ceil(B-e%B));x.font='bold '+Math.max(9,Math.min(tw-gp,th-gp)*.28)+'px monospace';x.textAlign='center';x.textBaseline='middle';x.shadowColor='#000';x.shadowBlur=4;x.fillStyle='#fff';x.fillText(((rm/60)|0)+':'+('0'+rm%60).slice(-2),px+(tw-gp)/2,py+(th-gp)/2);x.shadowBlur=0;x.font='12px monospace';x.textAlign='left';x.textBaseline='alphabetic'}}x.shadowBlur=0;
 }
 n=Math.ceil((Date.now()-t)/1e6);
-c.onpointerdown=e=>{q=e.clientX;b=o;c.setPointerCapture(e.pointerId)};
-c.onpointermove=e=>{if(q!=null){o=Math.max(0,Math.min(D*S-W,b-(e.clientX-q)));f()}};
-c.onpointerup=c.onpointercancel=()=>q=null;
+function ZT(a,ax){}
+function ZP(a){pz=Math.max(.2,Math.min(50,pz*a))}
+c.onpointerdown=e=>{c.setPointerCapture(e.pointerId);P.set(e.pointerId,[e.clientX,e.clientY]);pd=e.clientX>W-60?1:e.clientY>H-30?2:0};
+c.onpointermove=e=>{var p=P.get(e.pointerId),a,w2,h2,dx,dy;if(!p)return;dx=e.clientX-p[0];dy=e.clientY-p[1];
+if(P.size>1){a=[...P.values()];w2=Math.max(30,Math.abs(a[0][0]-a[1][0]));h2=Math.max(30,Math.abs(a[0][1]-a[1][1]));P.set(e.pointerId,[e.clientX,e.clientY]);a=[...P.values()];ZT(Math.max(30,Math.abs(a[0][0]-a[1][0]))/w2,(a[0][0]+a[1][0])/2);ZP(Math.max(30,Math.abs(a[0][1]-a[1][1]))/h2)}
+else{P.set(e.pointerId,[e.clientX,e.clientY]);if(pd==1)ZP(Math.exp(-dy/150));else if(pd==2)ZT(Math.exp(dx/150),e.clientX);else{o=Math.max(0,Math.min(D*S-W,o-dx));po+=dy*rg/(H-60)}}
+f()};
+c.onpointerup=c.onpointercancel=e=>{P.delete(e.pointerId);pd=0};
+c.onwheel=e=>{e.preventDefault();var a=Math.exp(-e.deltaY/300);if(e.clientX>W-60||e.shiftKey)ZP(a);else ZT(a,e.clientX);f()};
+c.ondblclick=()=>{pz=1;po=0;f()};
 Promise.all([...Array(n)].map((_,k)=>g(t+k*1e6))).then(r=>{
-r.flat().forEach(k=>d[(k[0]-t)/1000]=+k[4]);
-o=Math.max(0,Math.min(D*S-W,d.length*S-W));f()
+r.flat().forEach(k=>{i=(k[0]-t)/1000;if(d[i]==null)d[i]=+k[4]});
+o=Math.max(0,Math.min(D*S-W,d.length*S-W));rd=1;f()
 }).catch(e=>{x.fillStyle='#f55';x.textAlign='left';x.fillText(String(e),10,40)});
+function L(){w=new WebSocket('wss://data-stream.binance.vision/ws/btcusdt@kline_1s');
+w.onmessage=e=>{k=JSON.parse(e.data).k;i=(k.t-t)/1000;if(i<0||i>=D)return;fl=o>=d.length*S-W-S;d[i]=+k.c;if(rd){if(fl)o=Math.max(0,Math.min(D*S-W,d.length*S-W));f()}};
+w.onclose=()=>setTimeout(L,2000)}
+L();
 </script>
 </body>
