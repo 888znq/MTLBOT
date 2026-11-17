@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>WALLSPECTRUM LOCAL — XAU/USD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg-base:#000432;--bg-panel:#000432;--accent-green:#2ED573;--accent-red:#E63946;--text-primary:#E2E8F0;--border:#E2E8F0;--pair-color:hsl(253,80%,60%);}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -40,6 +43,78 @@ tr.highlight-gem[data-wpe="HIT"][data-wph="1"]>td:nth-child(4)::after{content:"H
 tr.highlight-gem[data-wpe="MISS"][data-wph="1"]>td:nth-child(4)::after{content:"MISSED";}
 #bootOverlay{position:fixed;inset:0;background:#000432;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;}
 #bootLogBox{width:min(540px,94vw);height:150px;background:#070B2E;border:1px solid var(--pair-color);border-radius:14px;padding:10px;overflow-y:auto;font-size:10px;line-height:1.5;}
+#tcBar,.ctrl-row,.table-hdr{display:none!important;}
+html,body{background:#00021c;}
+#main-container{padding:8px;gap:8px;}
+body.tc-solo #main-container{gap:0;}
+#canvas-viewport{border:1px solid var(--pair-color);border:1px solid color-mix(in srgb,var(--pair-color) 55%,transparent);border-radius:12px;background:var(--bg-base);box-shadow:0 6px 24px rgba(0,0,0,.45);}
+#tcWrap{inset:8px;border-radius:8px;}
+#scanChartTimer{right:34px;top:30px;}
+#wall-finder-pane{border:1px solid var(--pair-color);border:1px solid color-mix(in srgb,var(--pair-color) 55%,transparent);border-radius:12px;padding:8px;background:var(--bg-base);box-shadow:0 6px 24px rgba(0,0,0,.45);}
+.tables-split{gap:8px;}
+.table-col{border:1px solid var(--pair-color);border:1px solid color-mix(in srgb,var(--pair-color) 45%,transparent);border-radius:8px;background:var(--bg-base);}
+table{border-spacing:0;font-variant-numeric:tabular-nums;}
+td{height:36px;padding:3px 4px;vertical-align:middle;border-right:1px solid rgba(0,4,50,.55);border-bottom:1px solid rgba(0,4,50,.9);}
+tr:last-child td{border-bottom:none;}
+tr.highlight-gem:hover td{filter:brightness(1.1);}
+@media(max-width:600px){#main-container{padding:4px;gap:4px;}#tcWrap{inset:4px;}.tables-split{gap:4px;}#wall-finder-pane{padding:4px;}}
+html,body{background:#00021c;font-feature-settings:"zero" 1;-webkit-font-smoothing:antialiased;}
+#canvas-viewport,#wall-finder-pane{border-color:rgba(136,144,184,.28);border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.4);}
+#wall-finder-pane{padding:6px;}
+.tables-split{gap:6px;}
+.table-col{border-color:rgba(136,144,184,.22);border-radius:8px;}
+td{font-size:11px;font-weight:600;letter-spacing:.02em;height:34px;border-right:1px solid rgba(0,4,50,.35);border-bottom:1px solid rgba(0,4,50,.6);}
+td span[data-hold-t]{opacity:.72;font-weight:600;letter-spacing:.02em;}
+#scanChartTimer{opacity:.14;font-weight:700;}
+:root{--bg-base:#0F1A2E;--bg-panel:#13203A;--accent-green:#2ED573;--accent-red:#E63946;--text-primary:#C9D1E0;--border:#1C2433;--pair-color:#D4AF37;}
+html,body{background:#0A1322;color:#D3DBEA;}
+#main-container{padding:10px;gap:10px;}
+#canvas-viewport,#wall-finder-pane{background:#0F1A2E;border:1px solid #263653;border-radius:10px;box-shadow:none;}
+#tcWrap{inset:6px;background:#0F1A2E;border-radius:6px;}
+#scanChartTimer{right:30px;top:26px;width:auto;height:auto;font:600 40px/1 'JetBrains Mono',monospace;color:#6B7689;opacity:.35;}
+#wall-finder-pane{padding:8px;}
+.tables-split{gap:10px;}
+.table-col{background:#0C1628;border:1px solid #263653;border-radius:8px;}
+table{border-spacing:0;font-size:11px;}
+td{height:34px;padding:2px 6px;font-weight:600;letter-spacing:.02em;color:#000432;border-right:1px solid rgba(0,4,50,.35);border-bottom:1px solid rgba(0,4,50,.6);}
+td:first-child{padding-left:14px!important;}
+td:last-child{font-weight:800;}
+tr:last-child td{border-bottom:none;}
+.row-green td{background:#2ED573;color:#000432;}
+.row-red td{background:#E63946;color:#000432;}
+
+
+tr.highlight-gem:hover td{filter:none;}
+
+
+tr.highlight-gem[style*="box-shadow"]{box-shadow:none!important;}
+
+
+tr.highlight-gem[style*="box-shadow"] td:first-child{box-shadow:inset 4px 0 0 #FFD700;}
+tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:#F5B942;color:#0B0F17;}
+#bootOverlay{background:#0F1A2E;}
+#tradePill{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);z-index:8;display:flex;align-items:center;gap:6px;padding:4px 4px 4px 4px;background:#0C1628;border:1px solid rgba(212,175,55,.45);border-radius:999px;font:700 10px 'JetBrains Mono',monospace;white-space:nowrap;}
+#tradePill button{width:72px;height:26px;padding:0;border:none;border-radius:999px;font:800 10px 'JetBrains Mono',monospace;letter-spacing:.08em;color:#0F1A2E;cursor:pointer;}
+#tradePill button:active{transform:scale(.96);}
+#tpBuy{background:#2ED573;}
+#tpSell{background:#E63946;}
+#tpAmt{width:72px;height:26px;padding:0;background:#0F1A2E;border:1px solid #263653;border-radius:999px;color:#D3DBEA;text-align:center;font:800 10px 'JetBrains Mono',monospace;outline:none;-webkit-user-select:text;user-select:text;-moz-appearance:textfield;}
+#tpAmt::-webkit-outer-spin-button,#tpAmt::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+#tpAmt:focus{border-color:#D4AF37;}
+.tpLbl{color:#7A89A6;letter-spacing:.08em;}
+#sigStrip{position:absolute;left:12px;right:12px;bottom:76px;z-index:8;display:flex;justify-content:center;gap:8px;pointer-events:none;}
+.sgBox{flex:0 0 min(440px,calc(50% - 4px));border-radius:8px;overflow:hidden;border:1px solid #263653;}
+.sgBox table{width:100%;}
+
+
+
+#tradePill #tpBal{display:flex;align-items:center;justify-content:center;width:72px;height:26px;padding:0;background:#0F1A2E;border:1px solid #263653;border-radius:999px;color:#D4AF37;font:800 10px 'JetBrains Mono',monospace;letter-spacing:0;cursor:pointer;}
+#tradePill #tpAuto{background:#0F1A2E;border:1px solid #263653;color:#7A89A6;}
+#tradePill #tpAuto.on{background:#D4AF37;border-color:#D4AF37;color:#0F1A2E;}
+.pyP{margin-left:6px;padding:1px 6px;border-radius:999px;background:rgba(0,4,50,.2);font-size:9px;font-weight:800;letter-spacing:.02em;}
+#bootOverlay>div:first-child{color:#8FA3C7!important;font-weight:600!important;letter-spacing:.16em!important;}
+#bootLogBox{background:#0C1628;border:1px solid #263653;border-radius:10px;}
+@media(max-width:600px){#main-container{padding:6px;gap:6px;}#tcWrap{inset:4px;}.tables-split{gap:6px;}#wall-finder-pane{padding:6px;}td:first-child{padding-left:8px!important;}}
 </style>
 </head>
 <body>
@@ -58,6 +133,13 @@ tr.highlight-gem[data-wpe="MISS"][data-wph="1"]>td:nth-child(4)::after{content:"
       </div>
     </div>
     <div id="scanChartTimer">60</div>
+        <div id="sigStrip"></div>
+            <div id="tradePill">
+          <input type="number" id="tpAmt" value="0.50" min="0.35" step="0.01">
+          <button type="button" id="tpBuy">BUY</button>
+          <button type="button" id="tpSell">SELL</button>
+          <button type="button" id="tpAuto">AUTO</button><button type="button" id="tpBal">D 0.00</button>
+        </div>
   </div>
   <div id="wall-finder-pane">
     <div class="ctrl-row">
@@ -332,7 +414,7 @@ var globalRevs = [], globalMoms = [], scanPending = 0, _scanStartedAt = 0, _scan
 var lastClickedSigId = "", clickCycleIndex = -1, highlightRow = -1, currentInstances = [], currentInstanceIndex = -1, liveEdgeCol = -1;
 var derivWs = null, _scanCountdownSec = 60, _scanCountdownTimer = null, _bootPairState = { frxXAUUSD: "wait" };
 window.liveTickBuffer = { frxXAUUSD: {} };
-window.pairColorHex = "hsl(253,80%,60%)";
+window.pairColorHex = "#D4AF37";
 window.systemThemeHex = "#000432";
 window.accentGreenHex = "#2ED573";
 window.accentRedHex = "#E63946";
@@ -764,7 +846,7 @@ function holdText(t) {
 }
 window._wpTmrMap = {};
 function _buildScannerRowsHtml(list) {
-  if (!list || !list.length) return '<tr><td colspan="7" style="text-align:center;color:#FFF;background:#000432;padding:12px;">NO TARGETS FOUND</td></tr>';
+  if (!list || !list.length) return '<tr><td colspan="7" style="text-align:center;color:#6B7689;background:transparent;padding:16px;">NO TARGETS FOUND</td></tr>';
   var pr = allPairData.frxXAUUSD.prices, pre = window._preArr("frxXAUUSD"), hi = Math.min(Math.floor(Date.now() / 1000) - currentStartTsUtc, pr.length - 1);
   while (hi > 0 && pr[hi] === -1) hi--;
   return list.map(d => {
@@ -773,7 +855,7 @@ function _buildScannerRowsHtml(list) {
     var ht = rpOne(d, d.type, pr, pre, hi, pr.length);
     var sel = (k.split("|").join("-") === lastClickedSigId) ? "filter:brightness(1.25);box-shadow:inset 4px 0 0 #FFD700;" : "";
     return `<tr class="${d.col === 'R' ? 'row-red' : 'row-green'} highlight-gem" data-k="${k}" style="${sel}" onclick="manualSelectSignal('${d.pair}',${d.c},${d.r},${d.s1},${d.s2},'${d.col}','${d.type}',${d.gap||0},${d.curGap||0})">
-      <td style="width:28%;text-align:left;padding-left:8px;">XAU/USD<span data-hold-t="${ht}" style="display:block;font-size:8px;line-height:9px;">${holdText(ht)}</span></td>
+      <td style="width:28%;text-align:left;padding-left:8px;">XAU/USD${window._pyHtml || ""}<span data-hold-t="${ht}" style="display:block;font-size:8px;line-height:9px;">${holdText(ht)}</span></td>
       <td style="width:10%;text-align:center;">C${d.c}</td>
       <td style="width:10%;text-align:center;">R${d.r}</td>
       <td style="width:19%;text-align:center;">X${d.s1}-X${d.s2}</td>
@@ -855,7 +937,7 @@ function _autoSelectTopSignal() {
 
 (function() {
   var TC = { on: true, boxMode: true, follow: true, spp: 3, left: 0, yZ: 1, yOff: 0, W: 0, H: 0, dpr: 1, hits: [], hov: [], bxCache: null, tip: null, mx: -1, my: -1, sigMode: "MIX", allMap: null };
-  var PADL = 2, PADR = 58, PADT = 4, PADB = 24, ZOOMS = [0.25, 0.5, 1, 2, 3, 5, 10, 20, 30, 60, 120, 300], MONO = "'JetBrains Mono',monospace";
+  var PADL = 6, PADR = 50, PADT = 4, PADB = 24, ZOOMS = [0.25, 0.5, 1, 2, 3, 5, 10, 20, 30, 60, 120, 300], MONO = "'JetBrains Mono',monospace";
   TC.wrap = document.getElementById("tcWrap"); TC.cv = document.getElementById("tcCanvas"); TC.ctx = TC.cv.getContext("2d");
 
   function tcOffset() { return (currentStartTsUtc % 86400) + 19800; }
@@ -1043,7 +1125,7 @@ function _autoSelectTopSignal() {
     }
     if (bxInstSelJ >= rkVis0 && bxInstSelJ <= rkVis1) {
       var selX = (rkXOf(rkColS(bxInstSelJ)) + rkXOf(rkColE(bxInstSelJ))) / 2;
-      ctx.save(); ctx.strokeStyle = "#D500F9"; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(selX, rkTop); ctx.lineTo(selX, rkBot); ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.strokeStyle = "#D500F9"; ctx.strokeStyle = "#FFFFFF"; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(selX, rkTop); ctx.lineTo(selX, rkBot); ctx.stroke(); ctx.restore();
     }
     for (var j = rkVis0; j <= rkVis1; j++) {
       var hcCell = bxCells ? bxCells[j] : null, c = arr[j], hasDat = bxCells ? (!!hcCell || j === cj) : (!!c || j === cj), bxO = bxMap[j], bxIm = bxInstMap ? bxInstMap[j] : null;
@@ -1054,7 +1136,7 @@ function _autoSelectTopSignal() {
         var pPy = rkPosY(j - 1); ctx.strokeStyle = "rgba(255,255,255,0.22)";
         ctx.beginPath(); ctx.moveTo(x0 - gp / 2, pPy + (py >= pPy ? bh : 0)); ctx.lineTo(px, py + (py >= pPy ? 0 : bh)); ctx.stroke();
       }
-      ctx.fillStyle = bxCells ? ((!hcCell || j === cj) ? "#11161b" : (hcCell.col === 1 ? GREEN : RED)) : ((!c || j === cj) ? "#11161b" : (c[3] >= c[0] ? GREEN : RED));
+      ctx.fillStyle = bxCells ? ((!hcCell || j === cj) ? "#1B2A47" : (hcCell.col === 1 ? GREEN : RED)) : ((!c || j === cj) ? "#1B2A47" : (c[3] >= c[0] ? GREEN : RED));
       ctx.fillRect(px, py, bw, bh);
       if (j === cj) {
         var prevP = bxCells ? ((j > 0 && bxCells[j - 1]) ? bxCells[j - 1].p : window._preRef(pair, j * B + bxR0 - B)) : (c ? c[0] : -1);
@@ -1079,10 +1161,10 @@ function _autoSelectTopSignal() {
         var up2 = isFut ? bxO.fut.up : (isSig ? bxO.up : bxInstUp);
         var dt = (up2 ? "BUY" : "SELL") + (bxIm && !isSig && !isFut && bxIm.inst.isFalse ? " F" + (bxIm.inst.falseSeq || 1) : "");
         ctx.save(); ctx.font = "bold 10px " + MONO; var dw = ctx.measureText(dt).width + 10, cy = up2 ? Math.min(rkBot - 10, py + bh + 12) : Math.max(rkTop + 10, py - 12);
-        ctx.fillStyle = (bxIm && bxIm.sel) ? "#D500F9" : bxPcol; ctx.fillRect(mx - dw / 2, cy - 7, dw, 14);
-        ctx.fillStyle = (bxIm && bxIm.sel) ? "#FFF" : BG; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(dt, mx, cy + 0.5); ctx.restore();
+        ctx.fillStyle = (bxIm && bxIm.sel) ? "#FFFFFF" : bxPcol; ctx.fillRect(mx - dw / 2, cy - 7, dw, 14);
+        ctx.fillStyle = BG; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(dt, mx, cy + 0.5); ctx.restore();
       }
-      if (bxIm) { ctx.strokeStyle = "#D500F9"; ctx.lineWidth = bxIm.sel ? 2.5 : 1.8; ctx.strokeRect(px - 1, py - 1, bw + 2, bh + 2); }
+      if (bxIm) { ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = bxIm.sel ? 2.5 : 1.8; ctx.strokeRect(px - 1, py - 1, bw + 2, bh + 2); }
       var resW = (bxO && (bxO.resW === "win" || bxO.resW === "loss")) ? bxO.resW : null;
       if (!resW && bxInstMap && j > 0 && bxInstMap[j - 1]) {
         var nxSec = bxInstMap[j - 1].sec + B;
@@ -1095,9 +1177,9 @@ function _autoSelectTopSignal() {
     }
     ctx.restore();
     ctx.fillStyle = BG; ctx.fillRect(W - PADR, 0, PADR, H); ctx.fillRect(0, rkBot, W, H - rkBot);
-    ctx.strokeStyle = bxPcol; ctx.strokeRect(0.5, 0.5, W - PADR - 1, rkBot - 0.5);
+    ctx.save(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(136,144,184,0.35)"; ctx.strokeRect(0.5, 0.5, W - PADR - 1, rkBot - 0.5); ctx.restore();
     var stepV = Math.max(1, Math.ceil(rkSpan / (6 * rkYz)));
-    ctx.font = "10px " + MONO; ctx.fillStyle = bxPcol; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.font = "10px " + MONO; ctx.fillStyle = DIM; ctx.textAlign = "left"; ctx.textBaseline = "middle";
     for (var av = Math.ceil(rkMin / stepV) * stepV; av <= rkMax; av += stepV) {
       var ay = Math.round(rkY0 + (rkMax - av) * rkStepY + bh / 2) + 0.5;
       if (ay > rkTop + 10 && ay < rkBot - 10) ctx.fillText((av > 0 ? "+" : "") + av, W - PADR + 5, ay);
@@ -1112,12 +1194,12 @@ function _autoSelectTopSignal() {
     }
     ctx.textAlign = "left"; ctx.font = "bold 10px " + MONO; ctx.fillStyle = DIM;
     var hdr = "XAU/USD  |  BOX " + (B / 60) + "m" + (bxMain ? " R" + bxMain.r : "") + "  |  DOUBLE-CLICK = SWITCH MODE   ";
-    ctx.fillText(hdr, M, 15);
+    
     var tx3 = M + ctx.measureText(hdr).width;
     ["REV", "MOM"].forEach(k2 => {
       var tt = bxTal[k2], td = tt.w + tt.l; if (!(td + tt.p)) return;
       [[k2 + " ", "#E2E8F0"], ["✓" + tt.w + " ", GREEN], ["✗" + tt.l + " ", RED], [(td ? Math.round(tt.w / td * 100) + "%" : "--") + "   ", "#E2E8F0"]].forEach(s => {
-        ctx.fillStyle = s[1]; ctx.fillText(s[0], tx3, 15); tx3 += ctx.measureText(s[0]).width;
+        tx3 += ctx.measureText(s[0]).width;
       });
     });
   }
@@ -1130,12 +1212,14 @@ function _autoSelectTopSignal() {
       TC.cv.style.width = W + "px"; TC.cv.style.height = H + "px";
     }
     var ctx = TC.ctx; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var BG = "#000432", TXT = "#E2E8F0", DIM = "#8890b8", CY = "#2ED573", AM = "#E63946";
+    var BG = "#0F1A2E", TXT = "#D3DBEA", DIM = "#7A89A6", CY = "#2ED573", AM = "#E63946";
     ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
-    TC.hits = []; TC.hov = [];
+        ctx.lineWidth = 1; ctx.setLineDash([]);
+        TC.hits = []; TC.hov = [];
     var ap = allPairData.frxXAUUSD.prices;
     if (!ap || !ap.length) { ctx.fillStyle = "#FFF"; ctx.font = "bold 12px " + MONO; ctx.fillText("XAU/USD — WAITING FOR DATA...", 12, 24); return; }
     TC.allMap = tcCollectAll();
+        tcSigStrip(TC.allMap.frxXAUUSD);
     if (TC.boxMode) { tcDrawBoxes(ctx, W, H, dpr, "frxXAUUSD", BG, DIM); return; }
     var nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc, live = _isWithinMappedWindow() && nowSec >= 0 && nowSec < 86400;
     var apLast = tcLastReal(ap, Math.min(live ? nowSec : 86400, ap.length - 1)), nowIdx = live ? nowSec : Math.max(0, apLast);
@@ -1233,12 +1317,12 @@ function _autoSelectTopSignal() {
         var ox = xOf(idx), oy = yOf(ap[idx]), sel = n === currentInstanceIndex;
         if (sel) {
           ctx.save(); ctx.strokeStyle = "#D500F9"; ctx.setLineDash([4, 4]);
-          ctx.beginPath(); ctx.moveTo(ox, ptop); ctx.lineTo(ox, pbot); ctx.stroke(); ctx.restore();
+          ctx.strokeStyle = "#FFFFFF"; ctx.beginPath(); ctx.moveTo(ox, ptop); ctx.lineTo(ox, pbot); ctx.stroke(); ctx.restore();
         }
         var lbl = (((ocP[6] === "REV") ? (ocP[5] === "R") : (ocP[5] === "G")) ? "BUY" : "SELL") + (inst.isFalse ? " F" + (inst.falseSeq || 1) : "");
         ctx.save(); ctx.font = "bold 10px " + MONO; var tw = ctx.measureText(lbl).width + 10, ly = oy > ptop + 26 ? oy - 16 : oy + 16;
-        ctx.fillStyle = sel ? "#D500F9" : it.color; ctx.fillRect(ox - tw / 2, ly - 7, tw, 14);
-        ctx.fillStyle = sel ? "#FFF" : BG; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(lbl, ox, ly); ctx.restore();
+        ctx.fillStyle = sel ? "#FFFFFF" : it.color; ctx.fillRect(ox - tw / 2, ly - 7, tw, 14);
+        ctx.fillStyle = BG; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(lbl, ox, ly); ctx.restore();
       });
     }
 
@@ -1258,8 +1342,8 @@ function _autoSelectTopSignal() {
     });
 
     ctx.fillStyle = BG; ctx.fillRect(W - PADR, 0, PADR, H); ctx.fillRect(0, pbot, W, H - pbot);
-    ctx.strokeStyle = it.color; ctx.strokeRect(0.5, 0.5, W - PADR - 1, pbot - 0.5);
-    ctx.font = "10px " + MONO; ctx.fillStyle = it.color; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.save(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(136,144,184,0.35)"; ctx.strokeRect(0.5, 0.5, W - PADR - 1, pbot - 0.5); ctx.restore();
+    ctx.font = "10px " + MONO; ctx.fillStyle = DIM; ctx.textAlign = "left"; ctx.textBaseline = "middle";
     var lastY = it.last >= 0 ? yOf(ap[it.last]) : -999;
     pxTicks.forEach(tk => { if (tk.y > ptop + 12 && tk.y < pbot - 12 && Math.abs(tk.y - lastY) > 12) ctx.fillText(tk.v.toFixed(2), W - PADR + 5, tk.y); });
     if (it.last >= 0) {
@@ -1267,28 +1351,79 @@ function _autoSelectTopSignal() {
       ctx.fillStyle = it.color; ctx.fillRect(W - PADR + 2, ly2 - 9, PADR - 4, 18);
       ctx.fillStyle = BG; ctx.font = "bold 10px " + MONO; ctx.textAlign = "center"; ctx.fillText(ap[it.last].toFixed(2), W - PADR / 2, ly2 + 0.5);
     }
-    ctx.fillStyle = it.color; ctx.font = "10px " + MONO; ctx.textAlign = "center";
+    ctx.fillStyle = DIM; ctx.font = "10px " + MONO; ctx.textAlign = "center";
     for (var tm = firstT; tm <= right; tm += tstep) {
       if (tm < 0 || tm > 86400) continue;
       var tx3 = xOf(tm); if (tx3 > PADL + 28 && tx3 < W - PADR - 28) ctx.fillText(tcFmt(tm, tstep < 60), tx3, pbot + 12);
     }
 
     ctx.textAlign = "left"; ctx.font = "bold 11px " + MONO; ctx.fillStyle = TXT;
-    ctx.fillText("XAU/USD  |  " + tcFmt(nowIdx, true) + " IST  |  " + (live ? "LIVE" : "CLOSED") + "  |  TICK LINE  |  DOUBLE-CLICK = BOX MODE", 8, 14);
+    
     if (live && nextIt) {
       var ns = nextIt.sig; ctx.fillStyle = "#FFD700";
-      ctx.fillText("NEXT " + ns.type + " C" + ns.c + " R" + ns.r + " X" + ns.s1 + "-X" + ns.s2 + " " + ns.pct + "% @" + tcFmt(nextIt.idx, true) + " in " + tcFmtIn(nextIt.idx - nowSec), 8, 28);
+      
     }
     var tx4 = 8;
     ["REV", "MOM"].forEach(k2 => {
       var tt = tally[k2], td = tt.w + tt.l;
       [[" " + k2 + " ", TXT], ["✓" + tt.w + " ", CY], ["✗" + tt.l + " ", AM], [(td ? Math.round(tt.w / td * 100) + "%" : "--") + "   ", TXT]].forEach(s => {
-        ctx.fillStyle = s[1]; ctx.fillText(s[0], tx4, 42); tx4 += ctx.measureText(s[0]).width;
+        tx4 += ctx.measureText(s[0]).width;
       });
     });
   }
 
-  function tcDraw() { if (!TC._rq) TC._rq = requestAnimationFrame(() => { TC._rq = 0; tcDrawNow(); }); }
+  function tcSigPick() {
+      var clk = window._tcClicked(), r = null, o = null;
+      try { r = _wsBuild(globalRevs.slice(), "lvl")[0] || null; o = _wsBuild(globalMoms.slice(), "lvl")[0] || null; } catch (e) {}
+      if (clk) { if (clk.type === "REV") r = clk; else o = clk; }
+      return { rev: r, mom: o };
+    }
+  
+    function tcSigStrip(m) {
+      var el = document.getElementById("sigStrip");
+          var sp = tcSigPick();
+          var spr = allPairData.frxXAUUSD.prices, spre = window._preArr("frxXAUUSD"), sphi = Math.min(Math.floor(Date.now() / 1000) - currentStartTsUtc, spr.length - 1);
+          while (sphi > 0 && spr[sphi] === -1) sphi--;
+      if (!el) return;
+      var h = "";
+      [sp.rev, sp.mom].forEach(function(x) {
+        if (!x) return;
+        h += '<div class="sgBox"><table><tr class="' + (x.col === "R" ? "row-red" : "row-green") + '">' +
+                '<td style="width:28%;text-align:left;padding-left:8px;">XAU/USD' + (window._pyHtml || "") + '<span style="display:block;font-size:8px;line-height:9px;">' + holdText(rpOne(x, x.type, spr, spre, sphi, spr.length)) + '</span></td>' +
+                '<td style="width:10%;text-align:center;">C' + x.c + '</td>' +
+                '<td style="width:10%;text-align:center;">R' + x.r + '</td>' +
+                '<td style="width:19%;text-align:center;">X' + x.s1 + '-X' + x.s2 + '</td>' +
+                '<td style="width:10%;text-align:center;">' + x.c1 + '</td>' +
+                '<td style="width:10%;text-align:center;">' + x.c2 + '</td>' +
+                '<td style="width:13%;text-align:center;">' + x.pct + '%</td></tr></table></div>';
+      });
+      if (el._h !== h) { el._h = h; el.innerHTML = h; }
+    }
+  
+    var tpLastFire = {};
+      function tpAutoTick() {
+        if (!dv.auto || !window.dvTrade) return;
+        var pd = allPairData.frxXAUUSD, ap = pd && pd.prices;
+        if (!ap || !ap.length || !_isWithinMappedWindow()) return;
+        var nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc;
+        if (nowSec < 0 || nowSec >= 86400) return;
+        var lim = Math.min(nowSec, ap.length - 1, 86399), last = tcLastReal(ap, lim), sp = tcSigPick();
+        var amt = parseFloat(document.getElementById("tpAmt").value) || 0;
+        if (amt <= 0) return;
+        [sp.rev, sp.mom].forEach(function(x) {
+          if (!x) return;
+          var pl = tcPlan(x, ap, lim, 86400, last);
+          if (pl.kind !== "FIRED" || nowSec - pl.idx > 3) return;
+          var key = x.type + "|" + x.c + "|" + x.r + "|" + x.s1 + "|" + x.col + "|" + pl.idx;
+          if (tpLastFire[key]) return;
+          tpLastFire[key] = 1;
+          var up = x.type === "REV" ? x.col === "R" : x.col === "G";
+          window.dvTrade(up ? "BUY" : "SELL", amt, x.c);
+        });
+      }
+      setInterval(tpAutoTick, 500);
+    
+      function tcDraw() { if (!TC._rq) TC._rq = requestAnimationFrame(() => { TC._rq = 0; tcDrawNow(); }); }
   window.tcRedraw = window.tcOnTableRendered = tcDraw;
   setInterval(tcDraw, 500);
   window.addEventListener("resize", tcDraw);
@@ -1345,6 +1480,161 @@ function _autoSelectTopSignal() {
     tcDraw();
   }, { passive: false });
 })();
+
+var tpBalance = 0;
+window.setTradeBal = function(v) {
+  tpBalance = +v || 0;
+  var e = document.getElementById("tpBal");
+  if (e) e.textContent = tpBalance.toFixed(2);
+};
+function tpTrade(dir) {
+  var a = parseFloat(document.getElementById("tpAmt").value) || 0;
+  if (a <= 0) return;
+  if (window.onTradePill) window.onTradePill(dir, a);
+}
+document.getElementById("tpBuy").onclick = function() { tpTrade("BUY"); };
+document.getElementById("tpSell").onclick = function() { tpTrade("SELL"); };
+
+var DV_APP = "33VdMoKptaW40mOpanwBg", DV_TOK = "pat_4b2171c2b96c25dd073fe246d5111b37325fb67a07b50aa887c384b7c181175f";
+var dv = { mode: "demo", ws: null, ready: false, bal: { demo: null, real: null }, cur: { demo: "USD", real: "USD" }, acc: {}, rid: 10, pend: {}, auto: false };
+
+function dvCfg() {
+  return { app: DV_APP, tok: DV_TOK, demo: dv.acc.demo || "", real: dv.acc.real || "" };
+}
+
+function dvAsk() {
+  var c = dvCfg(), a = prompt("Deriv App ID", c.app || ""); if (a === null) return null;
+  var t = prompt("Deriv PAT token", c.tok || ""); if (t === null) return null;
+  var d = prompt("DEMO account ID", c.demo || ""); if (d === null) return null;
+  var r = prompt("REAL account ID (optional)", c.real || ""); if (r === null) return null;
+  c = { app: a.trim(), tok: t.trim(), demo: d.trim(), real: r.trim() };
+  try { localStorage.setItem("dvCfg", JSON.stringify(c)); } catch (e) {}
+  return c;
+}
+
+function tpBalShow() {
+  var e = document.getElementById("tpBal"); if (!e) return;
+  var v = dv.bal[dv.mode];
+  e.textContent = (dv.mode === "real" ? "R " : "D ") + (v === null ? "0.00" : v.toFixed(2));
+  e.style.color = dv.mode === "real" ? "#2ED573" : "#D4AF37";
+}
+
+function tpFlash(ok, msg) {
+  var p = document.getElementById("tradePill"); if (!p) return;
+  p.style.borderColor = ok ? "#2ED573" : "#E63946";
+  p.title = msg || "";
+  if (msg) console.log("[TRADE] " + msg);
+  clearTimeout(tpFlash._t);
+  tpFlash._t = setTimeout(function() { p.style.borderColor = ""; }, 1200);
+}
+
+function dvSend(obj) {
+  return new Promise(function(res, rej) {
+    if (!dv.ready || !dv.ws) { rej(new Error("not connected")); return; }
+    var id = ++dv.rid; obj.req_id = id;
+    var t = setTimeout(function() { delete dv.pend[id]; rej(new Error("timeout")); }, 15000);
+    dv.pend[id] = function(d) {
+      clearTimeout(t); delete dv.pend[id];
+      if (d.error) rej(new Error(d.error.message || "error")); else res(d);
+    };
+    dv.ws.send(JSON.stringify(obj));
+  });
+}
+
+async function dvLoadAccts() {
+  try {
+    var r = await fetch("https://api.derivws.com/trading/v1/options/accounts", { headers: { "Authorization": "Bearer " + DV_TOK, "Deriv-App-ID": DV_APP } });
+    var j = await r.json(), L = j && j.data ? (Array.isArray(j.data) ? j.data : [j.data]) : [];
+    L.forEach(function(a) {
+      if (!a || a.status === "inactive") return;
+      var t = a.account_type === "real" ? "real" : "demo";
+      if (dv.acc[t]) return;
+      dv.acc[t] = a.account_id; dv.bal[t] = +a.balance; dv.cur[t] = a.currency || "USD";
+    });
+    tpBalShow();
+    if (!L.length) tpFlash(false, "accounts: " + (j && j.errors ? JSON.stringify(j.errors) : r.status));
+  } catch (e) { tpFlash(false, "accounts failed: " + e.message); }
+}
+
+async function dvConnect(mode) {
+  var c = dvCfg();
+  if (!dv.acc[mode]) await dvLoadAccts();
+    c = dvCfg();
+    if (!c[mode]) { tpFlash(false, "no " + mode + " account found"); return false; }
+  if (mode !== dv.mode) { dv.auto = false; var ab = document.getElementById("tpAuto"); if (ab) ab.classList.remove("on"); }
+  var old = dv.ws; dv.ws = null; dv.ready = false; dv.mode = mode; tpBalShow();
+  if (old) { try { old.onclose = null; old.close(); } catch (e) {} }
+  try {
+    var r = await fetch("https://api.derivws.com/trading/v1/options/accounts/" + encodeURIComponent(c[mode]) + "/otp", { method: "POST", headers: { "Authorization": "Bearer " + c.tok, "Deriv-App-ID": c.app } });
+    var j = await r.json();
+    if (!j || !j.data || !j.data.url) throw new Error("OTP rejected");
+    var ws = new WebSocket(j.data.url);
+    dv.ws = ws;
+    ws.onmessage = function(ev) {
+      var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
+      if (d.msg_type === "balance" && d.balance) { dv.bal[mode] = +d.balance.balance; dv.cur[mode] = d.balance.currency || "USD"; if (dv.mode === mode) tpBalShow(); }
+      if (d.req_id && dv.pend[d.req_id]) dv.pend[d.req_id](d);
+    };
+    ws.onclose = function() {
+      if (dv.ws !== ws) return;
+      dv.ready = false;
+      setTimeout(function() { if (dv.ws === ws) dvConnect(dv.mode); }, 5000);
+    };
+    await new Promise(function(res, rej) { ws.onopen = res; ws.onerror = function() { rej(new Error("socket error")); }; });
+    if (dv.ws !== ws) return false;
+    dv.ready = true;
+    ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+    return true;
+  } catch (e) { tpFlash(false, "connect failed: " + e.message); return false; }
+}
+
+async function dvTrade(dir, amt, dur) {
+  try {
+    if (!dv.ready && !(await dvConnect(dv.mode))) return false;
+    var pr = await dvSend({ proposal: 1, amount: amt, basis: "stake", contract_type: dir === "BUY" ? "CALL" : "PUT", currency: dv.cur[dv.mode] || "USD", duration: dur, duration_unit: "s", underlying_symbol: "frxXAUUSD" });
+    var by = await dvSend({ buy: pr.proposal.id, price: +pr.proposal.ask_price || amt });
+    tpFlash(true, dir + " " + amt + " " + dur + "s #" + (by.buy ? by.buy.contract_id : ""));
+    return true;
+  } catch (e) { tpFlash(false, dir + " failed: " + e.message); return false; }
+}
+window.dvTrade = dvTrade;
+
+function dvManual(dir) {
+  var a = parseFloat(document.getElementById("tpAmt").value) || 0;
+  if (a <= 0) return;
+  dvTrade(dir, a, Math.round(CYCLE) || 300);
+}
+document.getElementById("tpBuy").onclick = function() { dvManual("BUY"); };
+document.getElementById("tpSell").onclick = function() { dvManual("SELL"); };
+document.getElementById("tpBal").onclick = function() { dvConnect(dv.mode === "demo" ? "real" : "demo"); };
+document.getElementById("tpAuto").onclick = function() {
+  if (!dv.auto && dv.mode === "real" && !confirm("AUTO will place REAL money trades. Enable?")) return;
+  dv.auto = !dv.auto;
+  this.classList.toggle("on", dv.auto);
+  if (dv.auto && !dv.ready) dvConnect(dv.mode);
+};
+dvConnect("demo");
+
+window._pyHtml = "";
+var _pyCyc = 0;
+function pyFetch() {
+  var dur = Math.round(CYCLE) || 300, ws, done = false;
+  try { ws = new WebSocket(DERIV_WS_URL); } catch (e) { return; }
+  var t = setTimeout(function() { if (!done) { done = true; try { ws.close(); } catch (e) {} } }, 10000);
+  ws.onopen = function() { ws.send(JSON.stringify({ proposal: 1, amount: 1, basis: "stake", contract_type: "CALL", currency: "USD", duration: dur, duration_unit: "s", underlying_symbol: "frxXAUUSD" })); };
+  ws.onmessage = function(ev) {
+    if (done) return;
+    var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
+    done = true; clearTimeout(t); try { ws.close(); } catch (e) {}
+    if (d.proposal && +d.proposal.ask_price > 0) {
+      var h = '<span class="pyP">' + Math.round((d.proposal.payout / d.proposal.ask_price - 1) * 100) + '%</span>';
+      if (h !== window._pyHtml) { window._pyHtml = h; renderFilteredTable(); }
+    } else console.log("[PAYOUT] " + (d.error ? d.error.message : "no proposal"));
+  };
+  ws.onerror = function() { if (!done) { done = true; clearTimeout(t); } };
+}
+setInterval(function() { if (_pyCyc !== CYCLE) { _pyCyc = CYCLE; pyFetch(); } }, 2000);
+setInterval(pyFetch, 30000);
 
 window.onload = async function() {
   var ctx = getTradingContext();
