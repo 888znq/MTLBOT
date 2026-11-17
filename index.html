@@ -1,20 +1,26 @@
 <body style="margin:0;background:#000;font:12px monospace">
-<div style="overflow-x:auto;height:100vh"><canvas id=c style="display:block"></canvas></div>
-<canvas id=a style="position:fixed;right:0;top:0;pointer-events:none"></canvas>
+<canvas id=c style="display:block;cursor:grab;touch-action:none"></canvas>
 <script>
-const N=1440,S=4,H=innerHeight-20,x=c.getContext('2d'),y=a.getContext('2d'),g=s=>fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=720&startTime='+s).then(r=>r.json());
-var t=new Date(),d,lo,hi,Y,X,h,i,v;
-c.width=N*S;c.height=a.height=H;a.width=70;y.font='12px monospace';
+const S=12,D=86400,W=innerWidth,H=innerHeight,x=c.getContext('2d'),g=m=>fetch('https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1s&limit=1000&startTime='+m).then(r=>r.json()).then(j=>{if(!Array.isArray(j))throw j.msg;return j});
+var t=new Date(),d=[],o=0,q=null,b=0,n,s,z,lo,hi,Y,X,v,i;
+c.width=W;c.height=H;x.font='12px monospace';
 t.setHours(5,30,0,0);if(t>Date.now())t.setDate(t.getDate()-1);t=+t;
-Promise.all([g(t),g(t+43200000)]).then(r=>{
-d=r.flat().map(k=>+k[4]);lo=Math.min(...d);hi=Math.max(...d);
-Y=v=>H-30-(v-lo)/(hi-lo)*(H-60);
-x.fillStyle='#222';y.fillStyle='#fff';y.textAlign='right';
-for(i=0;i<=4;i++){v=lo+(hi-lo)*i/4;x.fillRect(0,Y(v),N*S,1);y.fillText(v.toFixed(2),66,Y(v)-3)}
-x.strokeStyle='#0f0';x.beginPath();
-d.forEach((v,i)=>x[i?'lineTo':'moveTo'](i*S,Y(v)));x.stroke();
-x.fillStyle='#555';
-for(h=0;h<=24;h++){X=Math.min(h*60*S,N*S-1);x.fillRect(X,0,1,H);x.textAlign=h>23?'right':'left';x.fillText(String((5+h)%24).padStart(2,0)+':30',X+3,H-10)}
-});
+function f(){
+x.clearRect(0,0,W,H);s=Math.floor(o/S);z=Math.min(D,Math.ceil((o+W)/S)+1);lo=1e15;hi=0;
+for(i=s;i<z;i++)if((v=d[i])!=null){lo=Math.min(lo,v);hi=Math.max(hi,v)}
+if(lo>hi){lo=0;hi=1}if(lo==hi)hi++;
+Y=u=>H-30-(u-lo)/(hi-lo)*(H-60);
+for(i=Math.ceil(s/10)*10;i<z;i+=10){X=i*S-o;x.fillStyle=i%3600?'#222':'#666';x.fillRect(X,0,1,H);x.fillStyle='#888';x.textAlign='left';x.fillText(new Date(t+i*1000).toTimeString().slice(0,8),X+3,H-10)}
+for(i=0;i<=4;i++){v=lo+(hi-lo)*i/4;x.fillStyle='#222';x.fillRect(0,Y(v),W,1);x.fillStyle='#fff';x.textAlign='right';x.fillText(v.toFixed(2),W-4,Y(v)-3)}
+for(i=Math.max(s,1);i<z;i++){if(d[i]==null||d[i-1]==null)continue;X=i*S-o;x.strokeStyle=x.fillStyle=d[i]>d[i-1]?'#0f0':d[i]<d[i-1]?'#f33':'#888';x.beginPath();x.moveTo(X-S,Y(d[i-1]));x.lineTo(X,Y(d[i]));x.stroke();x.fillRect(X-2,Y(d[i])-2,4,4)}
+}
+n=Math.ceil((Date.now()-t)/1e6);
+c.onpointerdown=e=>{q=e.clientX;b=o;c.setPointerCapture(e.pointerId)};
+c.onpointermove=e=>{if(q!=null){o=Math.max(0,Math.min(D*S-W,b-(e.clientX-q)));f()}};
+c.onpointerup=c.onpointercancel=()=>q=null;
+Promise.all([...Array(n)].map((_,k)=>g(t+k*1e6))).then(r=>{
+r.flat().forEach(k=>d[(k[0]-t)/1000]=+k[4]);
+o=Math.max(0,Math.min(D*S-W,d.length*S-W));f()
+}).catch(e=>{x.fillStyle='#f55';x.textAlign='left';x.fillText(String(e),10,40)});
 </script>
 </body>
