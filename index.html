@@ -753,6 +753,24 @@ function applyCycleRange() {
   dispatchMultiCycleScan();
 }
 
+function _scanUi() {
+  var e1 = document.getElementById("scanTimerDisplay"), e2 = document.getElementById("scanChartTimer");
+  var a = document.getElementById("scanMin"), b = document.getElementById("scanMax");
+  if (scanPending) {
+    var s = Math.floor((Date.now() - _scanStartedAt) / 1000), txt = "SCAN " + s + "s";
+    if (e2) { e2.textContent = txt; e2.style.fontSize = "22px"; e2.style.color = "#FFD700"; e2.style.opacity = ".9"; e2.style.whiteSpace = "nowrap"; }
+    if (e1) e1.textContent = txt;
+    if (a) a.style.borderColor = "#FFD700";
+    if (b) b.style.borderColor = "#FFD700";
+  } else {
+    if (e2) { e2.style.fontSize = ""; e2.style.color = ""; e2.style.opacity = ""; e2.style.whiteSpace = ""; e2.textContent = String(_scanCountdownSec); }
+    if (e1) e1.textContent = _scanCountdownSec + "s";
+    if (a) a.style.borderColor = "";
+    if (b) b.style.borderColor = "";
+  }
+}
+setInterval(_scanUi, 250);
+
 function setScanInterval(v) {
   SCAN_INT = Math.max(5, Math.min(3600, parseInt(v, 10) || 60));
   var e = document.getElementById("scanIntv");
@@ -764,7 +782,8 @@ function _startScanCountdown() {
   if (_scanCountdownTimer) clearInterval(_scanCountdownTimer);
   _scanCountdownSec = SCAN_INT;
   var upd = () => {
-    var e1 = document.getElementById("scanTimerDisplay"), e2 = document.getElementById("scanChartTimer");
+    if (scanPending) return;
+        var e1 = document.getElementById("scanTimerDisplay"), e2 = document.getElementById("scanChartTimer");
     if (e1) e1.textContent = _scanCountdownSec + "s";
     if (e2) e2.textContent = String(_scanCountdownSec);
   };
