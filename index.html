@@ -161,6 +161,52 @@ table tr.row-green>td:first-child,table tr.row-red>td:first-child{border-left:1.
 table tr.row-green>td:last-child,table tr.row-red>td:last-child{border-right:1.5px solid;border-radius:0 6px 6px 0;}
 table tr.row-green.highlight-gem[style*="box-shadow"]>td{background:rgba(0,255,0,.3);}
 table tr.row-red.highlight-gem[style*="box-shadow"]>td{background:rgba(255,0,0,.3);}
+:root{color-scheme:dark;--pf-bg:#0B0E11;--pf-bg2:#0D1117;--pf-ctl:#141A22;--pf-line:#232A33;--pf-line2:#2F3845;--pf-text:#EAECEF;--pf-soft:#C5CBD6;--pf-mute:#848E9C;--pf-up:#0ECB81;--pf-dn:#F6465D;--pf-gold:#FCD535;--pf-up-rgb:14,203,129;--pf-dn-rgb:246,70,93;}
+html,body,#main-container{background:#06080B;color:var(--pf-text);}
+html,body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
+#canvas-viewport,#wall-finder-pane{background:var(--pf-bg);border:1px solid var(--pf-line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.03);}
+#tcWrap{background:var(--pf-bg);border-radius:8px;}
+#scanChartTimer{right:28px;top:26px;width:auto;height:auto;padding:6px 12px;font-size:12px!important;font-weight:700;letter-spacing:.14em;line-height:1;color:var(--pf-soft);opacity:.95;background:rgba(11,14,17,.82);border:1px solid var(--pf-line2);border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.4);}
+#wall-finder-pane .table-col{background:var(--pf-bg2);border:1px solid var(--pf-line);border-radius:8px;}
+#wall-finder-pane table td{font-weight:600;letter-spacing:.03em;}
+#wall-finder-pane table tr.row-green>td,#wall-finder-pane table tr.row-red>td{border-style:solid;border-width:1px 0;color:var(--pf-soft);transition:background .15s,border-color .15s;}
+#wall-finder-pane table tr.row-green>td{background:rgba(var(--pf-up-rgb),.07);border-color:rgba(var(--pf-up-rgb),.38);}
+#wall-finder-pane table tr.row-red>td{background:rgba(var(--pf-dn-rgb),.07);border-color:rgba(var(--pf-dn-rgb),.38);}
+#wall-finder-pane table tr.row-green>td:first-child,#wall-finder-pane table tr.row-red>td:first-child{border-left-width:1px;border-radius:6px 0 0 6px;color:var(--pf-text);font-weight:700;}
+#wall-finder-pane table tr.row-green>td:last-child,#wall-finder-pane table tr.row-red>td:last-child{border-right-width:1px;border-radius:0 6px 6px 0;font-weight:800;}
+#wall-finder-pane table tr.row-green>td:first-child{box-shadow:inset 3px 0 0 var(--pf-up);}
+#wall-finder-pane table tr.row-red>td:first-child{box-shadow:inset 3px 0 0 var(--pf-dn);}
+#wall-finder-pane table tr.row-green>td:last-child{color:var(--pf-up);}
+#wall-finder-pane table tr.row-red>td:last-child{color:var(--pf-dn);}
+#wall-finder-pane table tr.highlight-gem>td:nth-child(4){color:var(--pf-text);font-weight:700;}
+#wall-finder-pane table td:first-child .pyP{background:rgba(255,255,255,.06);color:var(--pf-soft);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);font-weight:700;}
+#wall-finder-pane table td:first-child span[data-hold-t]{color:var(--pf-mute);font-weight:500;font-size:9px!important;line-height:11px!important;opacity:1;}
+#wall-finder-pane table td[colspan]{color:var(--pf-mute)!important;letter-spacing:.18em;}
+#wall-finder-pane table tr.row-green.highlight-gem:hover>td{background:rgba(var(--pf-up-rgb),.12);border-color:rgba(var(--pf-up-rgb),.6);}
+#wall-finder-pane table tr.row-red.highlight-gem:hover>td{background:rgba(var(--pf-dn-rgb),.12);border-color:rgba(var(--pf-dn-rgb),.6);}
+#wall-finder-pane table tr.highlight-gem[style*="box-shadow"]{filter:none!important;}
+#wall-finder-pane table tr.row-green.highlight-gem[style*="box-shadow"]>td{background:rgba(var(--pf-up-rgb),.16);border-color:rgba(var(--pf-up-rgb),.9);}
+#wall-finder-pane table tr.row-red.highlight-gem[style*="box-shadow"]>td{background:rgba(var(--pf-dn-rgb),.16);border-color:rgba(var(--pf-dn-rgb),.9);}
+#wall-finder-pane table tr.highlight-gem[style*="box-shadow"]>td:first-child{box-shadow:inset 3px 0 0 var(--pf-gold);}
+tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:var(--pf-gold);color:#0B0E11;font-weight:800;letter-spacing:.06em;}
+#wall-finder-pane #rangePill{background:var(--pf-bg2);border:1px solid var(--pf-line);border-radius:10px;gap:8px;}
+#wall-finder-pane #rangePill input,#wall-finder-pane #rangePill select,#wall-finder-pane #rangePill #tpBal,#wall-finder-pane #rangePill #tpAuto{background:var(--pf-ctl);border:1px solid var(--pf-line2);border-radius:7px;color:var(--pf-text);font-weight:700;letter-spacing:.04em;transition:border-color .15s,background .15s,color .15s;}
+#wall-finder-pane #rangePill #tpBal{color:var(--pf-gold);}
+#wall-finder-pane #rangePill #tpAuto{color:var(--pf-mute);}
+#wall-finder-pane #rangePill input:hover,#wall-finder-pane #rangePill select:hover,#wall-finder-pane #rangePill #tpBal:hover,#wall-finder-pane #rangePill #tpAuto:hover{border-color:#4B5666;}
+#wall-finder-pane #rangePill input:focus,#wall-finder-pane #rangePill select:focus{border-color:var(--pf-gold);box-shadow:0 0 0 2px rgba(252,213,53,.16);}
+#wall-finder-pane #rangePill #tpAuto.on{background:var(--pf-gold);border-color:var(--pf-gold);color:#0B0E11;}
+#wall-finder-pane #rangePill #tpBuy{background:var(--pf-up);color:#04120B;border-radius:7px;letter-spacing:.1em;}
+#wall-finder-pane #rangePill #tpSell{background:var(--pf-dn);color:#1C050A;border-radius:7px;letter-spacing:.1em;}
+#wall-finder-pane #rangePill #tpBuy:hover,#wall-finder-pane #rangePill #tpSell:hover{filter:brightness(1.1);}
+#wall-finder-pane #rangePill select option{background:var(--pf-ctl);color:var(--pf-text);}
+.tcRow{background:rgba(18,22,28,.94);border:1px solid var(--pf-line2);border-radius:8px;color:var(--pf-text);font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.4);}
+.tcRow b[style*="00FF00" i]{color:var(--pf-up)!important;}
+.tcRow b[style*="FF0000" i]{color:var(--pf-dn)!important;}
+.tcRow b[style*="FFFFFF" i]{color:var(--pf-mute)!important;}
+#bootOverlay{background:radial-gradient(900px 500px at 50% 38%,#121923 0%,#0B0E11 72%);}
+#bootOverlay>div:first-child{color:var(--pf-text)!important;font-weight:600!important;letter-spacing:.2em!important;}
+#bootLogBox{background:var(--pf-bg2);border:1px solid var(--pf-line2);border-radius:10px;color:var(--pf-soft);}
 </style>
 </head>
 <body>
@@ -1253,7 +1299,7 @@ function _autoSelectTopSignal() {
       var r = Math.max(8, fs * 0.7);
             ctx.save(); ctx.setLineDash([]); ctx.lineCap = "round"; ctx.lineJoin = "round";
             for (var bp = 0; bp < 2; bp++) {
-              ctx.strokeStyle = bp === 0 ? BG : col; ctx.lineWidth = bp === 0 ? 6 : 2.5;
+              ctx.strokeStyle = bp === 0 ? BG : col; ctx.lineWidth = bp === 0 ? 4.5 : 2;
               ctx.beginPath();
               if (win) { ctx.moveTo(x - r * 0.6, y); ctx.lineTo(x - r * 0.15, y + r * 0.45); ctx.lineTo(x + r * 0.65, y - r * 0.5); }
               else { ctx.moveTo(x - r * 0.5, y - r * 0.5); ctx.lineTo(x + r * 0.5, y + r * 0.5); ctx.moveTo(x + r * 0.5, y - r * 0.5); ctx.lineTo(x - r * 0.5, y + r * 0.5); }
@@ -1289,7 +1335,7 @@ function _autoSelectTopSignal() {
     }
   
     function tcDrawBoxes(ctx, W, H, dpr, pair, BG, DIM) {
-    var B = Math.max(1, Math.round(CYCLE) || 300), GREEN = "#00FF00", RED = "#FF0000", M = W < 500 ? 10 : 20, pr = allPairData[pair].prices, sEnd = 86400;
+    var B = Math.max(1, Math.round(CYCLE) || 300), GREEN = "#0ECB81", RED = "#F6465D", PF_UP = "14,203,129", PF_DN = "246,70,93", M = W < 500 ? 10 : 20, pr = allPairData[pair].prices, sEnd = 86400;
     var nowF = Date.now() / 1000 - currentStartTsUtc, live = _isWithinMappedWindow() && nowF >= 0 && nowF < sEnd;
     var li = tcLastReal(pr, Math.min(live ? Math.floor(nowF) : sEnd, pr.length - 1)), lp = li >= 0 ? pr[li] : 0;
     var bxMap = {}, bxCells = null, bxTal = { REV: { w: 0, l: 0, p: 0 }, MOM: { w: 0, l: 0, p: 0 } };
@@ -1372,7 +1418,7 @@ function _autoSelectTopSignal() {
     var rkSpan = Math.max(1, rkMax - rkMin + 1), tw = Math.max(2, B / rkSpp), gp = tw >= 8 ? Math.min(3, tw * 0.12) : (tw >= 4 ? 0.5 : 0);
     var rkYz = TC.yZ || 1, rkYo = TC.yOff || 0, rkPlotH = Math.max(40, H - PADT - PADB), rkStepY = Math.max(4, (ph / rkSpan) * rkYz), bh = Math.max(2, rkStepY - gp);
     var rkCenterVal = (rkMin + rkMax) / 2 + rkYo * rkYz * (rkPlotH / rkStepY), rkY0 = rkTop + ph / 2 - (rkMax - rkCenterVal + 0.5) * rkStepY + gp / 2;
-    var rkPosY = idx => rkY0 + (rkMax - rkY[idx]) * rkStepY, bxPcol = window.pairColorHex;
+    var rkPosY = idx => rkY0 + (rkMax - rkY[idx]) * rkStepY, bxPcol = "#FCD535";
 
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
     bh = ph; gp = 0;
@@ -1397,19 +1443,19 @@ function _autoSelectTopSignal() {
       var hcCell = bxCells ? bxCells[j] : null, c = arr[j], hasDat = bxCells ? (!!hcCell || j === cj) : (!!c || j === cj), bxO = bxMap[j], bxIm = bxInstMap ? bxInstMap[j] : null;
       if (!hasDat && !bxO && !bxIm) continue;
       var x0 = (j % gcols) * gw, x1 = x0 + gw, gRow = Math.floor(j / gcols), bxG = Math.min(6, gh * 0.25); bh = Math.max(2, gh - bxG);
-      var px = x0 + bxG / 2, bw = Math.max(1, x1 - x0 - bxG), py = rkTop + gRow * gh + bxG / 2;
-      var bxCol = bxCells ? ((!hcCell || j === cj) ? "#000000" : (hcCell.col === 1 ? GREEN : RED)) : ((!c || j === cj) ? "#000000" : (c[3] >= c[0] ? GREEN : RED)), bxIsSg = !!(bxO && bxO.sig), bxRad = 0, bxLw = 1.5;
-            if (bxCol === "#000000") { ctx.fillStyle = bxCol; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill(); }
+      var px = Math.round((x0 + bxG / 2) * dpr) / dpr, bw = Math.max(1, Math.round((x1 - bxG / 2) * dpr) / dpr - px), py = Math.round((rkTop + gRow * gh + bxG / 2) * dpr) / dpr; bh = Math.max(2, Math.round((rkTop + (gRow + 1) * gh - bxG / 2) * dpr) / dpr - py);
+      var bxCol = bxCells ? ((!hcCell || j === cj) ? "#000000" : (hcCell.col === 1 ? GREEN : RED)) : ((!c || j === cj) ? "#000000" : (c[3] >= c[0] ? GREEN : RED)), bxIsSg = !!(bxO && bxO.sig), bxRad = Math.min(4, bh * 0.22), bxLw = 1;
+            if (bxCol === "#000000") { ctx.fillStyle = "#10151B"; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill(); }
             else if (bw < 7 || bh < 7) { ctx.fillStyle = bxCol; ctx.fillRect(px, py, bw, bh); }
             else {
-              ctx.save(); ctx.globalAlpha = bxCol === RED ? 0.22 : 0.14; ctx.fillStyle = bxCol; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill(); ctx.restore();
-              ctx.strokeStyle = bxCol; ctx.lineWidth = bxLw; ctx.setLineDash([]); bxRR(ctx, px + bxLw / 2, py + bxLw / 2, bw - bxLw, bh - bxLw, bxRad); ctx.stroke();
+              var pfRgb = bxCol === RED ? PF_DN : PF_UP, pfGr = ctx.createLinearGradient(0, py, 0, py + bh); pfGr.addColorStop(0, "rgba(" + pfRgb + ",0.20)"); pfGr.addColorStop(1, "rgba(" + pfRgb + ",0.06)"); ctx.fillStyle = pfGr; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill();
+              ctx.strokeStyle = "rgba(" + pfRgb + ",0.8)"; ctx.lineWidth = bxLw; ctx.setLineDash([]); bxRR(ctx, px + bxLw / 2, py + bxLw / 2, bw - bxLw, bh - bxLw, bxRad); ctx.stroke();
             }
       if (j === cj) {
         var prevP = bxCells ? ((j > 0 && bxCells[j - 1]) ? bxCells[j - 1].p : window._preRef(pair, j * B + bxR0 - B)) : (c ? c[0] : -1);
         var lvUp = !(prevP > 0 && lp > 0 && lp < prevP);
-        ctx.save(); bxRR(ctx, px, py, bw, bh, bxRad); ctx.clip(); ctx.globalAlpha = 0.5; ctx.fillStyle = lvUp ? GREEN : RED; ctx.fillRect(px, py + bh * (1 - fr), bw, bh * fr); ctx.restore();
-        ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 1.5; bxRR(ctx, px + 0.75, py + 0.75, bw - 1.5, bh - 1.5, bxRad); ctx.stroke();
+        ctx.save(); bxRR(ctx, px, py, bw, bh, bxRad); ctx.clip(); ctx.globalAlpha = 0.38; ctx.fillStyle = lvUp ? GREEN : RED; ctx.fillRect(px, py + bh * (1 - fr), bw, bh * fr); ctx.restore();
+        ctx.save(); ctx.shadowColor = "rgba(252,213,53,0.5)"; ctx.shadowBlur = 8; ctx.strokeStyle = "#FCD535"; ctx.lineWidth = 1; bxRR(ctx, px + 0.5, py + 0.5, bw - 1, bh - 1, bxRad); ctx.stroke(); ctx.restore();
         var rm = bxCells ? Math.max(0, Math.ceil((j * B + bxR0) - nowF)) : Math.max(0, Math.ceil(B - nowF % B));
         if (bw >= 18 && bh >= 12) {
           ctx.font = "bold " + Math.max(8, Math.min(bw, bh) * 0.28) + "px " + MONO; ctx.fillStyle = "#FFF"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -1417,9 +1463,9 @@ function _autoSelectTopSignal() {
         }
       }
       var isFut = !!(bxO && !bxO.sig && !hcCell && bxO.fut), txt = hcCell ? ("X" + hcCell.s) : (isFut ? ("X" + bxO.fut.s1) : "");
-      if (isFut) { ctx.save(); ctx.setLineDash([3, 3]); ctx.lineWidth = 1.5; ctx.strokeStyle = bxPcol; bxRR(ctx, px + 1, py + 1, bw - 2, bh - 2, bxRad); ctx.stroke(); ctx.restore(); }
+      if (isFut) { ctx.save(); ctx.setLineDash([4, 3]); ctx.lineWidth = 1; ctx.strokeStyle = bxPcol; bxRR(ctx, px + 0.5, py + 0.5, bw - 1, bh - 1, bxRad); ctx.stroke(); ctx.restore(); }
       if (txt && j !== cj && bw >= 12 && bh >= 10) {
-        var fs = Math.max(7, Math.min(bh * 0.42, 18)); ctx.font = "bold " + fs + "px " + MONO;
+        var fs = Math.max(7, Math.min(bh * 0.5, 18)); ctx.font = "bold " + fs + "px " + MONO;
         ctx.fillStyle = isFut ? bxPcol : ((!hcCell || j === cj) ? "#FFFFFF" : bxCol); ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(txt, px + bw / 2, py + bh * 0.52);
       }
@@ -1475,7 +1521,7 @@ function _autoSelectTopSignal() {
       TC.cv.style.width = W + "px"; TC.cv.style.height = H + "px";
     }
     var ctx = TC.ctx; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var BG = "#000000", TXT = "#FFFFFF", DIM = "#FFFFFF", CY = "#00FF00", AM = "#FF0000";
+    var BG = "#0B0E11", TXT = "#EAECEF", DIM = "#848E9C", CY = "#0ECB81", AM = "#F6465D";
     ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
         ctx.lineWidth = 1; ctx.setLineDash([]);
         TC.hits = []; TC.hov = [];
@@ -1583,7 +1629,7 @@ function _autoSelectTopSignal() {
         }
         var lbl = (((ocP[6] === "REV") ? (ocP[5] === "R") : (ocP[5] === "G")) ? "BUY" : "SELL") + (inst.isFalse ? " F" + (inst.falseSeq || 1) : "");
         ctx.save(); ctx.font = "bold 10px " + MONO; var tw = ctx.measureText(lbl).width + 10, ly = oy > ptop + 26 ? oy - 16 : oy + 16;
-        ctx.fillStyle = (((ocP[6] === "REV") ? (ocP[5] === "R") : (ocP[5] === "G"))) ? CY : AM; ctx.fillRect(ox - tw / 2, ly - 7, tw, 14);
+        ctx.fillStyle = (((ocP[6] === "REV") ? (ocP[5] === "R") : (ocP[5] === "G"))) ? CY : AM; bxRR(ctx, ox - tw / 2, ly - 7, tw, 14, 7); ctx.fill();
         ctx.fillStyle = BG; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(lbl, ox, ly); ctx.restore();
       });
     }
@@ -1605,7 +1651,7 @@ function _autoSelectTopSignal() {
 
     tcDrawTrades(ctx, xOf, yOf, ptop, pbot, W);
         ctx.fillStyle = BG; ctx.fillRect(W - PADR, 0, PADR, H); ctx.fillRect(0, pbot, W, H - pbot);
-    ctx.save(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.strokeStyle = "#FFFFFF"; ctx.strokeRect(0.5, 0.5, W - PADR - 1, pbot - 0.5); ctx.restore();
+    ctx.save(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(132,142,156,0.32)"; ctx.strokeRect(0.5, 0.5, W - PADR - 1, pbot - 0.5); ctx.restore();
     ctx.font = "10px " + MONO; ctx.fillStyle = DIM; ctx.textAlign = "left"; ctx.textBaseline = "middle";
     var lastY = it.last >= 0 ? yOf(ap[it.last]) : -999;
     pxTicks.forEach(tk => { if (tk.y > ptop + 12 && tk.y < pbot - 12 && Math.abs(tk.y - lastY) > 12) ctx.fillText(tk.v.toFixed(2), W - PADR + 5, tk.y); });
@@ -1688,7 +1734,7 @@ function _autoSelectTopSignal() {
         rows.forEach(function(r, k) {
           var xs = xOf(r.ei), xe = xOf(r.ex - currentStartTsUtc);
           if (xe < PADL || xs > W - PADR) return;
-          var col = r.st === "won" ? "#00FF00" : (r.st === "lost" ? "#FF0000" : "#FFFFFF");
+          var col = r.st === "won" ? "#0ECB81" : (r.st === "lost" ? "#F6465D" : "#EAECEF");
           var x0 = Math.max(PADL, xs), x1 = Math.min(W - PADR, xe);
           ctx.save(); ctx.beginPath(); ctx.rect(PADL, top, W - PADL - PADR, bot - top); ctx.clip();
           ctx.globalAlpha = 0.08; ctx.fillStyle = col; ctx.fillRect(x0, top, Math.max(0, x1 - x0), bot - top); ctx.globalAlpha = 1;
@@ -1704,10 +1750,10 @@ function _autoSelectTopSignal() {
           ctx.font = "bold 10px " + MONO; ctx.textAlign = "left"; ctx.textBaseline = "middle";
           var t1 = (r.up ? "▲ BUY " : "▼ SELL ") + r.amt.toFixed(2) + (r.pnl !== null ? "  " + (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2) : "");
           var w1 = ctx.measureText(t1).width + 12, x2 = Math.max(PADL + 2, Math.min(W - PADR - w1 - 2, xs)), y1 = top + 8 + (k % 6) * 20;
-          ctx.fillStyle = col; ctx.fillRect(x2, y1, w1, 16);
+          ctx.fillStyle = col; bxRR(ctx, x2, y1, w1, 16, 4); ctx.fill();
           ctx.fillStyle = "#000000"; ctx.fillText(t1, x2 + 6, y1 + 8.5);
           var w2 = ctx.measureText(r.ct).width + 12, x3 = Math.max(PADL + 2, Math.min(W - PADR - w2 - 2, xe - w2 / 2)), y2 = bot - 22;
-          ctx.fillStyle = col; ctx.fillRect(x3, y2, w2, 16);
+          ctx.fillStyle = col; bxRR(ctx, x3, y2, w2, 16, 4); ctx.fill();
           ctx.fillStyle = "#000000"; ctx.fillText(r.ct, x3 + 6, y2 + 8.5);
           ctx.restore();
         });
