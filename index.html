@@ -2190,8 +2190,7 @@ window.dvOnPoc = function(p) {
 };
 
 window.onload = async function() {
-  activePairs = ALL_PAIRS.filter(function (p) { return /^1HZ/.test(p); });
-    DV_SYM = activePair = activePairs[0];
+  activePairs = ALL_PAIRS.slice();
     _pairUi();
   var ctx = getTradingContext();
   currentStartTsUtc = ctx.startTsUtc; currentDuration = ctx.duration;
