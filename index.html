@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>WALLSPECTRUM LOCAL — XAU/USD</title>
+<title>WALLSPECTRUM LOCAL — MULTIPAIR</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -210,6 +210,12 @@ tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:var(-
 #wall-finder-pane #rangePill #btToggle{width:auto;min-width:72px;height:26px;padding:0 12px;background:var(--pf-ctl);border:1px solid var(--pf-line2);border-radius:7px;color:var(--pf-text);font:700 10px 'JetBrains Mono',monospace;letter-spacing:.04em;cursor:pointer;white-space:nowrap;}
 #wall-finder-pane #rangePill #btToggle:hover{border-color:#4B5666;}
 #wall-finder-pane #rangePill #btDate{width:118px;color-scheme:dark;}
+#wall-finder-pane #rangePill #pairBtn{width:auto;min-width:72px;height:26px;padding:0 12px;background:var(--pf-ctl);border:1px solid var(--pf-line2);border-radius:7px;color:var(--pf-text);font:700 10px 'JetBrains Mono',monospace;letter-spacing:.04em;cursor:pointer;white-space:nowrap;}
+#wall-finder-pane #rangePill #pairBtn:hover{border-color:#4B5666;}
+#pairPanel{display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,94vw);max-height:84vh;overflow-y:auto;z-index:600;background:#0B0E11;border:1px solid #2F3845;border-radius:12px;padding:12px;color:#EAECEF;font:700 10px 'JetBrains Mono',monospace;box-shadow:0 10px 30px rgba(0,0,0,.6);}
+#pairPanel input{accent-color:#FCD535;width:14px;height:14px;}
+#pairPanel button{height:26px;padding:0 14px;background:#141A22;border:1px solid #2F3845;border-radius:7px;color:#EAECEF;font:700 10px 'JetBrains Mono',monospace;cursor:pointer;}
+#pairPanel button#pairOk{background:#FCD535;border-color:#FCD535;color:#0B0E11;}
 </style>
 </head>
 <body>
@@ -269,7 +275,7 @@ tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:var(-
           </div>
         </div>
         <div id="bootOverlay">
-  <div style="font-size:12px;font-weight:800;letter-spacing:.2em;color:#FFD700;">⬡ XAU/USD STANDALONE LOCAL ENGINE (05:30-05:30 IST | C300 | 60s)</div>
+  <div style="font-size:12px;font-weight:800;letter-spacing:.2em;color:#FFD700;">⬡ MULTIPAIR STANDALONE LOCAL ENGINE (05:30-05:30 IST | C300 | 60s)</div>
   <div id="bootLogBox"><div id="bootLogLines"></div></div>
 </div>
 
@@ -505,31 +511,39 @@ self.onmessage = function(e) {
 <script>
 const DERIV_WS_URL = "wss://api.derivws.com/trading/v1/options/ws/public?app_id=1089";
 var DV_SYM = "frxXAUUSD";
-const ALL_PAIRS = ["frxXAUUSD"], SPECIAL_ALL_PAIRS = ["frxXAUUSD"];
-var activePair = "frxXAUUSD", activePairs = ["frxXAUUSD"], _hiddenPairs = new Set();
+var ALL_PAIRS = ["1HZ10V", "1HZ15V", "1HZ25V", "1HZ30V", "1HZ50V", "1HZ75V", "1HZ90V", "1HZ100V", "frxAUDCAD", "frxAUDCHF", "frxAUDJPY", "frxAUDNZD", "frxAUDUSD", "cryBTCUSD", "cryETHUSD", "frxEURAUD", "frxEURCAD", "frxEURCHF", "frxEURGBP", "frxEURJPY", "frxEURNZD", "frxEURUSD", "frxGBPAUD", "frxGBPCAD", "frxGBPCHF", "frxGBPJPY", "frxGBPNZD", "frxGBPUSD", "frxNZDJPY", "frxNZDUSD", "frxUSDCAD", "frxUSDCHF", "frxUSDJPY", "frxUSDMXN", "frxXAGUSD", "frxXAUUSD", "frxXPTUSD"], SPECIAL_ALL_PAIRS = ALL_PAIRS;
+var activePair = "frxXAUUSD", activePairs = ["frxXAUUSD", "frxEURUSD", "frxXAGUSD"], _hiddenPairs = new Set(), _pairRes = {}, _scanQ = [];
+try {
+  var _pv = JSON.parse(localStorage.getItem("wsPairs") || "null");
+  if (Array.isArray(_pv)) { _pv = _pv.filter(function (p) { return ALL_PAIRS.indexOf(p) >= 0; }); if (_pv.length) activePairs = _pv; }
+} catch (e) {}
+DV_SYM = activePair = activePairs[0];
 var sessionWindowStartMin = 0, sessionWindowEndMin = 1440, currentStartTsUtc = 0, currentDuration = 86400;
 var CYCLE = 300, SCAN_INT = 60, r0OnlyMode = false, currentMode = "REV", _wsLvlDir = 1;
 var _ssShift = 0, _ssMin = 0, _ssSel = 0;
-var allPairData = { frxXAUUSD: { times: new Int32Array(0), prices: new Float64Array(0) } };
+var allPairData = {};
+activePairs.forEach(function (p) { allPairData[p] = { times: new Int32Array(0), prices: new Float64Array(0) }; });
 var timesArray = new Int32Array(0), pricesArray = new Float64Array(0), matrixData = {}, streakInstances = {}, streakHistoryApp3 = {};
 var globalRevs = [], globalMoms = [], scanPending = 0, _scanStartedAt = 0, _scanRerunQueued = false;
 var lastClickedSigId = "", clickCycleIndex = -1, highlightRow = -1, currentInstances = [], currentInstanceIndex = -1, liveEdgeCol = -1;
-var derivWs = null, _scanCountdownSec = 60, _scanCountdownTimer = null, _bootPairState = { frxXAUUSD: "wait" };
-window.liveTickBuffer = { frxXAUUSD: {} };
+var derivWs = null, _scanCountdownSec = 60, _scanCountdownTimer = null, _bootPairState = {};
+window.liveTickBuffer = {};
+window._lmx = {};
 window.pairColorHex = "#FFFFFF";
 window.systemThemeHex = "#000000";
 window.accentGreenHex = "#00FF00";
 window.accentRedHex = "#FF0000";
 
-function getPairDisplayName(p) { return p === "frxXAUUSD" ? "XAU/USD" : p; }
+function getPairDisplayName(p) { var m = /^(frx|cry)([A-Z]{3})([A-Z]{3})$/.exec(String(p)); return m ? m[2] + "/" + m[3] : String(p); }
+function _pxDec(p) { p = String(p); if (/JPY$/.test(p)) return 3; if (/^frx(XAU|XPT)/.test(p)) return 2; if (/^frxXAG/.test(p)) return 4; if (/^frx/.test(p)) return 5; return 2; }
 function tcPairColor() { return window.pairColorHex; }
 function _cycleOff() { return (currentStartTsUtc || 0) % CYCLE; }
-function _fxClosedNow() {
+function _fxClosedNow(p) {
   var d = new Date(), dow = d.getUTCDay(), s = d.getUTCHours() * 3600 + d.getUTCMinutes() * 60 + d.getUTCSeconds();
-  return DV_SYM === "frxXAUUSD" && (dow === 6 || (dow === 5 && s >= 75600));
+  return /^frx/.test(p || DV_SYM) && (dow === 6 || (dow === 5 && s >= 75600));
 }
 function _pairMarketClosed() { return _fxClosedNow(); }
-function _isWithinMappedWindow() { return !_fxClosedNow() && _ssShift === 0; }
+function _isWithinMappedWindow(p) { return !_fxClosedNow(p) && _ssShift === 0; }
 function getTradingContext() {
   var now = Math.floor(Date.now() / 1000), mid = now - (now % 86400) + _ssShift * 86400;
   return { dateStr: "A" + mid + (DV_SYM === "frxXAUUSD" ? "" : "_" + DV_SYM) + "_0-1440", isLive: !_fxClosedNow() && _ssShift === 0, startTsUtc: mid, duration: 86400 };
@@ -545,9 +559,9 @@ function _ssRow(r, c, sess) {
   var a = _ssBounds(sess).a;
   return a + ((((r - ((currentStartTsUtc || 0) + a)) % c) + c) % c);
 }
-function _ssMsg(k, minC, maxC) {
-  var pd = allPairData.frxXAUUSD, SB = _ssBounds(k);
-  return { pair: "frxXAUUSD", times: pd.times, prices: pd.prices.slice(SB.a, SB.b), minC: minC, maxC: maxC, startIdx: 0, endIdx: SB.b - SB.a, startTsUtc: currentStartTsUtc + SB.a, pre: SB.a > 0 ? _ssPre(SB.a) : window._preArr("frxXAUUSD"), gid: Date.now() + k };
+function _ssMsg(k, minC, maxC, pair) {
+  var pd = allPairData[pair], SB = _ssBounds(k);
+  return { pair: pair, times: pd.times, prices: pd.prices.slice(SB.a, SB.b), minC: minC, maxC: maxC, startIdx: 0, endIdx: SB.b - SB.a, startTsUtc: currentStartTsUtc + SB.a, pre: SB.a > 0 ? _ssPre(SB.a, pair) : window._preArr(pair), gid: Date.now() + k };
 }
 function _ssPost(msg) {
   if (scanWorker) scanWorker.postMessage(msg);
@@ -557,8 +571,8 @@ function _ssPost(msg) {
     fn(fake); fake.onmessage({ data: msg });
   }
 }
-function _ssPre(a) {
-  var p0 = window._preArr("frxXAUUSD"), PR = PRE_ROLL_SECS, out = new Float64Array(PR).fill(-1.0), pr = allPairData.frxXAUUSD.prices, k, ix;
+function _ssPre(a, pair) {
+  var p0 = window._preArr(pair), PR = PRE_ROLL_SECS, out = new Float64Array(PR).fill(-1.0), pr = allPairData[pair].prices, k, ix;
   for (k = 0; k < PR; k++) {
     ix = a - PR + k;
     out[k] = ix >= 0 ? pr[ix] : ((p0 && ix + PR < p0.length) ? p0[ix + PR] : -1.0);
@@ -614,22 +628,20 @@ async function _ssReload() {
   try {
     if (ov) ov.style.display = "flex";
     _spawnScanWorker();
-    _bootPairState.frxXAUUSD = "wait";
+    _bootPairState = {}; _pairRes = {}; _scanQ = [];
     window._ssMatSess = 0; window._ssJob = null; scanPending = 0; globalRevs = []; globalMoms = [];
     lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; highlightRow = -1;
-    allPairData.frxXAUUSD = { times: new Int32Array(0), prices: new Float64Array(0) };
+    activePairs.forEach(function (p) { allPairData[p] = { times: new Int32Array(0), prices: new Float64Array(0) }; });
     timesArray = new Int32Array(0); pricesArray = new Float64Array(0);
     matrixData = {}; streakInstances = {}; streakHistoryApp3 = {};
-    window._liveMaxIndex = 0;
+    window._liveMaxIndex = 0; window._lmx = {};
     var ctx = getTradingContext();
     currentStartTsUtc = ctx.startTsUtc; currentDuration = ctx.duration;
     bootLog("SESSION " + (_ssShift ? "OLDER" : "NEW") + " — " + ctx.dateStr + " (05:30-05:30 IST)", "#00E676");
     renderFilteredTable();
     if (window.tcRedraw) window.tcRedraw();
-    var grid = await fetchDerivGrid("frxXAUUSD", ctx.dateStr, ctx.startTsUtc, ctx.startTsUtc + ctx.duration);
-    allPairData.frxXAUUSD = grid; timesArray = grid.times; pricesArray = grid.prices;
-    _bootPairState.frxXAUUSD = "done";
-    var st = document.getElementById("syncStatusText");
+    await _loadPairs(ctx);
+        var st = document.getElementById("syncStatusText");
     if (window._btUi) window._btUi();
         if (st) st.textContent = _ssShift !== 0 ? "🔵 BACKTEST " + (window._btDateStr ? window._btDateStr() : "") : ctx.isLive ? "🟢 LIVE SYNCED" : "🔵 MARKET CLOSED";
     _ssUi();
@@ -691,6 +703,89 @@ async function _ssReload() {
     }
   _ssUi();
 })();
+async function _loadPairs(ctx) {
+  var i, j, p, g;
+  for (i = 0; i < activePairs.length; i++) {
+    p = activePairs[i];
+    if (allPairData[p] && allPairData[p].times.length) continue;
+    _bootPairState[p] = "wait";
+    g = await fetchDerivGrid(p, ctx.dateStr, ctx.startTsUtc, ctx.startTsUtc + ctx.duration);
+    allPairData[p] = g;
+    for (j = g.prices.length - 1; j > 0 && g.prices[j] === -1; j--);
+    window._lmx[p] = j > 0 ? j : 0;
+    _bootPairState[p] = "done";
+  }
+  if (allPairData[DV_SYM]) { timesArray = allPairData[DV_SYM].times; pricesArray = allPairData[DV_SYM].prices; window._liveMaxIndex = window._lmx[DV_SYM] || 0; }
+}
+function _viewPair(pair) {
+  if (!allPairData[pair]) return;
+  var chg = pair !== DV_SYM, sel = document.getElementById("pairSel");
+  DV_SYM = activePair = pair;
+  timesArray = allPairData[pair].times; pricesArray = allPairData[pair].prices;
+  window._liveMaxIndex = (window._lmx && window._lmx[pair]) || 0;
+  if (chg) { lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; highlightRow = -1; }
+  if (sel && sel.value !== pair) sel.value = pair;
+  processVisualMatrix();
+  renderFilteredTable();
+  if (window.tcRedraw) window.tcRedraw();
+}
+function _pairUi() {
+  var s = document.getElementById("pairSel"), b = document.getElementById("pairBtn"), h = "", i;
+  if (s) { for (i = 0; i < activePairs.length; i++) h += '<option value="' + activePairs[i] + '">' + getPairDisplayName(activePairs[i]) + '</option>'; s.innerHTML = h; s.value = DV_SYM; }
+  if (b) b.textContent = "PAIRS " + activePairs.length;
+}
+async function _applyPairs(list) {
+  if (window._ssBusy) return;
+  var i, ov = document.getElementById("bootOverlay"), ctx = getTradingContext(), old = activePairs;
+  list = list.filter(function (p) { return ALL_PAIRS.indexOf(p) >= 0; });
+  if (!list.length) list = [DV_SYM];
+  window._ssBusy = true;
+  try {
+    if (ov) ov.style.display = "flex";
+    activePairs = list.slice();
+    try { localStorage.setItem("wsPairs", JSON.stringify(activePairs)); } catch (e) {}
+    for (i = 0; i < old.length; i++) if (activePairs.indexOf(old[i]) < 0) { delete allPairData[old[i]]; delete _pairRes[old[i]]; delete _bootPairState[old[i]]; }
+    for (i = 0; i < activePairs.length; i++) if (!allPairData[activePairs[i]]) allPairData[activePairs[i]] = { times: new Int32Array(0), prices: new Float64Array(0) };
+    if (activePairs.indexOf(DV_SYM) < 0) { DV_SYM = activePair = activePairs[0]; }
+    await _loadPairs(ctx);
+    _pairUi();
+    _pyCyc = 0;
+    _viewPair(DV_SYM);
+    window._scanRestart = true; window._scanProg = -1; window._autoSelectAfterScan = true;
+    dispatchMultiCycleScan();
+  } finally {
+    window._ssBusy = false;
+    if (window._btQ) { window._btQ = 0; setTimeout(_ssReload, 0); }
+    if (ov) ov.style.display = "none";
+  }
+}
+(function () {
+  var si = document.getElementById("scanMin");
+  if (!si || !si.parentNode) return;
+  var ps = document.createElement("select"), pb = document.createElement("button"), pp = document.createElement("div");
+  ps.id = "pairSel"; pb.id = "pairBtn"; pb.type = "button"; pp.id = "pairPanel";
+  si.parentNode.insertBefore(ps, si); si.parentNode.insertBefore(pb, si); document.body.appendChild(pp);
+  ps.addEventListener("change", function () { _viewPair(ps.value); });
+  var build = function () {
+    var h = '<div style="margin-bottom:8px;letter-spacing:.12em;color:#848E9C;">SCAN PAIRS</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px;">', i, p;
+    for (i = 0; i < ALL_PAIRS.length; i++) {
+      p = ALL_PAIRS[i];
+      h += '<label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid #2F3845;border-radius:6px;cursor:pointer;"><input type="checkbox" value="' + p + '"' + (activePairs.indexOf(p) >= 0 ? " checked" : "") + '>' + getPairDisplayName(p) + '</label>';
+    }
+    h += '</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;"><button type="button" id="pairNone">CLEAR</button><button type="button" id="pairCancel">CANCEL</button><button type="button" id="pairOk">APPLY</button></div>';
+    pp.innerHTML = h;
+    pp.querySelector("#pairCancel").onclick = function () { pp.style.display = "none"; };
+    pp.querySelector("#pairNone").onclick = function () { var c = pp.querySelectorAll("input[type=checkbox]"), k; for (k = 0; k < c.length; k++) c[k].checked = false; };
+    pp.querySelector("#pairOk").onclick = function () {
+      var c = pp.querySelectorAll("input[type=checkbox]"), k, sel = [];
+      for (k = 0; k < c.length; k++) if (c[k].checked) sel.push(c[k].value);
+      pp.style.display = "none";
+      _applyPairs(sel);
+    };
+  };
+  pb.addEventListener("click", function () { build(); pp.style.display = "block"; });
+  _pairUi();
+})();
 function bootLog(msg, col) {
   var b = document.getElementById("bootLogLines");
   if (!b) return;
@@ -735,7 +830,7 @@ async function aofs_write(pair, dateStr, times, prices) {
   } catch (e) {}
 }
 
-var TICK_SERVER = "https://YOUR-SERVER.onrender.com", TICK_TOKEN = "", _srvBusy = false, _srvFullAt = 0;
+var TICK_SERVER = "https://tck-iy0g.onrender.com", TICK_TOKEN = "", _srvBusy = false, _srvFullAt = 0;
 
 var PRE_ROLL_SECS = 900;
 window._preRoll = {};
@@ -745,12 +840,12 @@ window._preRef = (p, k) => { var a = window._preArr(p); if (!a) return -1; var j
 async function fetchDerivGrid(pair, dateStr, startTs, endTs) {
   var len = endTs - startTs + 1, times = new Int32Array(len), prices = new Float64Array(len).fill(-1.0), pre = new Float64Array(PRE_ROLL_SECS).fill(-1.0), i, g = null;
   for (i = 0; i < len; i++) times[i] = i;
-  if (_ssShift === 0) { try { g = await srvGet(0, true); } catch (e) { g = null; } }
-  if (g) {
-    for (i = 0; i < g.pl && i < PRE_ROLL_SECS; i++) pre[i] = g.buf[i];
-    for (i = 0; i < g.buf.length - g.pl && i < len; i++) prices[i] = g.buf[g.pl + i];
-    bootLog("XAU/USD — loaded from tick server", "#00B0FF");
-  } else bootLog("XAU/USD — tick server has no data for this session", "#FF0000");
+  if (_ssShift === 0) { try { g = await srvGet(pair, 0, true); } catch (e) { g = null; } }
+    if (g) {
+      for (i = 0; i < g.pl && i < PRE_ROLL_SECS; i++) pre[i] = g.buf[i];
+      for (i = 0; i < g.buf.length - g.pl && i < len; i++) prices[i] = g.buf[g.pl + i];
+      bootLog(getPairDisplayName(pair) + " — loaded from tick server", "#00B0FF");
+    } else bootLog(getPairDisplayName(pair) + " — tick server has no data for this session", "#FF0000");
   window._preRoll[pair] = { ts: startTs, a: pre };
   return { times: times, prices: prices };
 }
@@ -761,52 +856,56 @@ function buildGrid(tickMap, startTs, endTs) {
   return { times, prices };
 }
 
-async function srvGet(from, pre) {
-  var r = await fetch(TICK_SERVER + "/ticks?pair=frxXAUUSD&from=" + from + "&day=" + currentStartTsUtc + (pre ? "&pre=1" : "") + "&token=" + encodeURIComponent(TICK_TOKEN), { cache: "no-store" });
+async function srvGet(pair, from, pre) {
+  var r = await fetch(TICK_SERVER + "/ticks?pair=" + encodeURIComponent(pair) + "&from=" + from + "&day=" + currentStartTsUtc + (pre ? "&pre=1" : "") + "&token=" + encodeURIComponent(TICK_TOKEN), { cache: "no-store" });
   if (!r.ok || +r.headers.get("X-Day-Epoch") !== currentStartTsUtc) return null;
   return { buf: new Float64Array(await r.arrayBuffer()), pl: +r.headers.get("X-Pre-Length") || 0, from: +r.headers.get("X-From-Index") || 0 };
 }
-async function srvSync() {
-  var pd = allPairData.frxXAUUSD;
-  if (_srvBusy || _ssShift !== 0 || window._ssBusy || _bootPairState.frxXAUUSD !== "done" || !pd || !pd.prices.length) return;
-  _srvBusy = true;
-  var st = document.getElementById("syncStatusText");
+var _srvBp = {}, _srvFp = {};
+async function srvSyncPair(pair) {
+  var pd = allPairData[pair];
+  if (_srvBp[pair] || _ssShift !== 0 || window._ssBusy || _bootPairState[pair] !== "done" || !pd || !pd.prices.length) return;
+  _srvBp[pair] = true;
+  var st = document.getElementById("syncStatusText"), isV = pair === DV_SYM;
   try {
-    var full = Date.now() - _srvFullAt > 30000, mx0 = window._liveMaxIndex || 0, len = pd.prices.length, i, ix, v, pre, chg = false;
-    var g = await srvGet(full ? 0 : Math.max(0, mx0 - 30), full);
-    if (pd !== allPairData.frxXAUUSD) return;
-    if (!g) { if (st) st.textContent = "🔴 TICK SERVER OFFLINE"; return; }
-    if (st && st.textContent.indexOf("OFFLINE") >= 0) st.textContent = "🟢 LIVE SYNCED";
+    var full = Date.now() - (_srvFp[pair] || 0) > 30000, mx0 = Math.max(window._lmx[pair] || 0, isV ? (window._liveMaxIndex || 0) : 0), len = pd.prices.length, i, ix, v, pre, chg = false;
+    var g = await srvGet(pair, full ? 0 : Math.max(0, mx0 - 30), full);
+    if (pd !== allPairData[pair]) return;
+    if (!g) { if (isV && st) st.textContent = "🔴 TICK SERVER OFFLINE"; return; }
+    if (isV && st && st.textContent.indexOf("OFFLINE") >= 0) st.textContent = "🟢 LIVE SYNCED";
     if (full) {
-      _srvFullAt = Date.now();
+      _srvFp[pair] = Date.now();
       if (g.pl > 0) {
         pre = new Float64Array(PRE_ROLL_SECS).fill(-1.0);
         for (i = 0; i < g.pl && i < PRE_ROLL_SECS; i++) pre[i] = g.buf[i];
-        window._preRoll.frxXAUUSD = { ts: currentStartTsUtc, a: pre };
+        window._preRoll[pair] = { ts: currentStartTsUtc, a: pre };
       }
     }
     for (i = g.pl; i < g.buf.length; i++) {
       v = g.buf[i]; ix = g.from + i - g.pl;
       if (v === -1 || ix < 0 || ix >= len || pd.prices[ix] === v) continue;
-      if (ix > mx0) injectLiveTick("frxXAUUSD", currentStartTsUtc + ix, v);
+      if (ix > mx0) injectLiveTick(pair, currentStartTsUtc + ix, v);
       else { pd.prices[ix] = v; chg = true; }
     }
-    if (chg) processVisualMatrix();
+    if (chg && isV) processVisualMatrix();
   } catch (e) {
-    if (st) st.textContent = "🔴 TICK SERVER OFFLINE";
-  } finally { _srvBusy = false; }
+    if (isV && st) st.textContent = "🔴 TICK SERVER OFFLINE";
+  } finally { _srvBp[pair] = false; }
 }
+function srvSync() { for (var i = 0; i < activePairs.length; i++) srvSyncPair(activePairs[i]); }
 
 setInterval(srvSync, 1000);
 
 function injectLiveTick(pair, ts, p) {
-  if (pair !== "frxXAUUSD") return;
-  window.liveTickBuffer.frxXAUUSD[ts] = p;
-    if (_ssShift !== 0) return;
-  var pd = allPairData.frxXAUUSD;
-  if (!pd || !pd.times.length) return;
-  var idx = ts - currentStartTsUtc;
-  window._liveMaxIndex = Math.max(window._liveMaxIndex || 0, idx);
+  if (!allPairData[pair]) return;
+    (window.liveTickBuffer[pair] || (window.liveTickBuffer[pair] = {}))[ts] = p;
+      if (_ssShift !== 0) return;
+    var pd = allPairData[pair];
+    if (!pd || !pd.times.length) return;
+    var idx = ts - currentStartTsUtc;
+    window._lmx[pair] = Math.max(window._lmx[pair] || 0, idx);
+    if (pair !== DV_SYM) { if (idx >= 0 && idx < pd.times.length) pd.prices[idx] = p; return; }
+    window._liveMaxIndex = Math.max(window._liveMaxIndex || 0, idx);
   if (idx < 0 || idx >= pd.times.length) return;
   pd.prices[idx] = p;
     var _sb = _ssBounds(_ssMS());
@@ -824,7 +923,7 @@ function injectLiveTick(pair, ts, p) {
   }
   matrixData[col][row] = { c: sc, s: sl, p: p };
   var stEl = document.getElementById("syncStatusText");
-  if (stEl) stEl.textContent = "🟢 LIVE · " + p.toFixed(2);
+  if (stEl) stEl.textContent = "🟢 LIVE · " + p.toFixed(_pxDec(pair));
   if (window.tcRedraw) window.tcRedraw();
 }
 
@@ -847,7 +946,7 @@ function processVisualMatrix() {
       else { sc = prev.c; sl = 0; }
     } else if (p === -1.0) { sl = 0; sc = "N"; }
     else if (tSec < _sb.a + CYCLE) {
-          var rf = tSec - CYCLE >= 0 ? pricesArray[tSec - CYCLE] : window._preRef("frxXAUUSD", tSec - CYCLE);
+          var rf = tSec - CYCLE >= 0 ? pricesArray[tSec - CYCLE] : window._preRef(DV_SYM, tSec - CYCLE);
       if (rf === -1 || p === rf) { sl = 0; sc = "N"; } else if (p > rf) { sc = "G"; sl = 1; } else { sc = "R"; sl = 1; }
     }
     matrixData[col][row] = { c: sc, s: sl, p: p };
@@ -941,31 +1040,34 @@ function handleWorkerMessage(e) {
   if (e.data && e.data.gid !== undefined && window._ssExpGid && e.data.gid !== window._ssExpGid) return;
     window._scanProg = -1;
     var { pair, bestRevs, bestMoms, pk } = e.data;
-  globalRevs = bestRevs.slice(); globalMoms = bestMoms.slice();
-  if (pk) {
-    var ps = primeSelect(pk.kings || [], pk.fb || [], pair, globalRevs, globalMoms);
-    ps.rev.forEach(x => globalRevs.push(x));
-    ps.mom.forEach(x => globalMoms.push(x));
-  }
-  var _sg = window._ssCur || 0, _jb = window._ssJob;
-    globalRevs.forEach(x => { x.sess = _sg; });
-    globalMoms.forEach(x => { x.sess = _sg; });
-    if (_jb) {
-      _jb.revs = _jb.revs.concat(globalRevs);
-      _jb.moms = _jb.moms.concat(globalMoms);
-      if (_jb.k < _jb.n) {
-        _jb.k++;
-        window._ssCur = _jb.k;
-        var _nm = _ssMsg(_jb.k, _jb.minC, _jb.maxC);
-        window._ssExpGid = _nm.gid;
-        _ssPost(_nm);
-        return;
-      }
-      globalRevs = _jb.revs; globalMoms = _jb.moms; window._ssJob = null;
+  var _rv = bestRevs.slice(), _mm = bestMoms.slice();
+    if (pk) {
+      var ps = primeSelect(pk.kings || [], pk.fb || [], pair, _rv, _mm);
+      ps.rev.forEach(x => _rv.push(x));
+      ps.mom.forEach(x => _mm.push(x));
     }
-    scanPending = 0;
-    processVisualMatrix();
-    renderFilteredTable();
+    var _sg = window._ssCur || 0, _jb = window._ssJob;
+      _rv.forEach(x => { x.sess = _sg; });
+      _mm.forEach(x => { x.sess = _sg; });
+      if (_jb) {
+        _jb.revs = _jb.revs.concat(_rv);
+        _jb.moms = _jb.moms.concat(_mm);
+        if (_jb.k < _jb.n) {
+          _jb.k++;
+          window._ssCur = _jb.k;
+          var _nm = _ssMsg(_jb.k, _jb.minC, _jb.maxC, pair);
+          window._ssExpGid = _nm.gid;
+          _ssPost(_nm);
+          return;
+        }
+        _rv = _jb.revs; _mm = _jb.moms; window._ssJob = null;
+      }
+      if (allPairData[pair] && activePairs.indexOf(pair) >= 0) _pairRes[pair] = { revs: _rv, moms: _mm };
+      _scanMerge();
+      if (_scanNext()) { renderFilteredTable(); return; }
+      scanPending = 0;
+      processVisualMatrix();
+      renderFilteredTable();
   if (window._autoSelectAfterScan) { window._autoSelectAfterScan = false; setTimeout(_autoSelectTopSignal, 100); }
 }
 
@@ -985,7 +1087,7 @@ function _scanUi() {
   var e1 = document.getElementById("scanTimerDisplay"), e2 = document.getElementById("scanChartTimer");
   var a = document.getElementById("scanMin"), b = document.getElementById("scanMax");
   if (scanPending) {
-    var s = Math.floor((Date.now() - _scanStartedAt) / 1000), pg = window._scanProg >= 0 ? window._scanProg : 0, txt = "SCAN " + pg + "% · " + s + "s";
+    var s = Math.floor((Date.now() - _scanStartedAt) / 1000), pg = window._scanProg >= 0 ? window._scanProg : 0, txt = "SCAN " + pg + "% · " + s + "s" + (window._scanPair ? " · " + getPairDisplayName(window._scanPair) : "");
     if (e2) { e2.textContent = txt; e2.style.fontSize = "22px"; e2.style.color = "#FFFFFF"; e2.style.opacity = ".9"; e2.style.whiteSpace = "nowrap"; }
     if (e1) e1.textContent = txt;
     if (a) a.style.borderColor = "#FFFFFF";
@@ -1021,27 +1123,42 @@ function _startScanCountdown() {
   }, 1000);
 }
 
+function _scanMerge() {
+  var r = [], m = [], i, e;
+  for (i = 0; i < activePairs.length; i++) { e = _pairRes[activePairs[i]]; if (e) { r = r.concat(e.revs); m = m.concat(e.moms); } }
+  globalRevs = r; globalMoms = m;
+}
+function _scanNext() {
+  var p, pd, SB, all, msg;
+  while (_scanQ.length) {
+    p = _scanQ.shift(); pd = allPairData[p];
+    if (!pd || !pd.times.length) continue;
+    window._scanPair = p;
+    SB = _ssBounds(); all = _ssMin > 0 && _ssSel < 1 && SB.n >= 2;
+    window._ssJob = all ? { n: SB.n, k: 1, revs: [], moms: [], minC: window._scanMin, maxC: window._scanMax } : null;
+    window._ssCur = all ? 1 : (_ssMin > 0 ? _ssSel : 0);
+    msg = _ssMsg(window._ssCur, window._scanMin, window._scanMax, p);
+    window._ssExpGid = msg.gid;
+    _ssPost(msg);
+    return true;
+  }
+  window._scanPair = "";
+  return false;
+}
 function dispatchMultiCycleScan() {
   _startScanCountdown();
-  var pd = allPairData.frxXAUUSD;
-  if (!pd || !pd.times.length) return;
+  var pl = activePairs.filter(function (p) { var pd = allPairData[p]; return pd && pd.times.length; }), vi = pl.indexOf(DV_SYM);
+  if (!pl.length) return;
+  if (vi > 0) { pl.splice(vi, 1); pl.unshift(DV_SYM); }
   var minC = parseInt(document.getElementById("scanMin").value, 10) || 300;
   var maxC = parseInt(document.getElementById("scanMax").value, 10) || 300;
   if (minC > maxC) { var t = minC; minC = maxC; maxC = t; }
-  if (scanPending && !window._scanRestart && Date.now() - _scanStartedAt < 120000) return;
-    if (window._scanRestart) { window._scanRestart = false; _spawnScanWorker(); }
+  if (scanPending && !window._scanRestart && Date.now() - _scanStartedAt < 120000 * pl.length) return;
+    if (window._scanRestart) { window._scanRestart = false; _spawnScanWorker(); _pairRes = {}; }
     scanPending = 1; _scanStartedAt = Date.now();
-    var SB = _ssBounds(), _all = _ssMin > 0 && _ssSel < 1 && SB.n >= 2;
-        window._ssJob = _all ? { n: SB.n, k: 1, revs: [], moms: [], minC: minC, maxC: maxC } : null;
-        window._ssCur = _all ? 1 : (_ssMin > 0 ? _ssSel : 0);
-        var msg = _ssMsg(window._ssCur, minC, maxC);
-        window._ssExpGid = msg.gid;
-  if (scanWorker) scanWorker.postMessage(msg);
-  else {
-    var fn = new Function("self", document.getElementById("fftWorkerLogic").textContent);
-    var fake = { postMessage: d => handleWorkerMessage({ data: d }) };
-    fn(fake); fake.onmessage({ data: msg });
-  }
+    window._scanMin = minC; window._scanMax = maxC; window._ssJob = null;
+    _scanQ = pl.slice();
+    if (!_scanNext()) scanPending = 0;
 }
 
 function _wsBuild(list, c2n, lvl, nui) {
@@ -1053,21 +1170,21 @@ function _wsBuild(list, c2n, lvl, nui) {
     psrc.sort((a, b) => (dir === 1 ? a.s1 - b.s1 : b.s1 - a.s1) || (b.pct - a.pct) || (b.c1 - a.c1) || (a.c - b.c) || (a.r - b.r));
     var pb = {}, pout = [];
     psrc.forEach(px => {
-      var pk = (px.sess || 0) + "|" + px.s1, po = pb[pk];
+      var pk = (px.pair || "") + "|" + (px.sess || 0) + "|" + px.s1, po = pb[pk];
       if (!po) { pb[pk] = px; return; }
       var xd = String(px.primeReason || "").indexOf("EARLY_DURABLE_PRIME") === 0 ? 1 : 0;
       var od = String(po.primeReason || "").indexOf("EARLY_DURABLE_PRIME") === 0 ? 1 : 0;
       if (xd !== od) { if (xd > od) pb[pk] = px; return; }
       if (px.pct > po.pct || (px.pct === po.pct && px.c1 > po.c1)) pb[pk] = px;
     });
-    psrc.forEach(px => { if (pb[(px.sess || 0) + "|" + px.s1] === px) pout.push(px); });
+    psrc.forEach(px => { if (pb[(px.pair || "") + "|" + (px.sess || 0) + "|" + px.s1] === px) pout.push(px); });
     return pout;
   }
   var _fl = list.filter(z => z && !z._isPrimeWinner && z.r === 0 && (mp <= 0 || z.pct >= mp) && (lf === 0 || +z.s1 === lf) && (lvl === undefined || +z.s1 === +lvl)), _gs = {}, raw = [];
     _fl.forEach(z => { (_gs[z.sess || 0] || (_gs[z.sess || 0] = [])).push(z); });
     for (var _gk in _gs) raw = raw.concat(_wsPipeDedupe(_gs[_gk]));
   var b = {}, out = [];
-  raw.forEach(x => { var kx = (x.sess || 0) + "|" + x.s1, o = b[kx]; if (!o || x.pct > o.pct || (x.pct === o.pct && x.c1 > o.c1)) b[kx] = x; });
+  raw.forEach(x => { var kx = (x.pair || "") + "|" + (x.sess || 0) + "|" + x.s1, o = b[kx]; if (!o || x.pct > o.pct || (x.pct === o.pct && x.c1 > o.c1)) b[kx] = x; });
   for (var k in b) out.push(b[k]);
   return out.sort((a, c) => (dir === 1 ? a.s1 - c.s1 : c.s1 - a.s1) || (c.pct - a.pct) || (c.c1 - a.c1) || (a.c - c.c) || (a.r - c.r));
 }
@@ -1137,15 +1254,21 @@ function holdText(t) {
 window._wpTmrMap = {};
 function _buildScannerRowsHtml(list) {
   if (!list || !list.length) return '<tr><td colspan="7" style="text-align:center;color:#FFFFFF;background:transparent;padding:16px;">NO TARGETS FOUND</td></tr>';
-  var pr = allPairData.frxXAUUSD.prices, pre = window._preArr("frxXAUUSD"), hi = Math.min(Math.floor(Date.now() / 1000) - currentStartTsUtc, pr.length - 1);
-  while (hi > 0 && pr[hi] === -1) hi--;
-  return list.map(d => {
+  var _pcx = {};
+    return list.map(d => {
+      var _c = _pcx[d.pair], _pd, _pp, _hh;
+      if (!_c) {
+        _pd = allPairData[d.pair]; _pp = _pd ? _pd.prices : new Float64Array(0); _hh = Math.min(Math.floor(Date.now() / 1000) - currentStartTsUtc, _pp.length - 1);
+        while (_hh > 0 && _pp[_hh] === -1) _hh--;
+        _c = _pcx[d.pair] = { pr: _pp, pre: window._preArr(d.pair), hi: _hh };
+      }
+      var pr = _c.pr, pre = _c.pre, hi = _c.hi;
     var k = d.pair + "|" + d.c + "|" + d.r + "|" + d.s1 + "|" + d.s2 + "|" + d.col + "|" + d.type;
     window._wpTmrMap[k + "|S" + (d.sess || 0)] = d;
     var ht = rpOne(d, d.type, pr, pre, hi, pr.length);
     var sel = (k.split("|").join("-") === lastClickedSigId && (d.sess || 0) === (window._ssMatSess || 0)) ? "filter:brightness(1.25);box-shadow:inset 4px 0 0 #FFFFFF;" : "";
     return `<tr class="${d.col === 'R' ? 'row-red' : 'row-green'} highlight-gem" data-k="${k}|S${d.sess || 0}" style="${sel}" onclick="window._ssPickSess=${d.sess || 0};manualSelectSignal('${d.pair}',${d.c},${d.r},${d.s1},${d.s2},'${d.col}','${d.type}',${d.gap||0},${d.curGap||0})">
-      <td style="width:28%;text-align:left;padding-left:8px;">XAU/USD${d.sess ? '<span style="font-size:8px"> S' + d.sess + '</span>' : ""}${window._pyHtml || ""}<span data-hold-t="${ht}" style="display:block;font-size:8px;line-height:9px;">${holdText(ht)}</span></td>
+      <td style="width:28%;text-align:left;padding-left:8px;">${getPairDisplayName(d.pair)}${d.sess ? '<span style="font-size:8px"> S' + d.sess + '</span>' : ""}${window._pyMap[d.pair] || ""}<span data-hold-t="${ht}" style="display:block;font-size:8px;line-height:9px;">${holdText(ht)}</span></td>
       <td style="width:10%;text-align:center;">C${d.c}</td>
       <td style="width:10%;text-align:center;">R${d.r}</td>
       <td style="width:19%;text-align:center;">X${d.s1}-X${d.s2}</td>
@@ -1194,7 +1317,8 @@ function manualSelectSignal(pair, c, r, s1, s2, col, type, gap, curGap) {
 }
 
 function selectSignal(pair, c, r, s1, s2, colColor, type) {
-  var _ps = window._ssPickSess, _pm = window._ssMatSess;
+  if (pair !== DV_SYM && allPairData[pair]) _viewPair(pair);
+    var _ps = window._ssPickSess, _pm = window._ssMatSess;
   window._ssPickSess = undefined;
   if (_ps === undefined) _ps = _ssMS();
   if (_pm !== _ps) { window._ssMatSess = _ps; processVisualMatrix(); }
@@ -1224,8 +1348,8 @@ function selectSignal(pair, c, r, s1, s2, colColor, type) {
 }
 
 function _autoSelectTopSignal() {
-  var list = _wsBuild(globalRevs.slice(), "lvl", undefined, true).filter(z => +z.s1 === 1);
-  if (!list.length) list = _wsBuild(globalRevs.slice(), "lvl", undefined, true);
+  var all = _wsBuild(globalRevs.slice(), "lvl", undefined, true), list = all.filter(z => z.pair === DV_SYM && +z.s1 === 1);
+  if (!list.length) list = all.filter(z => z.pair === DV_SYM);
   if (list.length) { var t = list[0]; window._ssPickSess = t.sess || 0; selectSignal(t.pair, t.c, t.r, t.s1, t.s2, t.col, t.type); }
 }
 
@@ -1282,15 +1406,15 @@ function _autoSelectTopSignal() {
     var mp = parseFloat(document.getElementById("minPctInput").value) || 10, lv = parseInt(document.getElementById("levelFilterSelect").value, 10) || 0;
     var m = { rev: null, mom: null };
     var pick = (L, k) => L.forEach(x => {
-      if (x.pct >= mp && (lv === 0 || x.s1 === lv) && (!r0OnlyMode || x.r === 0)) {
+      if (x.pair === DV_SYM && x.pct >= mp && (lv === 0 || x.s1 === lv) && (!r0OnlyMode || x.r === 0)) {
         if (!m[k] || _champScore(x) > _champScore(m[k])) m[k] = x;
       }
     });
     if (TC.sigMode !== "MOM") pick(globalRevs, "rev");
     if (TC.sigMode !== "REV") pick(globalMoms, "mom");
     var clk = window._tcClicked();
-    if (clk) m = { rev: clk.type === "REV" ? clk : null, mom: clk.type === "MOM" ? clk : null };
-    return { frxXAUUSD: m };
+        if (clk && clk.pair === DV_SYM) m = { rev: clk.type === "REV" ? clk : null, mom: clk.type === "MOM" ? clk : null };
+        var mo = {}; mo[DV_SYM] = m; return mo;
   }
 
   function bxMark(ctx, x, y, win, fs, col, BG) {
@@ -1500,7 +1624,7 @@ function _autoSelectTopSignal() {
       var tx = rkXOf(tm); if (tx > PADL + 28 && tx < W - PADR - 28) ctx.fillText(tcFmt(tm, tstep < 60), tx, rkBot + 12);
     }
     ctx.textAlign = "left"; ctx.font = "bold 10px " + MONO; ctx.fillStyle = DIM;
-    var hdr = "XAU/USD  |  BOX " + (B / 60) + "m" + (bxMain ? " R" + bxMain.r : "") + "  |  DOUBLE-CLICK = SWITCH MODE   ";
+    var hdr = getPairDisplayName(pair) + "  |  BOX " + (B / 60) + "m" + (bxMain ? " R" + bxMain.r : "") + "  |  DOUBLE-CLICK = SWITCH MODE   ";
     
     var tx3 = M + ctx.measureText(hdr).width;
     ["REV", "MOM"].forEach(k2 => {
@@ -1523,11 +1647,11 @@ function _autoSelectTopSignal() {
     ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
         ctx.lineWidth = 1; ctx.setLineDash([]);
         TC.hits = []; TC.hov = [];
-    var ap = allPairData.frxXAUUSD.prices;
-    if (!ap || !ap.length) { ctx.fillStyle = "#FFFFFF"; ctx.font = "bold 12px " + MONO; ctx.fillText("XAU/USD — WAITING FOR DATA...", 12, 24); return; }
-    TC.allMap = tcCollectAll();
-        tcSigStrip(TC.allMap.frxXAUUSD);
-    if (TC.boxMode) { tcDrawBoxes(ctx, W, H, dpr, "frxXAUUSD", BG, DIM); return; }
+    var ap = allPairData[DV_SYM] ? allPairData[DV_SYM].prices : null;
+        if (!ap || !ap.length) { ctx.fillStyle = "#FFFFFF"; ctx.font = "bold 12px " + MONO; ctx.fillText(getPairDisplayName(DV_SYM) + " — WAITING FOR DATA...", 12, 24); return; }
+        TC.allMap = tcCollectAll();
+            tcSigStrip(TC.allMap[DV_SYM]);
+        if (TC.boxMode) { tcDrawBoxes(ctx, W, H, dpr, DV_SYM, BG, DIM); return; }
     var nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc, live = _isWithinMappedWindow() && nowSec >= 0 && nowSec < 86400;
     var apLast = tcLastReal(ap, Math.min(live ? nowSec : 86400, ap.length - 1)), nowIdx = live ? nowSec : Math.max(0, apLast);
     var plotW = W - PADL - PADR, ptop = PADT, pbot = H - PADB, spp = TC.spp;
@@ -1541,7 +1665,7 @@ function _autoSelectTopSignal() {
     }
     if (TC.follow) TC.left = nowIdx - plotW * spp * 0.4; else tcClamp(plotW);
     var left = TC.left, right = left + plotW * spp, i0 = Math.max(0, Math.floor(left)), st = Math.max(1, Math.floor(spp / 2));
-    var it = { pair: "frxXAUUSD", prices: ap, len: ap.length, last: apLast, color: window.pairColorHex, lo: Infinity, hi: -Infinity, dec: 2, i1: Math.min(ap.length - 1, 86400, Math.ceil(right)) };
+    var it = { pair: DV_SYM, prices: ap, len: ap.length, last: apLast, color: window.pairColorHex, lo: Infinity, hi: -Infinity, dec: 2, i1: Math.min(ap.length - 1, 86400, Math.ceil(right)) };
     for (var i = i0; i <= it.i1; i += st) { var pv = ap[i]; if (pv !== -1) { if (pv < it.lo) it.lo = pv; if (pv > it.hi) it.hi = pv; } }
     if (!(it.hi > it.lo)) { var v0 = it.last >= 0 ? ap[it.last] : 2000; it.lo = v0 - 1; it.hi = v0 + 1; }
     var pad0 = (it.hi - it.lo) * 0.06; it.lo -= pad0; it.hi += pad0;
@@ -1580,7 +1704,7 @@ function _autoSelectTopSignal() {
     ctx.stroke();
     if (it.last >= i0 && it.last <= it.i1) { ctx.beginPath(); ctx.arc(xOf(it.last), yOf(ap[it.last]), 4.5, 0, 6.283); ctx.fillStyle = it.color; ctx.fill(); }
 
-    var sgs = TC.allMap.frxXAUUSD, lim = Math.min(live ? nowSec - 1 : it.len - 1, it.len - 1, 86399);
+    var sgs = TC.allMap[DV_SYM], lim = Math.min(live ? nowSec - 1 : it.len - 1, it.len - 1, 86399);
     var marks = [], items = [], tally = { REV: { w: 0, l: 0, p: 0 }, MOM: { w: 0, l: 0, p: 0 } }, nextIt = null, nReady = 0, nFired = 0;
     [sgs.rev, sgs.mom].forEach(sg0 => {
       if (!sg0) return;
@@ -1652,11 +1776,11 @@ function _autoSelectTopSignal() {
     ctx.save(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(132,142,156,0.32)"; ctx.strokeRect(0.5, 0.5, W - PADR - 1, pbot - 0.5); ctx.restore();
     ctx.font = "10px " + MONO; ctx.fillStyle = DIM; ctx.textAlign = "left"; ctx.textBaseline = "middle";
     var lastY = it.last >= 0 ? yOf(ap[it.last]) : -999;
-    pxTicks.forEach(tk => { if (tk.y > ptop + 12 && tk.y < pbot - 12 && Math.abs(tk.y - lastY) > 12) ctx.fillText(tk.v.toFixed(2), W - PADR + 5, tk.y); });
+    pxTicks.forEach(tk => { if (tk.y > ptop + 12 && tk.y < pbot - 12 && Math.abs(tk.y - lastY) > 12) ctx.fillText(tk.v.toFixed(_pxDec(DV_SYM)), W - PADR + 5, tk.y); });
     if (it.last >= 0) {
       var ly2 = Math.max(ptop + 9, Math.min(pbot - 9, lastY));
       ctx.fillStyle = it.color; ctx.fillRect(W - PADR + 2, ly2 - 9, PADR - 4, 18);
-      ctx.fillStyle = BG; ctx.font = "bold 10px " + MONO; ctx.textAlign = "center"; ctx.fillText(ap[it.last].toFixed(2), W - PADR / 2, ly2 + 0.5);
+      ctx.fillStyle = BG; ctx.font = "bold 10px " + MONO; ctx.textAlign = "center"; ctx.fillText(ap[it.last].toFixed(_pxDec(DV_SYM)), W - PADR / 2, ly2 + 0.5);
     }
     ctx.fillStyle = DIM; ctx.font = "10px " + MONO; ctx.textAlign = "center";
     for (var tm = firstT; tm <= right; tm += tstep) {
@@ -1679,24 +1803,25 @@ function _autoSelectTopSignal() {
     });
   }
 
-  function tcSigPick() {
-      var clk = window._tcClicked(), r = null, o = null;
-      try { r = _wsBuild(globalRevs.slice(), "lvl")[0] || null; o = _wsBuild(globalMoms.slice(), "lvl")[0] || null; } catch (e) {}
-      if (clk) { if (clk.type === "REV") r = clk; else o = clk; }
-      return { rev: r, mom: o };
-    }
+  function tcSigPick(pair) {
+        pair = pair || DV_SYM;
+        var clk = window._tcClicked(), r = null, o = null, pr = globalRevs.filter(function (z) { return z.pair === pair; }), pm = globalMoms.filter(function (z) { return z.pair === pair; });
+        try { r = _wsBuild(pr, "lvl")[0] || null; o = _wsBuild(pm, "lvl")[0] || null; } catch (e) {}
+        if (clk && clk.pair === pair) { if (clk.type === "REV") r = clk; else o = clk; }
+        return { rev: r, mom: o };
+      }
   
     function tcSigStrip(m) {
       var el = document.getElementById("sigStrip");
           var sp = tcSigPick();
-          var spr = allPairData.frxXAUUSD.prices, spre = window._preArr("frxXAUUSD"), sphi = Math.min(Math.floor(Date.now() / 1000) - currentStartTsUtc, spr.length - 1);
+          var spr = allPairData[DV_SYM].prices, spre = window._preArr(DV_SYM), sphi = Math.min(Math.floor(Date.now() / 1000) - currentStartTsUtc, spr.length - 1);
           while (sphi > 0 && spr[sphi] === -1) sphi--;
       if (!el) return;
       var h = "";
       [sp.rev, sp.mom].forEach(function(x) {
         if (!x) return;
         h += '<div class="sgBox"><table><tr class="' + (x.col === "R" ? "row-red" : "row-green") + '">' +
-                '<td style="width:28%;text-align:left;padding-left:8px;">XAU/USD' + (window._pyHtml || "") + '<span style="display:block;font-size:8px;line-height:9px;">' + holdText(rpOne(x, x.type, spr, spre, sphi, spr.length)) + '</span></td>' +
+                '<td style="width:28%;text-align:left;padding-left:8px;">' + getPairDisplayName(x.pair) + (window._pyMap[x.pair] || "") + '<span style="display:block;font-size:8px;line-height:9px;">' + holdText(rpOne(x, x.type, spr, spre, sphi, spr.length)) + '</span></td>' +
                 '<td style="width:10%;text-align:center;">C' + x.c + '</td>' +
                 '<td style="width:10%;text-align:center;">R' + x.r + '</td>' +
                 '<td style="width:19%;text-align:center;">X' + x.s1 + '-X' + x.s2 + '</td>' +
@@ -1709,9 +1834,9 @@ function _autoSelectTopSignal() {
   
     function tcDrawTrades(ctx, xOf, yOf, top, bot, W) {
         var L = window.dvTrades, card = document.getElementById("tradeCard");
-        var nowS = Date.now() / 1000, ap = allPairData.frxXAUUSD.prices, rows = [];
+        var nowS = Date.now() / 1000, ap = allPairData[DV_SYM].prices, rows = [];
         var li = tcLastReal(ap, Math.min(Math.floor(nowS) - currentStartTsUtc, ap.length - 1)), cur = li >= 0 ? ap[li] : null;
-        (_ssShift !== 0 ? [] : (L || [])).forEach(function(tr) {
+        (_ssShift !== 0 ? [] : (L || []).filter(function (z) { return (z.pair || DV_SYM) === DV_SYM; })).forEach(function(tr) {
           var ex = tr.exp || (tr.t0 + tr.dur), up = tr.dir === "BUY", ei = tr.t0 - currentStartTsUtc, en = tr.entry, ri;
           if (tr.status !== "open" && nowS - ex > 300) return;
           if (!en && ei >= 0 && ei < ap.length) { ri = tcLastReal(ap, ei); if (ri >= 0) en = ap[ri]; }
@@ -1724,9 +1849,9 @@ function _autoSelectTopSignal() {
           var rem = Math.max(0, Math.ceil(ex - nowS));
           rows.push({ up: up, amt: tr.amt, en: en, pnl: pnl, ei: ei, ex: ex, st: tr.status, ct: tr.status === "open" ? (((rem / 60) | 0) + ":" + ("0" + rem % 60).slice(-2)) : (tr.status === "won" ? "WIN" : "LOSS") });
         });
-        var ch = "";
-        rows.slice(-3).reverse().forEach(function(r) {
-          ch += '<div class="tcRow"><b style="color:' + (r.up ? "#00FF00" : "#FF0000") + '">' + (r.up ? "▲ BUY" : "▼ SELL") + '</b><span>' + r.amt.toFixed(2) + '</span><span>ENT ' + (r.en ? r.en.toFixed(2) : "--") + '</span><span>NOW ' + (cur !== null ? cur.toFixed(2) : "--") + '</span><b style="color:' + (r.pnl === null ? "#FFFFFF" : (r.pnl >= 0 ? "#00FF00" : "#FF0000")) + '">' + (r.pnl === null ? "--" : (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2)) + '</b><span>' + r.ct + '</span></div>';
+        var ch = "", _dc = _pxDec(DV_SYM);
+                rows.slice(-3).reverse().forEach(function(r) {
+                  ch += '<div class="tcRow"><b style="color:' + (r.up ? "#00FF00" : "#FF0000") + '">' + (r.up ? "▲ BUY" : "▼ SELL") + '</b><span>' + r.amt.toFixed(2) + '</span><span>ENT ' + (r.en ? r.en.toFixed(_dc) : "--") + '</span><span>NOW ' + (cur !== null ? cur.toFixed(_dc) : "--") + '</span><b style="color:' + (r.pnl === null ? "#FFFFFF" : (r.pnl >= 0 ? "#00FF00" : "#FF0000")) + '">' + (r.pnl === null ? "--" : (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2)) + '</b><span>' + r.ct + '</span></div>';
         });
         if (card && card._h !== ch) { card._h = ch; card.innerHTML = ch; }
         rows.forEach(function(r, k) {
@@ -1758,27 +1883,29 @@ function _autoSelectTopSignal() {
       }
     
       var tpLastFire = {};
-      function tpAutoTick() {
-        if (!dv.auto || !window.dvTrade) return;
-        var pd = allPairData.frxXAUUSD, ap = pd && pd.prices;
-        if (!ap || !ap.length || !_isWithinMappedWindow()) return;
-        var nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc;
-        if (nowSec < 0 || nowSec >= 86400) return;
-        var lim = Math.min(nowSec, ap.length - 1, 86399), last = tcLastReal(ap, lim), sp = tcSigPick();
-        var amt = parseFloat(document.getElementById("tpAmt").value) || 0;
-        if (amt <= 0) return;
-        [sp.rev, sp.mom].forEach(function(x) {
-          if (!x) return;
-          var pl = tcPlan(x, ap, lim, 86400, last);
-          if (pl.kind !== "FIRED" || nowSec - pl.idx > 3) return;
-          var key = x.type + "|" + x.c + "|" + x.r + "|" + x.s1 + "|" + x.col + "|" + pl.idx;
-          if (tpLastFire[key]) return;
-          tpLastFire[key] = 1;
-          var up = x.type === "REV" ? x.col === "R" : x.col === "G";
-          window.dvTrade(up ? "BUY" : "SELL", amt, x.c);
-        });
-      }
-      setInterval(tpAutoTick, 500);
+            function tpAutoTick() {
+              if (!dv.auto || !window.dvTrade || _ssShift !== 0) return;
+              var amt = parseFloat(document.getElementById("tpAmt").value) || 0;
+              if (amt <= 0) return;
+              var nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc;
+              if (nowSec < 0 || nowSec >= 86400) return;
+              activePairs.forEach(function(pair) {
+                var pd = allPairData[pair], ap = pd && pd.prices;
+                if (!ap || !ap.length || !_isWithinMappedWindow(pair)) return;
+                var lim = Math.min(nowSec, ap.length - 1, 86399), last = tcLastReal(ap, lim), sp = tcSigPick(pair);
+                [sp.rev, sp.mom].forEach(function(x) {
+                  if (!x) return;
+                  var pl = tcPlan(x, ap, lim, 86400, last);
+                  if (pl.kind !== "FIRED" || nowSec - pl.idx > 3) return;
+                  var key = pair + "|" + x.type + "|" + x.c + "|" + x.r + "|" + x.s1 + "|" + x.col + "|" + pl.idx;
+                  if (tpLastFire[key]) return;
+                  tpLastFire[key] = 1;
+                  var up = x.type === "REV" ? x.col === "R" : x.col === "G";
+                  window.dvTrade(up ? "BUY" : "SELL", amt, x.c, pair);
+                });
+              });
+            }
+            setInterval(tpAutoTick, 500);
     
       function tcDraw() { if (!TC._rq) TC._rq = requestAnimationFrame(() => { TC._rq = 0; tcDrawNow(); }); }
   window.tcRedraw = window.tcOnTableRendered = tcDraw;
@@ -1946,13 +2073,13 @@ async function dvConnect(mode) {
   } catch (e) { tpFlash(false, "connect failed: " + e.message); return false; }
 }
 
-async function dvTrade(dir, amt, dur) {
+async function dvTrade(dir, amt, dur, pair) {
   if (_ssShift !== 0) { tpFlash(false, "BACKTEST MODE - trading disabled"); return false; }
   try {
     if (!dv.ready && !(await dvConnect(dv.mode))) return false;
-    var pr = await dvSend({ proposal: 1, amount: amt, basis: "stake", contract_type: dir === "BUY" ? "CALL" : "PUT", currency: dv.cur[dv.mode] || "USD", duration: dur, duration_unit: "s", underlying_symbol: DV_SYM });
+    var pr = await dvSend({ proposal: 1, amount: amt, basis: "stake", contract_type: dir === "BUY" ? "CALL" : "PUT", currency: dv.cur[dv.mode] || "USD", duration: dur, duration_unit: "s", underlying_symbol: pair || DV_SYM });
     var by = await dvSend({ buy: pr.proposal.id, price: +pr.proposal.ask_price || amt });
-    if (by.buy && window.dvAddTrade) window.dvAddTrade(by.buy, pr.proposal, dir, amt, dur);
+    if (by.buy && window.dvAddTrade) window.dvAddTrade(by.buy, pr.proposal, dir, amt, dur, pair || DV_SYM);
         tpFlash(true, dir + " " + amt + " " + dur + "s #" + (by.buy ? by.buy.contract_id : ""));
     return true;
   } catch (e) { tpFlash(false, dir + " failed: " + e.message); return false; }
@@ -1976,32 +2103,39 @@ document.getElementById("tpAuto").onclick = function() {
 dvConnect("demo");
 
 window._pyHtml = "";
+window._pyMap = {};
 var _pyCyc = 0;
-function pyShow(txt, tip) {
+function pyStore(pair, txt, tip) {
   var h = '<span class="pyP" title="' + String(tip || "").replace(/"/g, "'") + '">' + txt + '</span>';
-  if (h !== window._pyHtml) { window._pyHtml = h; renderFilteredTable(); }
+  if (window._pyMap[pair] === h) return false;
+  window._pyMap[pair] = h; return true;
 }
 
 function pyFetch() {
-  var dur = Math.round(CYCLE) || 300, ws, t, done = false;
-  function fin(txt, tip) {
+  var dur = Math.round(CYCLE) || 300, ws, t, done = false, pl = activePairs.slice(), got = {}, nGot = 0, chg = false;
+  function fin() {
     if (done) return;
     done = true; clearTimeout(t);
     try { ws.close(); } catch (e) {}
-    pyShow(txt, tip);
+    for (var q = 0; q < pl.length; q++) if (!got[pl[q]] && pyStore(pl[q], "--%", "no price returned")) chg = true;
+    if (chg) renderFilteredTable();
   }
-  try { ws = new WebSocket(DERIV_WS_URL); } catch (e) { pyShow("--%", e.message); return; }
-  t = setTimeout(function() { fin("--%", "timeout"); }, 10000);
-    ws.onopen = function() { ws.send(JSON.stringify({ proposal: 1, amount: 1, basis: "stake", contract_type: "CALL", currency: "USD", duration: dur, duration_unit: "s", underlying_symbol: DV_SYM })); };
+  try { ws = new WebSocket(DERIV_WS_URL); } catch (e) { fin(); return; }
+  t = setTimeout(fin, 10000);
+  ws.onopen = function() { for (var i = 0; i < pl.length; i++) ws.send(JSON.stringify({ proposal: 1, amount: 1, basis: "stake", contract_type: "CALL", currency: "USD", duration: dur, duration_unit: "s", underlying_symbol: pl[i], req_id: i + 1 })); };
   ws.onmessage = function(ev) {
-    var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
-    if (d.error) { fin("N/A", d.error.message || d.error.code); return; }
-    if (!d.proposal) return;
-    var ap = +d.proposal.ask_price, po = +d.proposal.payout;
-    if (ap > 0 && po > 0) fin(Math.round((po / ap - 1) * 100) + "%", dur + "s payout"); else fin("--%", "no price returned");
+    var d, k, ap, po, ok;
+    try { d = JSON.parse(ev.data); } catch (e) { return; }
+    k = d.req_id ? pl[d.req_id - 1] : null;
+    if (!k || got[k]) return;
+    if (d.error) { got[k] = 1; nGot++; if (pyStore(k, "N/A", d.error.message || d.error.code)) chg = true; }
+    else if (d.proposal) {
+      got[k] = 1; nGot++; ap = +d.proposal.ask_price; po = +d.proposal.payout; ok = ap > 0 && po > 0;
+      if (pyStore(k, ok ? Math.round((po / ap - 1) * 100) + "%" : "--%", ok ? dur + "s payout" : "no price returned")) chg = true;
+    }
+    if (nGot >= pl.length) fin();
   };
-  ws.onerror = function() { fin("--%", "socket error"); };
-  ws.onclose = function() { fin("--%", "socket closed"); };
+  ws.onerror = fin; ws.onclose = fin;
 }
 
 function pyFetchOld() {
@@ -2024,8 +2158,8 @@ setInterval(function() { if (_pyCyc !== CYCLE) { _pyCyc = CYCLE; pyFetch(); } },
 setInterval(pyFetch, 30000);
 
 window.dvTrades = [];
-window.dvAddTrade = function(b, p, dir, amt, dur) {
-  var tr = { id: String(b.contract_id), dir: dir, amt: +b.buy_price || amt, dur: dur, t0: +b.start_time || +b.purchase_time || Math.floor(Date.now() / 1000), payout: +b.payout || +(p && p.payout) || 0, entry: null, pnl: null, status: "open" };
+window.dvAddTrade = function(b, p, dir, amt, dur, pair) {
+  var tr = { pair: pair || DV_SYM, id: String(b.contract_id), dir: dir, amt: +b.buy_price || amt, dur: dur, t0: +b.start_time || +b.purchase_time || Math.floor(Date.now() / 1000), payout: +b.payout || +(p && p.payout) || 0, entry: null, pnl: null, status: "open" };
   window.dvTrades.push(tr);
   if (window.dvTrades.length > 20) window.dvTrades.shift();
   try { if (dv.ws && dv.ready) dv.ws.send(JSON.stringify({ proposal_open_contract: 1, contract_id: b.contract_id, subscribe: 1 })); } catch (e) {}
@@ -2048,10 +2182,8 @@ window.onload = async function() {
   var ctx = getTradingContext();
   currentStartTsUtc = ctx.startTsUtc; currentDuration = ctx.duration;
   bootLog("AOFS LOCAL BOOT — " + ctx.dateStr + " (05:30-05:30 IST)", "#00E676");
-  var grid = await fetchDerivGrid("frxXAUUSD", ctx.dateStr, ctx.startTsUtc, ctx.startTsUtc + ctx.duration);
-  allPairData.frxXAUUSD = grid; timesArray = grid.times; pricesArray = grid.prices;
-  _bootPairState.frxXAUUSD = "done";
-  document.getElementById("bootOverlay").style.display = "none";
+  await _loadPairs(ctx);
+    document.getElementById("bootOverlay").style.display = "none";
   document.getElementById("syncStatusText").textContent = ctx.isLive ? "🟢 LIVE SYNCED" : "🔵 MARKET CLOSED";
   window._autoSelectAfterScan = true;
   processVisualMatrix();
