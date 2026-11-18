@@ -207,6 +207,9 @@ tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:var(-
 #bootOverlay{background:radial-gradient(900px 500px at 50% 38%,#121923 0%,#0B0E11 72%);}
 #bootOverlay>div:first-child{color:var(--pf-text)!important;font-weight:600!important;letter-spacing:.2em!important;}
 #bootLogBox{background:var(--pf-bg2);border:1px solid var(--pf-line2);border-radius:10px;color:var(--pf-soft);}
+#wall-finder-pane #rangePill #btToggle{width:auto;min-width:72px;height:26px;padding:0 12px;background:var(--pf-ctl);border:1px solid var(--pf-line2);border-radius:7px;color:var(--pf-text);font:700 10px 'JetBrains Mono',monospace;letter-spacing:.04em;cursor:pointer;white-space:nowrap;}
+#wall-finder-pane #rangePill #btToggle:hover{border-color:#4B5666;}
+#wall-finder-pane #rangePill #btDate{width:118px;color-scheme:dark;}
 </style>
 </head>
 <body>
@@ -232,7 +235,7 @@ tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:var(-
           <input type="number" id="tpAmt" value="0.50" min="0.35" step="0.01">
           <button type="button" id="tpBuy">BUY</button>
           <button type="button" id="tpSell">SELL</button>
-          <button type="button" id="tpAuto">AUTO</button><input type="number" id="scanMin" value="300" min="1" max="3600" title="Cycle min" onchange="applyCycleRange()"><input type="number" id="scanMax" value="300" min="1" max="3600" title="Cycle max" onchange="applyCycleRange()"><input type="number" id="scanIntv" value="60" min="5" max="3600" title="Scan interval (seconds)" onchange="setScanInterval(this.value)"><button type="button" id="tpBal">D 0.00</button>
+          <button type="button" id="tpAuto">AUTO</button><input type="number" id="scanMin" value="300" min="1" max="3600" title="Cycle min" onchange="applyCycleRange()"><input type="number" id="scanMax" value="300" min="1" max="3600" title="Cycle max" onchange="applyCycleRange()"><input type="number" id="scanIntv" value="60" min="5" max="3600" title="Scan interval (seconds)" onchange="setScanInterval(this.value)"><button type="button" id="tpBal">D 0.00</button><button type="button" id="btToggle" title="Toggle live / backtest">LIVE</button><input type="date" id="btDate" style="display:none;width:118px;" title="Backtest date (session 05:30-05:30 IST)">
         </div>
   </div>
   <div id="wall-finder-pane">
@@ -248,7 +251,7 @@ tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:var(-
       <!-- cycle range and scan interval inputs live in #rangePill -->
       <button type="button" id="r0OnlyBtn" class="ctrl-btn" onclick="toggleR0Only()">R0</button>
       <button type="button" class="ctrl-btn" onclick="window._wsLvlToggle()">SORT ▲▼</button>
-      <span id="syncStatusText" style="margin-left:auto;font-size:10px;font-weight:800;color:#2ED573;">BOOTING...</span>
+            <span id="syncStatusText" style="margin-left:auto;font-size:10px;font-weight:800;color:#2ED573;">BOOTING...</span>
       <span id="scanTimerDisplay" class="ctrl-input" style="min-width:42px;line-height:20px;">60s</span>
     </div>
     <div class="tables-split">
@@ -526,7 +529,7 @@ function _fxClosedNow() {
   return DV_SYM === "frxXAUUSD" && (dow === 6 || (dow === 5 && s >= 75600));
 }
 function _pairMarketClosed() { return _fxClosedNow(); }
-function _isWithinMappedWindow() { return !_fxClosedNow(); }
+function _isWithinMappedWindow() { return !_fxClosedNow() && _ssShift === 0; }
 function getTradingContext() {
   var now = Math.floor(Date.now() / 1000), mid = now - (now % 86400) + _ssShift * 86400;
   return { dateStr: "A" + mid + (DV_SYM === "frxXAUUSD" ? "" : "_" + DV_SYM) + "_0-1440", isLive: !_fxClosedNow() && _ssShift === 0, startTsUtc: mid, duration: 86400 };
@@ -627,13 +630,15 @@ async function _ssReload() {
     allPairData.frxXAUUSD = grid; timesArray = grid.times; pricesArray = grid.prices;
     _bootPairState.frxXAUUSD = "done";
     var st = document.getElementById("syncStatusText");
-    if (st) st.textContent = ctx.isLive ? "🟢 LIVE SYNCED" : "🔵 MARKET CLOSED";
+    if (window._btUi) window._btUi();
+        if (st) st.textContent = _ssShift !== 0 ? "🔵 BACKTEST " + (window._btDateStr ? window._btDateStr() : "") : ctx.isLive ? "🟢 LIVE SYNCED" : "🔵 MARKET CLOSED";
     _ssUi();
     window._scanRestart = true; window._scanProg = -1; window._autoSelectAfterScan = true;
     processVisualMatrix();
     dispatchMultiCycleScan();
   } finally {
     window._ssBusy = false;
+        if (window._btQ) { window._btQ = 0; setTimeout(_ssReload, 0); }
     if (ov) ov.style.display = "none";
   }
 }
@@ -647,6 +652,43 @@ async function _ssReload() {
   w.addEventListener("change", function () { _ssShift = parseInt(w.value, 10) || 0; _ssSel = 0; _ssReload(); });
     z.addEventListener("change", function () { _ssMin = parseInt(z.value, 10) || 0; _ssSel = _ssDefSel(); _ssUi(); _ssApply(); });
   s.addEventListener("change", function () { _ssSel = parseInt(s.value, 10) || 0; _ssApply(); });
+    var bt = document.getElementById("btToggle"), bd = document.getElementById("btDate");
+    var btDay = function (sh) { var n = Math.floor(Date.now() / 1000); return new Date((n - (n % 86400) + sh * 86400) * 1000).toISOString().slice(0, 10); };
+    window._btDateStr = function () { return btDay(_ssShift); };
+    var btUi = function () {
+      if (!bt || !bd) return;
+      var on = _ssShift !== 0;
+      bt.textContent = on ? "BACKTEST " + btDay(_ssShift) : (bt._open ? "BACKTEST" : "LIVE");
+      bt.style.color = on ? "#FCD535" : "";
+      bd.style.display = (on || bt._open) ? "" : "none";
+      bd.max = btDay(-1);
+      bd.value = on ? btDay(_ssShift) : "";
+    };
+    window._btUi = btUi;
+    var btGo = function (sh) {
+      _ssShift = sh; _ssSel = 0;
+      if (sh !== 0 && !w.querySelector('option[value="' + sh + '"]')) {
+        var o = document.createElement("option"); o.value = String(sh); o.textContent = "05:30\u219205:30 " + btDay(sh); w.appendChild(o);
+      }
+      btUi();
+      if (window._ssBusy) { window._btQ = 1; return; }
+      _ssReload();
+    };
+    if (bt && bd) {
+      bt.addEventListener("click", function () {
+        if (_ssShift !== 0) { bt._open = false; btGo(0); return; }
+        bt._open = !bt._open; btUi();
+        if (bt._open) { try { bd.focus(); if (bd.showPicker) bd.showPicker(); } catch (e) {} }
+      });
+      bd.addEventListener("change", function () {
+        var v = bd.value, t = Date.parse(v + "T00:00:00Z"), n = Math.floor(Date.now() / 1000);
+        if (!v || isNaN(t)) return;
+        var sh = Math.round((t / 1000 - (n - (n % 86400))) / 86400);
+        bt._open = false;
+        if (sh >= 0) { if (_ssShift !== 0) btGo(0); else btUi(); return; }
+        btGo(sh);
+      });
+    }
   _ssUi();
 })();
 function bootLog(msg, col) {
@@ -1713,7 +1755,7 @@ function _autoSelectTopSignal() {
         var L = window.dvTrades, card = document.getElementById("tradeCard");
         var nowS = Date.now() / 1000, ap = allPairData.frxXAUUSD.prices, rows = [];
         var li = tcLastReal(ap, Math.min(Math.floor(nowS) - currentStartTsUtc, ap.length - 1)), cur = li >= 0 ? ap[li] : null;
-        (L || []).forEach(function(tr) {
+        (_ssShift !== 0 ? [] : (L || [])).forEach(function(tr) {
           var ex = tr.exp || (tr.t0 + tr.dur), up = tr.dir === "BUY", ei = tr.t0 - currentStartTsUtc, en = tr.entry, ri;
           if (tr.status !== "open" && nowS - ex > 300) return;
           if (!en && ei >= 0 && ei < ap.length) { ri = tcLastReal(ap, ei); if (ri >= 0) en = ap[ri]; }
@@ -1949,6 +1991,7 @@ async function dvConnect(mode) {
 }
 
 async function dvTrade(dir, amt, dur) {
+  if (_ssShift !== 0) { tpFlash(false, "BACKTEST MODE - trading disabled"); return false; }
   try {
     if (!dv.ready && !(await dvConnect(dv.mode))) return false;
     var pr = await dvSend({ proposal: 1, amount: amt, basis: "stake", contract_type: dir === "BUY" ? "CALL" : "PUT", currency: dv.cur[dv.mode] || "USD", duration: dur, duration_unit: "s", underlying_symbol: DV_SYM });
