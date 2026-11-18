@@ -212,6 +212,8 @@ tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:var(-
 #wall-finder-pane #rangePill #btDate{width:118px;color-scheme:dark;}
 #wall-finder-pane #rangePill #pairBtn{width:auto;min-width:72px;height:26px;padding:0 12px;background:var(--pf-ctl);border:1px solid var(--pf-line2);border-radius:7px;color:var(--pf-text);font:700 10px 'JetBrains Mono',monospace;letter-spacing:.04em;cursor:pointer;white-space:nowrap;}
 #wall-finder-pane #rangePill #pairBtn:hover{border-color:#4B5666;}
+#wall-finder-pane #rangePill #modeBtn{width:auto;min-width:72px;height:26px;padding:0 12px;background:var(--pf-ctl);border:1px solid var(--pf-line2);border-radius:7px;color:var(--pf-gold);font:700 10px 'JetBrains Mono',monospace;letter-spacing:.08em;cursor:pointer;white-space:nowrap;}
+#wall-finder-pane #rangePill #modeBtn:hover{border-color:#4B5666;}
 #pairPanel{display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,94vw);max-height:84vh;overflow-y:auto;z-index:600;background:#0B0E11;border:1px solid #2F3845;border-radius:12px;padding:12px;color:#EAECEF;font:700 10px 'JetBrains Mono',monospace;box-shadow:0 10px 30px rgba(0,0,0,.6);}
 #pairPanel input{accent-color:#FCD535;width:14px;height:14px;}
 #pairPanel button{height:26px;padding:0 14px;background:#141A22;border:1px solid #2F3845;border-radius:7px;color:#EAECEF;font:700 10px 'JetBrains Mono',monospace;cursor:pointer;}
@@ -241,7 +243,7 @@ tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:var(-
           <input type="number" id="tpAmt" value="0.50" min="0.35" step="0.01">
           <button type="button" id="tpBuy">BUY</button>
           <button type="button" id="tpSell">SELL</button>
-          <button type="button" id="tpAuto">AUTO</button><input type="number" id="scanMin" value="300" min="1" max="3600" title="Cycle min" onchange="applyCycleRange()"><input type="number" id="scanMax" value="300" min="1" max="3600" title="Cycle max" onchange="applyCycleRange()"><input type="number" id="scanIntv" value="60" min="5" max="3600" title="Scan interval (seconds)" onchange="setScanInterval(this.value)"><button type="button" id="tpBal">D 0.00</button><button type="button" id="btToggle" title="Toggle live / backtest">LIVE</button><input type="date" id="btDate" style="display:none;width:118px;" title="Backtest date (session 05:30-05:30 IST)">
+          <button type="button" id="tpAuto">AUTO</button><input type="number" id="scanMin" value="300" min="1" max="3600" title="Cycle min" onchange="applyCycleRange()"><input type="number" id="scanMax" value="300" min="1" max="3600" title="Cycle max" onchange="applyCycleRange()"><input type="number" id="scanIntv" value="60" min="5" max="3600" title="Scan interval (seconds)" onchange="setScanInterval(this.value)"><button type="button" id="tpBal">D 0.00</button><button type="button" id="btToggle" title="Toggle live / backtest">LIVE</button><button type="button" id="modeBtn" title="Pair group: CRY / DRV / MTL / FRX / ALL" onclick="_gmNext()">CRY</button><input type="date" id="btDate" style="display:none;width:118px;" title="Backtest date (session 05:30-05:30 IST)">
         </div>
   </div>
   <div id="wall-finder-pane">
@@ -536,6 +538,48 @@ window.accentRedHex = "#FF0000";
 
 function getPairDisplayName(p) { var m = /^(frx|cry)([A-Z]{3})([A-Z]{3})$/.exec(String(p)); return m ? m[2] + "/" + m[3] : String(p); }
 function _pxDec(p) { p = String(p); if (/JPY$/.test(p)) return 3; if (/^frx(XAU|XPT)/.test(p)) return 2; if (/^frxXAG/.test(p)) return 4; if (/^frx/.test(p)) return 5; return 2; }
+var _gmList = ["CRY", "DRV", "MTL", "FRX", "ALL"], _gmCur = 0;
+function _gmPairs(m) {
+  return ALL_PAIRS.filter(function (p) {
+    if (m === "CRY") return /^cry/.test(p);
+    if (m === "DRV") return /^1HZ/.test(p);
+    if (m === "MTL") return p === "frxXAUUSD" || p === "frxXAGUSD";
+    if (m === "FRX") return /^frx/.test(p);
+    return true;
+  });
+}
+function _gmUi() {
+  var b = document.getElementById("modeBtn");
+  if (!b) return;
+  var L = _gmPairs(_gmList[_gmCur]), d = L.filter(function (p) { return _bootPairState[p] === "done"; }).length;
+  b.textContent = _gmList[_gmCur] + (d < L.length ? " " + d + "/" + L.length : "");
+}
+function _gmVis(p) { return _gmPairs(_gmList[_gmCur]).indexOf(p) >= 0; }
+function _gmNext() {
+  _gmCur = (_gmCur + 1) % _gmList.length;
+    _gmUi();
+    var _pf = function (a, b) { return (_gmVis(b) ? 1 : 0) - (_gmVis(a) ? 1 : 0); };
+    _scanQ.sort(_pf);
+    if (window._loadQ) window._loadQ.sort(_pf);
+  lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; highlightRow = -1;
+  var chg = false, ok = false, vis, q, sel;
+    if (!_gmVis(DV_SYM)) {
+      vis = activePairs.filter(function (p) { return _gmVis(p) && allPairData[p] && allPairData[p].times.length; });
+      q = vis.filter(function (p) { return _pairRes[p] && (_pairRes[p].revs.length || _pairRes[p].moms.length); })[0] || vis[0];
+      if (q) {
+        DV_SYM = activePair = q; chg = true;
+        timesArray = allPairData[q].times; pricesArray = allPairData[q].prices;
+        window._liveMaxIndex = (window._lmx && window._lmx[q]) || 0;
+        sel = document.getElementById("pairSel");
+        if (sel && sel.value !== q) sel.value = q;
+      }
+    }
+    if (_gmVis(DV_SYM)) ok = _autoSelectTopSignal(chg);
+    if (!ok) {
+      if (chg) processVisualMatrix();
+      renderFilteredTable();
+    }
+}
 function tcPairColor() { return window.pairColorHex; }
 function _cycleOff() { return (currentStartTsUtc || 0) % CYCLE; }
 function _fxClosedNow(p) {
@@ -741,8 +785,7 @@ async function _applyPairs(list) {
   if (!list.length) list = [DV_SYM];
   window._ssBusy = true;
   try {
-    if (ov) ov.style.display = "flex";
-    activePairs = list.slice();
+      activePairs = list.slice();
     try { localStorage.setItem("wsPairs", JSON.stringify(activePairs)); } catch (e) {}
     for (i = 0; i < old.length; i++) if (activePairs.indexOf(old[i]) < 0) { delete allPairData[old[i]]; delete _pairRes[old[i]]; delete _bootPairState[old[i]]; }
     for (i = 0; i < activePairs.length; i++) if (!allPairData[activePairs[i]]) allPairData[activePairs[i]] = { times: new Int32Array(0), prices: new Float64Array(0) };
@@ -838,17 +881,95 @@ window._preRoll = {};
 window._preArr = p => (window._preRoll[p] && window._preRoll[p].ts === currentStartTsUtc) ? window._preRoll[p].a : null;
 window._preRef = (p, k) => { var a = window._preArr(p); if (!a) return -1; var j = a.length + k; return (j >= 0 && j < a.length) ? a[j] : -1; };
 
+var _resSavedAt = {}, _cacheRot = 0;
+async function _cacheGet(key) {
+  try {
+    var db = await initDB();
+    return await new Promise(function (res) {
+      var rq = db.transaction("matrix_cache", "readonly").objectStore("matrix_cache").get(key);
+      rq.onsuccess = function (e) { res(e.target.result || null); };
+      rq.onerror = function () { res(null); };
+    });
+  } catch (e) { return null; }
+}
+async function _cachePut(key, val) {
+  try {
+    var db = await initDB();
+    await new Promise(function (res) {
+      var tx = db.transaction("matrix_cache", "readwrite");
+      tx.objectStore("matrix_cache").put(val, key);
+      tx.oncomplete = tx.onerror = tx.onabort = function () { res(); };
+    });
+  } catch (e) {}
+}
+async function _cacheClean(day) {
+  try {
+    var db = await initDB();
+    await new Promise(function (res) {
+      var tx = db.transaction("matrix_cache", "readwrite"), st = tx.objectStore("matrix_cache"), ks = [], rq = st.openKeyCursor();
+      rq.onsuccess = function (e) {
+        var c = e.target.result;
+        if (c) { ks.push(c.key); c.continue(); return; }
+        ks.forEach(function (k) { var s = String(k); if ((s.indexOf("t2|") === 0 || s.indexOf("r2|") === 0) && s.split("|")[2] !== String(day)) st.delete(k); });
+      };
+      tx.oncomplete = tx.onerror = tx.onabort = function () { res(); };
+    });
+  } catch (e) {}
+}
+function _resSig() {
+  var a = parseInt(document.getElementById("scanMin").value, 10) || 300, b = parseInt(document.getElementById("scanMax").value, 10) || 300;
+  return Math.min(a, b) + "," + Math.max(a, b) + "," + _ssMin + "," + _ssSel + "," + _ssShift;
+}
+function _resSave(pair) {
+  if (_ssShift !== 0 || Date.now() - (_resSavedAt[pair] || 0) < 120000) return;
+  var e = _pairRes[pair];
+  if (!e) return;
+  _resSavedAt[pair] = Date.now();
+  var st = currentStartTsUtc, sg = _resSig();
+  setTimeout(function () { _cachePut("r2|" + pair + "|" + st, { sig: sg, revs: e.revs, moms: e.moms, at: Date.now() }); }, 0);
+}
+async function _cacheLoadRes(pair, startTs) {
+  var c = await _cacheGet("r2|" + pair + "|" + startTs);
+  if (!c || c.sig !== _resSig() || _pairRes[pair] || activePairs.indexOf(pair) < 0 || startTs !== currentStartTsUtc) return;
+  _pairRes[pair] = { revs: c.revs || [], moms: c.moms || [], cached: true };
+  if (!window._resTm) window._resTm = setTimeout(function () { window._resTm = 0; _scanMerge(); renderFilteredTable(); }, 120);
+}
+setInterval(function () {
+  if (_ssShift !== 0 || window._ssBusy) return;
+  var done = activePairs.filter(function (p) { return _bootPairState[p] === "done" && allPairData[p] && allPairData[p].prices.length; });
+  if (!done.length) return;
+  for (var k = 0; k < 3; k++) {
+    var p = done[_cacheRot++ % done.length], pd = allPairData[p];
+    _cachePut("t2|" + p + "|" + currentStartTsUtc, { prices: pd.prices, pre: window._preArr(p), at: Date.now() });
+  }
+}, 15000);
 async function fetchDerivGrid(pair, dateStr, startTs, endTs) {
   var len = endTs - startTs + 1, times = new Int32Array(len), prices = new Float64Array(len).fill(-1.0), pre = new Float64Array(PRE_ROLL_SECS).fill(-1.0), i, g = null;
   for (i = 0; i < len; i++) times[i] = i;
-  if (_ssShift === 0) { try { g = await srvGet(pair, 0, true); } catch (e) { g = null; } }
+  var cc = null;
+    if (_ssShift === 0) {
+      _cacheLoadRes(pair, startTs).catch(function () {});
+      cc = await _cacheGet("t2|" + pair + "|" + startTs);
+    }
+    if (cc && cc.prices && cc.prices.length === len) {
+      if (cc.pre && cc.pre.length === PRE_ROLL_SECS) pre = cc.pre;
+      window._preRoll[pair] = { ts: startTs, a: pre };
+      _srvFp[pair] = Date.now() - 30000 + Math.floor(Math.random() * 25000);
+      bootLog(getPairDisplayName(pair) + " — loaded from local cache", "#00B0FF");
+      return { times: times, prices: cc.prices };
+    }
+    if (_ssShift === 0) { try { g = await srvGet(pair, 0, true); } catch (e) { g = null; } }
     if (g) {
       for (i = 0; i < g.pl && i < PRE_ROLL_SECS; i++) pre[i] = g.buf[i];
       for (i = 0; i < g.buf.length - g.pl && i < len; i++) prices[i] = g.buf[g.pl + i];
       bootLog(getPairDisplayName(pair) + " — loaded from tick server", "#00B0FF");
     } else bootLog(getPairDisplayName(pair) + " — tick server has no data for this session", "#FF0000");
   window._preRoll[pair] = { ts: startTs, a: pre };
-  return { times: times, prices: prices };
+    if (g) {
+        _srvFp[pair] = Date.now();
+        _cachePut("t2|" + pair + "|" + startTs, { prices: prices, pre: pre, at: Date.now() });
+      }
+    return { times: times, prices: prices };
 }
 
 function buildGrid(tickMap, startTs, endTs) {
@@ -1063,7 +1184,7 @@ function handleWorkerMessage(e) {
         }
         _rv = _jb.revs; _mm = _jb.moms; window._ssJob = null;
       }
-      if (allPairData[pair] && activePairs.indexOf(pair) >= 0) _pairRes[pair] = { revs: _rv, moms: _mm };
+      if (allPairData[pair] && activePairs.indexOf(pair) >= 0) { _pairRes[pair] = { revs: _rv, moms: _mm }; _resSave(pair); }
       _scanMerge();
       if (_scanNext()) { renderFilteredTable(); return; }
       scanPending = 0;
@@ -1158,7 +1279,8 @@ function dispatchMultiCycleScan() {
     if (window._scanRestart) { window._scanRestart = false; _spawnScanWorker(); _pairRes = {}; }
     scanPending = 1; _scanStartedAt = Date.now();
     window._scanMin = minC; window._scanMax = maxC; window._ssJob = null;
-    _scanQ = pl.slice();
+    pl.sort(function (a, b) { return (_gmVis(b) ? 1 : 0) - (_gmVis(a) ? 1 : 0); });
+        _scanQ = pl.slice();
     if (!_scanNext()) scanPending = 0;
 }
 
@@ -1290,9 +1412,11 @@ function _bestPerLevel(list) {
 }
 
 function renderFilteredTable() {
-  var rev = _bestPerLevel(_wsBuild(globalRevs.slice(), "lvl")), mom = _bestPerLevel(_wsBuild(globalMoms.slice(), "lvl"));
-  document.getElementById("peaksTableBodyRev").innerHTML = _buildScannerRowsHtml(rev);
-  document.getElementById("peaksTableBodyMom").innerHTML = _buildScannerRowsHtml(mom);
+  var rev = _bestPerLevel(_wsBuild(globalRevs.filter(function (x) { return _gmVis(x.pair); }), "lvl")), mom = _bestPerLevel(_wsBuild(globalMoms.filter(function (x) { return _gmVis(x.pair); }), "lvl"));
+  var _gl = _gmPairs(_gmList[_gmCur]), _gp = _gl.filter(function (p) { return !_pairRes[p]; }).length;
+    var _ld = '<tr><td colspan="7" style="text-align:center;color:#FFFFFF;background:transparent;padding:16px;">LOADING ' + _gmList[_gmCur] + ' ' + (_gl.length - _gp) + '/' + _gl.length + ' ...</td></tr>';
+    document.getElementById("peaksTableBodyRev").innerHTML = (!rev.length && _gp) ? _ld : _buildScannerRowsHtml(rev);
+    document.getElementById("peaksTableBodyMom").innerHTML = (!mom.length && _gp) ? _ld : _buildScannerRowsHtml(mom);
   if (window.tcOnTableRendered) window.tcOnTableRendered();
 }
 
@@ -1332,9 +1456,11 @@ function selectSignal(pair, c, r, s1, s2, colColor, type) {
     var _ps = window._ssPickSess, _pm = window._ssMatSess;
   window._ssPickSess = undefined;
   if (_ps === undefined) _ps = _ssMS();
-  if (_pm !== _ps) { window._ssMatSess = _ps; processVisualMatrix(); }
-  var sigId = `${pair}-${c}-${r}-${s1}-${s2}-${colColor}-${type}`, isFirst = sigId !== lastClickedSigId || _pm !== _ps;
-  if (CYCLE !== c) { CYCLE = c; processVisualMatrix(); }
+  var _cyc = CYCLE !== c;
+    if (_cyc) CYCLE = c;
+    if (_pm !== _ps) window._ssMatSess = _ps;
+    if (_pm !== _ps || _cyc) processVisualMatrix();
+    var sigId = `${pair}-${c}-${r}-${s1}-${s2}-${colColor}-${type}`, isFirst = sigId !== lastClickedSigId || _pm !== _ps;
   lastClickedSigId = sigId; highlightRow = r; currentInstances = []; currentInstanceIndex = -1;
   var targetHist = streakInstances[r] && streakInstances[r][colColor];
   if (targetHist) {
@@ -1358,10 +1484,16 @@ function selectSignal(pair, c, r, s1, s2, colColor, type) {
   renderFilteredTable();
 }
 
-function _autoSelectTopSignal() {
+function _autoSelectTopSignal(force) {
   var all = _wsBuild(globalRevs.slice(), "lvl", undefined, true), list = all.filter(z => z.pair === DV_SYM && +z.s1 === 1);
   if (!list.length) list = all.filter(z => z.pair === DV_SYM);
-  if (list.length) { var t = list[0]; window._ssPickSess = t.sess || 0; selectSignal(t.pair, t.c, t.r, t.s1, t.s2, t.col, t.type); }
+  if (list.length) {
+    var t = list[0]; window._ssPickSess = t.sess || 0;
+    if (force === true) window._ssMatSess = -1;
+    selectSignal(t.pair, t.c, t.r, t.s1, t.s2, t.col, t.type);
+    return true;
+  }
+  return false;
 }
 
 (function() {
@@ -1902,7 +2034,7 @@ function _autoSelectTopSignal() {
               if (nowSec < 0 || nowSec >= 86400) return;
               activePairs.forEach(function(pair) {
                 var pd = allPairData[pair], ap = pd && pd.prices;
-                if (!ap || !ap.length || !_isWithinMappedWindow(pair)) return;
+                if (!ap || !ap.length || !_isWithinMappedWindow(pair) || (_pairRes[pair] && _pairRes[pair].cached)) return;
                 var lim = Math.min(nowSec, ap.length - 1, 86399), last = tcLastReal(ap, lim), sp = tcSigPick(pair);
                 [sp.rev, sp.mom].forEach(function(x) {
                   if (!x) return;
@@ -2189,19 +2321,68 @@ window.dvOnPoc = function(p) {
   }
 };
 
+function _scanPairNow(p) {
+  if (_scanQ.indexOf(p) < 0) { if (_gmVis(p)) _scanQ.unshift(p); else _scanQ.push(p); }
+  if (scanPending) return;
+  var a = parseInt(document.getElementById("scanMin").value, 10) || 300, b = parseInt(document.getElementById("scanMax").value, 10) || 300;
+  window._scanMin = Math.min(a, b); window._scanMax = Math.max(a, b); window._ssJob = null;
+  scanPending = 1; _scanStartedAt = Date.now();
+  if (!_scanNext()) scanPending = 0;
+}
+function _loadRest(ctx) {
+  var rest = ALL_PAIRS.filter(function (p) { return activePairs.indexOf(p) < 0; });
+    var q = rest.filter(function (p) { return /^1HZ/.test(p); }).concat(
+          rest.filter(function (p) { return _gmPairs("MTL").indexOf(p) >= 0; }),
+      rest.filter(function (p) { return /^frx/.test(p) && _gmPairs("MTL").indexOf(p) < 0; })
+    );
+  rest.forEach(function (p) {
+    activePairs.push(p);
+    allPairData[p] = { times: new Int32Array(0), prices: new Float64Array(0) };
+  });
+  _pairUi(); _gmUi();
+      window._loadQ = q;
+      var run = async function () {
+    var p, g, j;
+    while (q.length) {
+      p = q.shift();
+      if (ctx.startTsUtc !== currentStartTsUtc) return;
+      _bootPairState[p] = "wait";
+      try { g = await fetchDerivGrid(p, ctx.dateStr, ctx.startTsUtc, ctx.startTsUtc + ctx.duration); } catch (e) { continue; }
+      if (ctx.startTsUtc !== currentStartTsUtc || activePairs.indexOf(p) < 0) return;
+      allPairData[p] = g;
+      for (j = g.prices.length - 1; j > 0 && g.prices[j] === -1; j--);
+      window._lmx[p] = j > 0 ? j : 0;
+      _bootPairState[p] = "done";
+            _scanPairNow(p);
+            _gmUi();
+          }
+        };
+        run(); run(); run(); run(); run();
+}
 window.onload = async function() {
-  activePairs = ALL_PAIRS.slice();
-    _pairUi();
+  _gmCur = 0;
+  activePairs = _gmPairs("CRY");
+    DV_SYM = activePair = activePairs[0];
+      _pairUi(); _gmUi();
   var ctx = getTradingContext();
   currentStartTsUtc = ctx.startTsUtc; currentDuration = ctx.duration;
   bootLog("AOFS LOCAL BOOT — " + ctx.dateStr + " (05:30-05:30 IST)", "#00E676");
+    _cacheClean(ctx.startTsUtc);
   await _loadPairs(ctx);
-    document.getElementById("bootOverlay").style.display = "none";
+    window._bootHide = function () { var o = document.getElementById("bootOverlay"); if (o) o.style.display = "none"; };
   document.getElementById("syncStatusText").textContent = ctx.isLive ? "🟢 LIVE SYNCED" : "🔵 MARKET CLOSED";
-  window._autoSelectAfterScan = true;
-  processVisualMatrix();
-  dispatchMultiCycleScan();
-};
+    window._autoSelectAfterScan = true;
+    processVisualMatrix();
+    dispatchMultiCycleScan();
+    _loadRest(ctx);
+        await new Promise(function (res) {
+          var t0 = Date.now(), iv = setInterval(function () {
+            var all = ALL_PAIRS.every(function (p) { return _bootPairState[p] === "done"; });
+            if (all || Date.now() - t0 > 90000 || ctx.startTsUtc !== currentStartTsUtc) { clearInterval(iv); res(); }
+          }, 300);
+        });
+        window._bootHide();
+  };
 </script>
 </body>
 </html>
