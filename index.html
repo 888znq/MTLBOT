@@ -735,41 +735,24 @@ async function aofs_write(pair, dateStr, times, prices) {
   } catch (e) {}
 }
 
-function fetchChunk(pair, s0, s1) {
-  return new Promise(res => {
-    var ws, done = false;
-    try { ws = new WebSocket(DERIV_WS_URL); } catch (e) { return res({}); }
-    var t = setTimeout(() => { if (!done) { done = true; try { ws.close(); } catch (e) {} res({}); } }, 25000);
-    ws.onopen = () => { if (!done) ws.send(JSON.stringify({ ticks_history: DV_SYM, start: s0, end: s1, count: 5000, style: "ticks" })); };
-    ws.onmessage = ev => {
-      if (done) return;
-      try {
-        var d = JSON.parse(ev.data), map = {};
-        if (d.history) {
-          var ts = d.history.times || [], ps = d.history.prices || [];
-          for (var i = 0; i < ts.length; i++) map[ts[i]] = ps[i];
-        }
-        done = true; clearTimeout(t); try { ws.close(); } catch (e) {} res(map);
-      } catch (e) { done = true; clearTimeout(t); try { ws.close(); } catch (e2) {} res({}); }
-    };
-    ws.onerror = ws.onclose = () => { if (!done) { done = true; clearTimeout(t); res({}); } };
-  });
-}
+var TICK_SERVER = "https://YOUR-SERVER.onrender.com", TICK_TOKEN = "", _srvBusy = false, _srvFullAt = 0;
 
 var PRE_ROLL_SECS = 900;
 window._preRoll = {};
 window._preArr = p => (window._preRoll[p] && window._preRoll[p].ts === currentStartTsUtc) ? window._preRoll[p].a : null;
 window._preRef = (p, k) => { var a = window._preArr(p); if (!a) return -1; var j = a.length + k; return (j >= 0 && j < a.length) ? a[j] : -1; };
 
-async function fetchPreRoll(pair, startTs) {
-  var map = await fetchChunk(pair, startTs - PRE_ROLL_SECS, startTs - 1);
-  if (!Object.keys(map).length) map = await fetchChunk(pair, startTs - PRE_ROLL_SECS, startTs - 1);
-  var arr = new Float64Array(PRE_ROLL_SECS).fill(-1.0);
-  for (var ts in map) {
-    var j = (ts | 0) - (startTs - PRE_ROLL_SECS);
-    if (j >= 0 && j < PRE_ROLL_SECS) arr[j] = map[ts];
-  }
-  window._preRoll[pair] = { ts: startTs, a: arr };
+async function fetchDerivGrid(pair, dateStr, startTs, endTs) {
+  var len = endTs - startTs + 1, times = new Int32Array(len), prices = new Float64Array(len).fill(-1.0), pre = new Float64Array(PRE_ROLL_SECS).fill(-1.0), i, g = null;
+  for (i = 0; i < len; i++) times[i] = i;
+  if (_ssShift === 0) { try { g = await srvGet(0, true); } catch (e) { g = null; } }
+  if (g) {
+    for (i = 0; i < g.pl && i < PRE_ROLL_SECS; i++) pre[i] = g.buf[i];
+    for (i = 0; i < g.buf.length - g.pl && i < len; i++) prices[i] = g.buf[g.pl + i];
+    bootLog("XAU/USD — loaded from tick server", "#00B0FF");
+  } else bootLog("XAU/USD — tick server has no data for this session", "#FF0000");
+  window._preRoll[pair] = { ts: startTs, a: pre };
+  return { times: times, prices: prices };
 }
 
 function buildGrid(tickMap, startTs, endTs) {
@@ -778,70 +761,43 @@ function buildGrid(tickMap, startTs, endTs) {
   return { times, prices };
 }
 
-async function fetchDerivGrid(pair, dateStr, startTs, endTs) {
-  await fetchPreRoll(pair, startTs);
-  var cached = await aofs_read(pair, dateStr), tickMap = {};
-  if (cached && cached.prices && cached.prices.length) {
-    for (var i = 0; i < cached.prices.length; i++) if (cached.prices[i] !== -1.0) tickMap[startTs + i] = cached.prices[i];
-  }
-  var nowTs = Math.floor(Date.now() / 1000), fetchEnd = Math.min(endTs, nowTs), chunks = [], gapStart = -1;
-  for (var s = startTs; s <= fetchEnd; s++) {
-    if (tickMap[s] === undefined) { if (gapStart === -1) gapStart = s; }
-    else if (gapStart !== -1) { if ((s - 1) - gapStart >= 300) chunks.push({ s: gapStart, e: s - 1 }); gapStart = -1; }
-  }
-  if (gapStart !== -1) chunks.push({ s: gapStart, e: fetchEnd });
-  else if (!chunks.length && (!cached || !cached.prices || !cached.prices.length)) chunks.push({ s: startTs, e: fetchEnd });
-  var finalChunks = [];
-  chunks.forEach(g => { for (var s2 = g.s; s2 <= g.e; s2 += 901) finalChunks.push({ s: s2, e: Math.min(s2 + 900, g.e) }); });
-  if (finalChunks.length) {
-    bootLog("XAU/USD — backfilling " + finalChunks.length + " chunk(s)...", "#FFD700");
-    for (var b = 0; b < finalChunks.length; b += 8) {
-      var batch = finalChunks.slice(b, b + 8);
-      var res = await Promise.all(batch.map((c, idx) => new Promise(r => setTimeout(r, idx * 400)).then(() => fetchChunk(pair, c.s, c.e))));
-      res.forEach(m => Object.assign(tickMap, m));
-      bootLog("XAU/USD — chunks " + (b + 1) + "-" + (b + batch.length) + " synced", "#00B0FF");
+async function srvGet(from, pre) {
+  var r = await fetch(TICK_SERVER + "/ticks?pair=frxXAUUSD&from=" + from + "&day=" + currentStartTsUtc + (pre ? "&pre=1" : "") + "&token=" + encodeURIComponent(TICK_TOKEN), { cache: "no-store" });
+  if (!r.ok || +r.headers.get("X-Day-Epoch") !== currentStartTsUtc) return null;
+  return { buf: new Float64Array(await r.arrayBuffer()), pl: +r.headers.get("X-Pre-Length") || 0, from: +r.headers.get("X-From-Index") || 0 };
+}
+async function srvSync() {
+  var pd = allPairData.frxXAUUSD;
+  if (_srvBusy || _ssShift !== 0 || window._ssBusy || _bootPairState.frxXAUUSD !== "done" || !pd || !pd.prices.length) return;
+  _srvBusy = true;
+  var st = document.getElementById("syncStatusText");
+  try {
+    var full = Date.now() - _srvFullAt > 30000, mx0 = window._liveMaxIndex || 0, len = pd.prices.length, i, ix, v, pre, chg = false;
+    var g = await srvGet(full ? 0 : Math.max(0, mx0 - 30), full);
+    if (pd !== allPairData.frxXAUUSD) return;
+    if (!g) { if (st) st.textContent = "🔴 TICK SERVER OFFLINE"; return; }
+    if (st && st.textContent.indexOf("OFFLINE") >= 0) st.textContent = "🟢 LIVE SYNCED";
+    if (full) {
+      _srvFullAt = Date.now();
+      if (g.pl > 0) {
+        pre = new Float64Array(PRE_ROLL_SECS).fill(-1.0);
+        for (i = 0; i < g.pl && i < PRE_ROLL_SECS; i++) pre[i] = g.buf[i];
+        window._preRoll.frxXAUUSD = { ts: currentStartTsUtc, a: pre };
+      }
     }
-  }
-  if (window.liveTickBuffer[pair]) Object.assign(tickMap, window.liveTickBuffer[pair]);
-  var trueNow = Math.min(endTs, Math.floor(Date.now() / 1000));
-  if (trueNow > fetchEnd) Object.assign(tickMap, await fetchChunk(pair, fetchEnd + 1, trueNow));
-  if (window.liveTickBuffer[pair]) Object.assign(tickMap, window.liveTickBuffer[pair]);
-  var grid = buildGrid(tickMap, startTs, endTs);
-  await aofs_write(pair, dateStr, grid.times, grid.prices);
-  return grid;
-}
-
-function startLiveSync() {
-  if (derivWs) { try { derivWs.onclose = null; derivWs.close(); } catch (e) {} }
-  derivWs = new WebSocket(DERIV_WS_URL);
-  derivWs.onopen = () => { if (!_fxClosedNow()) derivWs.send(JSON.stringify({ ticks: DV_SYM, subscribe: 1 })); };
-  derivWs.onmessage = m => {
-    try {
-      var d = JSON.parse(m.data);
-      if (d.tick) injectLiveTick("frxXAUUSD", d.tick.epoch, d.tick.quote);
-    } catch (e) {}
-  };
-  derivWs.onclose = () => setTimeout(startLiveSync, 4000);
-}
-
-setInterval(async function _edgeAndHoleSync() {
-  if (_fxClosedNow() || _ssShift !== 0 || _bootPairState.frxXAUUSD !== "done") return;
-  var pData = allPairData.frxXAUUSD;
-  if (!pData || !pData.prices.length) return;
-  var nowIdx = Math.min(pData.prices.length - 1, Math.floor(Date.now() / 1000) - currentStartTsUtc - 2);
-  if (nowIdx < 1) return;
-  var gs = -1, ge = -1;
-  for (var i = Math.max(0, nowIdx - 30); i < nowIdx; i++) if (pData.prices[i] === -1.0) { if (gs === -1) gs = i; ge = i; }
-  if (gs !== -1) {
-    var patch = await fetchChunk("frxXAUUSD", currentStartTsUtc + gs, currentStartTsUtc + ge);
-    var chg = false;
-    for (var ts in patch) {
-      var ix = (ts | 0) - currentStartTsUtc;
-      if (ix >= 0 && ix < pData.prices.length && pData.prices[ix] === -1.0) { pData.prices[ix] = patch[ts]; chg = true; }
+    for (i = g.pl; i < g.buf.length; i++) {
+      v = g.buf[i]; ix = g.from + i - g.pl;
+      if (v === -1 || ix < 0 || ix >= len || pd.prices[ix] === v) continue;
+      if (ix > mx0) injectLiveTick("frxXAUUSD", currentStartTsUtc + ix, v);
+      else { pd.prices[ix] = v; chg = true; }
     }
     if (chg) processVisualMatrix();
-  }
-}, 15000);
+  } catch (e) {
+    if (st) st.textContent = "🔴 TICK SERVER OFFLINE";
+  } finally { _srvBusy = false; }
+}
+
+setInterval(srvSync, 1000);
 
 function injectLiveTick(pair, ts, p) {
   if (pair !== "frxXAUUSD") return;
@@ -2092,13 +2048,6 @@ window.onload = async function() {
   var ctx = getTradingContext();
   currentStartTsUtc = ctx.startTsUtc; currentDuration = ctx.duration;
   bootLog("AOFS LOCAL BOOT — " + ctx.dateStr + " (05:30-05:30 IST)", "#00E676");
-  startLiveSync();
-  var cached = await aofs_read("frxXAUUSD", ctx.dateStr);
-  if (cached && cached.times && cached.times.length) {
-    allPairData.frxXAUUSD = { times: cached.times, prices: cached.prices };
-    timesArray = cached.times; pricesArray = cached.prices;
-    processVisualMatrix(); dispatchMultiCycleScan();
-  }
   var grid = await fetchDerivGrid("frxXAUUSD", ctx.dateStr, ctx.startTsUtc, ctx.startTsUtc + ctx.duration);
   allPairData.frxXAUUSD = grid; timesArray = grid.times; pricesArray = grid.prices;
   _bootPairState.frxXAUUSD = "done";
