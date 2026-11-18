@@ -954,7 +954,13 @@ async function fetchDerivGrid(pair, dateStr, startTs, endTs) {
     if (cc && cc.prices && cc.prices.length === len) {
       if (cc.pre && cc.pre.length === PRE_ROLL_SECS) pre = cc.pre;
       window._preRoll[pair] = { ts: startTs, a: pre };
-      _srvFp[pair] = Date.now() - 30000 + Math.floor(Math.random() * 25000);
+      var _cp = cc.prices, _lr = _cp.length - 1;
+            while (_lr > 0 && _cp[_lr] === -1) _lr--;
+            try {
+              var _gd = await Promise.race([srvGet(pair, Math.max(0, _lr - 30), false), new Promise(function (r) { setTimeout(function () { r(null); }, 4000); })]);
+              if (_gd) for (var _k = _gd.pl; _k < _gd.buf.length; _k++) { var _bv = _gd.buf[_k], _bi = _gd.from + _k - _gd.pl; if (_bv !== -1 && _bi >= 0 && _bi < len) _cp[_bi] = _bv; }
+            } catch (e) {}
+            _srvFp[pair] = Date.now() - 30000 + Math.floor(Math.random() * 25000);
       bootLog(getPairDisplayName(pair) + " — loaded from local cache", "#00B0FF");
       return { times: times, prices: cc.prices };
     }
@@ -990,7 +996,7 @@ async function srvSyncPair(pair) {
   _srvBp[pair] = true;
   var st = document.getElementById("syncStatusText"), isV = pair === DV_SYM;
   try {
-    var full = Date.now() - (_srvFp[pair] || 0) > 30000, mx0 = Math.max(window._lmx[pair] || 0, isV ? (window._liveMaxIndex || 0) : 0), len = pd.prices.length, i, ix, v, pre, chg = false;
+    var full = Date.now() - (_srvFp[pair] || 0) > 300000, mx0 = Math.max(window._lmx[pair] || 0, isV ? (window._liveMaxIndex || 0) : 0), len = pd.prices.length, i, ix, v, pre, chg = false;
     var g = await srvGet(pair, full ? 0 : Math.max(0, mx0 - 30), full);
     if (pd !== allPairData[pair]) return;
     if (!g) { if (isV && st) st.textContent = "🔴 TICK SERVER OFFLINE"; return; }
