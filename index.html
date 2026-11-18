@@ -763,9 +763,10 @@ async function _applyPairs(list) {
   var si = document.getElementById("scanMin");
   if (!si || !si.parentNode) return;
   var ps = document.createElement("select"), pb = document.createElement("button"), pp = document.createElement("div");
-  ps.id = "pairSel"; pb.id = "pairBtn"; pb.type = "button"; pp.id = "pairPanel";
+  ps.id = "pairSel"; pb.id = "pairBtn"; pb.type = "button"; pp.id = "pairPanel"; pb.style.display = "none";
   si.parentNode.insertBefore(ps, si); si.parentNode.insertBefore(pb, si); document.body.appendChild(pp);
-  ps.addEventListener("change", function () { _viewPair(ps.value); });
+  ps.style.display = "none";
+    ps.addEventListener("change", function () { _viewPair(ps.value); });
   var build = function () {
     var h = '<div style="margin-bottom:8px;letter-spacing:.12em;color:#848E9C;">SCAN PAIRS</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px;">', i, p;
     for (i = 0; i < ALL_PAIRS.length; i++) {
@@ -1278,8 +1279,18 @@ function _buildScannerRowsHtml(list) {
   }).join("");
 }
 
+function _bestPerLevel(list) {
+  var best = {}, order = [], i, x, k, o;
+  for (i = 0; i < list.length; i++) {
+    x = list[i]; k = x.s1; o = best[k];
+    if (!o) { best[k] = x; order.push(k); }
+    else if (x.pct > o.pct || (x.pct === o.pct && x.c1 > o.c1)) best[k] = x;
+  }
+  return order.map(function (kk) { return best[kk]; });
+}
+
 function renderFilteredTable() {
-  var rev = _wsBuild(globalRevs.slice(), "lvl"), mom = _wsBuild(globalMoms.slice(), "lvl");
+  var rev = _bestPerLevel(_wsBuild(globalRevs.slice(), "lvl")), mom = _bestPerLevel(_wsBuild(globalMoms.slice(), "lvl"));
   document.getElementById("peaksTableBodyRev").innerHTML = _buildScannerRowsHtml(rev);
   document.getElementById("peaksTableBodyMom").innerHTML = _buildScannerRowsHtml(mom);
   if (window.tcOnTableRendered) window.tcOnTableRendered();
@@ -2179,6 +2190,8 @@ window.dvOnPoc = function(p) {
 };
 
 window.onload = async function() {
+  activePairs = ALL_PAIRS.slice();
+  _pairUi();
   var ctx = getTradingContext();
   currentStartTsUtc = ctx.startTsUtc; currentDuration = ctx.duration;
   bootLog("AOFS LOCAL BOOT — " + ctx.dateStr + " (05:30-05:30 IST)", "#00E676");
