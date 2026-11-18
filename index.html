@@ -117,6 +117,10 @@ tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:#F5B9
 #rangePill input{width:72px;height:26px;padding:0;background:#0F1A2E;border:1px solid #263653;border-radius:999px;color:#D3DBEA;text-align:center;font:800 10px 'JetBrains Mono',monospace;outline:none;-webkit-user-select:text;user-select:text;-moz-appearance:textfield;}
 #rangePill input::-webkit-outer-spin-button,#rangePill input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 #rangePill input:focus{border-color:#D4AF37;}
+#rangePill select{min-width:72px;height:26px;padding:0 10px;background:#0F1A2E;border:1px solid #263653;border-radius:999px;color:#D3DBEA;text-align:center;text-align-last:center;font:800 10px 'JetBrains Mono',monospace;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;}
+#rangePill select:focus{border-color:#D4AF37;}
+#rangePill #ssWin{display:none!important;}
+#rangePill select option{background:#0F1A2E;color:#D3DBEA;}
 .tcRow{display:flex;align-items:center;gap:10px;padding:4px 12px;border-radius:999px;background:#0C1628;border:1px solid #263653;color:#D3DBEA;white-space:nowrap;}
 .pyP{margin-left:6px;padding:1px 6px;border-radius:999px;background:rgba(0,4,50,.2);font-size:9px;font-weight:800;letter-spacing:.02em;}
 #bootOverlay>div:first-child{color:#8FA3C7!important;font-weight:600!important;letter-spacing:.16em!important;}
@@ -421,6 +425,7 @@ const ALL_PAIRS = ["frxXAUUSD"], SPECIAL_ALL_PAIRS = ["frxXAUUSD"];
 var activePair = "frxXAUUSD", activePairs = ["frxXAUUSD"], _hiddenPairs = new Set();
 var sessionWindowStartMin = 0, sessionWindowEndMin = 1440, currentStartTsUtc = 0, currentDuration = 86400;
 var CYCLE = 300, SCAN_INT = 60, r0OnlyMode = false, currentMode = "REV", _wsLvlDir = 1;
+var _ssShift = 0, _ssMin = 0, _ssSel = 0;
 var allPairData = { frxXAUUSD: { times: new Int32Array(0), prices: new Float64Array(0) } };
 var timesArray = new Int32Array(0), pricesArray = new Float64Array(0), matrixData = {}, streakInstances = {}, streakHistoryApp3 = {};
 var globalRevs = [], globalMoms = [], scanPending = 0, _scanStartedAt = 0, _scanRerunQueued = false;
@@ -442,9 +447,127 @@ function _fxClosedNow() {
 function _pairMarketClosed() { return _fxClosedNow(); }
 function _isWithinMappedWindow() { return !_fxClosedNow(); }
 function getTradingContext() {
-  var now = Math.floor(Date.now() / 1000), mid = now - (now % 86400);
-  return { dateStr: "A" + mid + (DV_SYM === "frxXAUUSD" ? "" : "_" + DV_SYM) + "_0-1440", isLive: !_fxClosedNow(), startTsUtc: mid, duration: 86400 };
+  var now = Math.floor(Date.now() / 1000), mid = now - (now % 86400) + _ssShift * 86400;
+  return { dateStr: "A" + mid + (DV_SYM === "frxXAUUSD" ? "" : "_" + DV_SYM) + "_0-1440", isLive: !_fxClosedNow() && _ssShift === 0, startTsUtc: mid, duration: 86400 };
 }
+function _ssBounds(sess) {
+  var n = _ssMin > 0 ? Math.max(1, Math.round(1440 / _ssMin)) : 1, s = sess === undefined ? _ssSel : sess;
+  if (_ssMin <= 0 || s < 1 || s > n) return { a: 0, b: 86401, n: n };
+  var ss = Math.round(86400 / n);
+  return { a: (s - 1) * ss, b: s === n ? 86401 : s * ss + 1, n: n };
+}
+function _ssMS() { return _ssSel > 0 ? _ssSel : (window._ssMatSess || 0); }
+function _ssRow(r, c, sess) {
+  var a = _ssBounds(sess).a;
+  return a + ((((r - ((currentStartTsUtc || 0) + a)) % c) + c) % c);
+}
+function _ssMsg(k, minC, maxC) {
+  var pd = allPairData.frxXAUUSD, SB = _ssBounds(k);
+  return { pair: "frxXAUUSD", times: pd.times, prices: pd.prices.slice(SB.a, SB.b), minC: minC, maxC: maxC, startIdx: 0, endIdx: SB.b - SB.a, startTsUtc: currentStartTsUtc + SB.a, pre: SB.a > 0 ? _ssPre(SB.a) : window._preArr("frxXAUUSD"), gid: Date.now() + k };
+}
+function _ssPost(msg) {
+  if (scanWorker) scanWorker.postMessage(msg);
+  else {
+    var fn = new Function("self", document.getElementById("fftWorkerLogic").textContent);
+    var fake = { postMessage: d => handleWorkerMessage({ data: d }) };
+    fn(fake); fake.onmessage({ data: msg });
+  }
+}
+function _ssPre(a) {
+  var p0 = window._preArr("frxXAUUSD"), PR = PRE_ROLL_SECS, out = new Float64Array(PR).fill(-1.0), pr = allPairData.frxXAUUSD.prices, k, ix;
+  for (k = 0; k < PR; k++) {
+    ix = a - PR + k;
+    out[k] = ix >= 0 ? pr[ix] : ((p0 && ix + PR < p0.length) ? p0[ix + PR] : -1.0);
+  }
+  return out;
+}
+function _ssP2(n) { return n < 10 ? "0" + n : "" + n; }
+function _ssHm(m) { var t = ((m % 1440) + 1440) % 1440; return _ssP2(Math.floor(t / 60)) + ":" + _ssP2(t % 60); }
+function _ssFmt(z) { return z < 60 ? z + "m" : Math.floor(z / 60) + "h" + (z % 60 ? (z % 60) + "m" : ""); }
+function _ssCmax() {
+  var a = parseInt(document.getElementById("scanMin").value, 10) || 300, b = parseInt(document.getElementById("scanMax").value, 10) || 300;
+  return Math.max(a, b);
+}
+function _ssDefSel() {
+  if (_ssMin <= 0) return 0;
+  var n = Math.max(1, Math.round(1440 / _ssMin)), ss = Math.round(86400 / n), now = Math.floor(Date.now() / 1000);
+  var ix = _ssShift === 0 ? Math.floor((now % 86400) / ss) : 0;
+  return Math.max(1, Math.min(n, ix + 1));
+}
+function _ssUi() {
+  var w = document.getElementById("ssWin"), z = document.getElementById("ssSize"), s = document.getElementById("ssSlice");
+  if (!w || !z || !s) return;
+  var cm = _ssCmax(), h = '<option value="0">24h</option>', q, n, o = "", i;
+  w.value = String(_ssShift);
+  for (q = 1; q < 1440; q++) if (1440 % q === 0 && q % 60 === 0 && q * 60 > cm) h += '<option value="' + q + '">' + _ssFmt(q) + '</option>';
+  z.innerHTML = h;
+  z.value = String(_ssMin);
+  n = _ssMin > 0 ? Math.round(1440 / _ssMin) : 1;
+    if (_ssSel > n) _ssSel = 0;
+    o = '<option value="0">' + (n < 2 ? "" : "ALL ") + _ssHm(330) + "-" + _ssHm(330 + 1440) + '</option>';
+    if (n >= 2) for (i = 0; i < n; i++) o += '<option value="' + (i + 1) + '">S' + (i + 1) + " " + _ssHm(330 + i * _ssMin) + "-" + _ssHm(330 + (i + 1) * _ssMin) + '</option>';
+  s.innerHTML = o;
+    s.value = String(n < 2 ? 0 : _ssSel);
+    s.style.display = "none";
+  }
+function _ssFix() {
+  if (_ssMin > 0 && _ssMin * 60 <= _ssCmax()) { _ssMin = 0; _ssSel = 0; }
+  _ssUi();
+}
+function _ssApply() {
+  window._ssMatSess = 0;
+  lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; highlightRow = -1;
+  globalRevs = []; globalMoms = [];
+  window._scanRestart = true; window._scanProg = -1; window._autoSelectAfterScan = true;
+  processVisualMatrix();
+  renderFilteredTable();
+  dispatchMultiCycleScan();
+}
+async function _ssReload() {
+  if (window._ssBusy) return;
+  window._ssBusy = true;
+  var ov = document.getElementById("bootOverlay");
+  try {
+    if (ov) ov.style.display = "flex";
+    _spawnScanWorker();
+    _bootPairState.frxXAUUSD = "wait";
+    window._ssMatSess = 0; window._ssJob = null; scanPending = 0; globalRevs = []; globalMoms = [];
+    lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; highlightRow = -1;
+    allPairData.frxXAUUSD = { times: new Int32Array(0), prices: new Float64Array(0) };
+    timesArray = new Int32Array(0); pricesArray = new Float64Array(0);
+    matrixData = {}; streakInstances = {}; streakHistoryApp3 = {};
+    window._liveMaxIndex = 0;
+    var ctx = getTradingContext();
+    currentStartTsUtc = ctx.startTsUtc; currentDuration = ctx.duration;
+    bootLog("SESSION " + (_ssShift ? "OLDER" : "NEW") + " — " + ctx.dateStr + " (05:30-05:30 IST)", "#00E676");
+    renderFilteredTable();
+    if (window.tcRedraw) window.tcRedraw();
+    var grid = await fetchDerivGrid("frxXAUUSD", ctx.dateStr, ctx.startTsUtc, ctx.startTsUtc + ctx.duration);
+    allPairData.frxXAUUSD = grid; timesArray = grid.times; pricesArray = grid.prices;
+    _bootPairState.frxXAUUSD = "done";
+    var st = document.getElementById("syncStatusText");
+    if (st) st.textContent = ctx.isLive ? "🟢 LIVE SYNCED" : "🔵 MARKET CLOSED";
+    _ssUi();
+    window._scanRestart = true; window._scanProg = -1; window._autoSelectAfterScan = true;
+    processVisualMatrix();
+    dispatchMultiCycleScan();
+  } finally {
+    window._ssBusy = false;
+    if (ov) ov.style.display = "none";
+  }
+}
+(function () {
+  var rp = document.getElementById("rangePill"), tp = document.getElementById("tradePill");
+  if (!rp) return;
+  var si = document.getElementById("scanIntv");
+    var mk = function (id) { var e = document.createElement("select"); e.id = id; if (si && si.parentNode) si.parentNode.insertBefore(e, si); else rp.insertBefore(e, tp && tp.parentNode === rp ? tp : null); return e; };
+  var w = mk("ssWin"), z = mk("ssSize"), s = mk("ssSlice");
+  w.innerHTML = '<option value="0">05:30\u219205:30 NEW</option><option value="-1">05:30\u219205:30 OLDER</option>';
+  w.addEventListener("change", function () { _ssShift = parseInt(w.value, 10) || 0; _ssSel = 0; _ssReload(); });
+    z.addEventListener("change", function () { _ssMin = parseInt(z.value, 10) || 0; _ssSel = _ssDefSel(); _ssUi(); _ssApply(); });
+  s.addEventListener("change", function () { _ssSel = parseInt(s.value, 10) || 0; _ssApply(); });
+  _ssUi();
+})();
 function bootLog(msg, col) {
   var b = document.getElementById("bootLogLines");
   if (!b) return;
@@ -579,7 +702,7 @@ function startLiveSync() {
 }
 
 setInterval(async function _edgeAndHoleSync() {
-  if (_fxClosedNow() || _bootPairState.frxXAUUSD !== "done") return;
+  if (_fxClosedNow() || _ssShift !== 0 || _bootPairState.frxXAUUSD !== "done") return;
   var pData = allPairData.frxXAUUSD;
   if (!pData || !pData.prices.length) return;
   var nowIdx = Math.min(pData.prices.length - 1, Math.floor(Date.now() / 1000) - currentStartTsUtc - 2);
@@ -600,12 +723,15 @@ setInterval(async function _edgeAndHoleSync() {
 function injectLiveTick(pair, ts, p) {
   if (pair !== "frxXAUUSD") return;
   window.liveTickBuffer.frxXAUUSD[ts] = p;
+    if (_ssShift !== 0) return;
   var pd = allPairData.frxXAUUSD;
   if (!pd || !pd.times.length) return;
   var idx = ts - currentStartTsUtc;
   window._liveMaxIndex = Math.max(window._liveMaxIndex || 0, idx);
   if (idx < 0 || idx >= pd.times.length) return;
   pd.prices[idx] = p;
+    var _sb = _ssBounds(_ssMS());
+      if (idx < _sb.a || idx >= _sb.b) return;
   var totalSec = pd.times[idx] + _cycleOff(), col = Math.floor(totalSec / CYCLE), row = totalSec % CYCLE;
   if (!matrixData[col]) matrixData[col] = {};
   var sc = "G", sl = 1, prev = matrixData[col - 1] && matrixData[col - 1][row];
@@ -613,8 +739,8 @@ function injectLiveTick(pair, ts, p) {
     if (p > prev.p) { sc = "G"; sl = prev.c === "G" ? prev.s + 1 : 1; }
     else if (p < prev.p) { sc = "R"; sl = prev.c === "R" ? prev.s + 1 : 1; }
     else { sc = prev.c; sl = 0; }
-  } else if (idx < CYCLE) {
-    var rf = window._preRef(pair, idx - CYCLE);
+  } else if (idx < _sb.a + CYCLE) {
+      var rf = idx - CYCLE >= 0 ? pd.prices[idx - CYCLE] : window._preRef(pair, idx - CYCLE);
     if (rf === -1 || p === rf) { sc = "N"; sl = 0; } else if (p > rf) { sc = "G"; sl = 1; } else { sc = "R"; sl = 1; }
   }
   matrixData[col][row] = { c: sc, s: sl, p: p };
@@ -627,10 +753,10 @@ function processVisualMatrix() {
   if (!timesArray.length) return;
   matrixData = {}; streakInstances = {}; streakHistoryApp3 = {};
   for (var r = 0; r < CYCLE; r++) { streakInstances[r] = { R: {}, G: {} }; streakHistoryApp3[r] = { R: {}, G: {} }; }
-  var off = _cycleOff(), localMax = 0;
-  for (var i = 0; i < timesArray.length; i++) {
-    var tSec = timesArray[i], p = pricesArray[i];
-    if (tSec >= 86400) continue;
+  var off = _cycleOff(), localMax = 0, _sb = _ssBounds(_ssMS());
+    for (var i = 0; i < timesArray.length; i++) {
+      var tSec = timesArray[i], p = pricesArray[i];
+      if (tSec >= 86400 || tSec < _sb.a || tSec >= _sb.b) continue;
     if (p !== -1.0) localMax = Math.max(localMax, tSec);
     var tot = tSec + off, col = Math.floor(tot / CYCLE), row = tot % CYCLE;
     if (!matrixData[col]) matrixData[col] = {};
@@ -641,8 +767,8 @@ function processVisualMatrix() {
       else if (p < prev.p) { sc = "R"; sl = prev.c === "R" ? prev.s + 1 : 1; }
       else { sc = prev.c; sl = 0; }
     } else if (p === -1.0) { sl = 0; sc = "N"; }
-    else if (tSec < CYCLE) {
-      var rf = window._preRef("frxXAUUSD", tSec - CYCLE);
+    else if (tSec < _sb.a + CYCLE) {
+          var rf = tSec - CYCLE >= 0 ? pricesArray[tSec - CYCLE] : window._preRef("frxXAUUSD", tSec - CYCLE);
       if (rf === -1 || p === rf) { sl = 0; sc = "N"; } else if (p > rf) { sc = "G"; sl = 1; } else { sc = "R"; sl = 1; }
     }
     matrixData[col][row] = { c: sc, s: sl, p: p };
@@ -733,17 +859,34 @@ function primeSelect(kings, fb, pair, rawRevs, rawMoms) {
 
 function handleWorkerMessage(e) {
   if (e.data && e.data.prog !== undefined) { window._scanProg = e.data.prog; _scanUi(); return; }
-  window._scanProg = -1;
-  var { pair, bestRevs, bestMoms, pk } = e.data;
+  if (e.data && e.data.gid !== undefined && window._ssExpGid && e.data.gid !== window._ssExpGid) return;
+    window._scanProg = -1;
+    var { pair, bestRevs, bestMoms, pk } = e.data;
   globalRevs = bestRevs.slice(); globalMoms = bestMoms.slice();
   if (pk) {
     var ps = primeSelect(pk.kings || [], pk.fb || [], pair, globalRevs, globalMoms);
     ps.rev.forEach(x => globalRevs.push(x));
     ps.mom.forEach(x => globalMoms.push(x));
   }
-  scanPending = 0;
-  processVisualMatrix();
-  renderFilteredTable();
+  var _sg = window._ssCur || 0, _jb = window._ssJob;
+    globalRevs.forEach(x => { x.sess = _sg; });
+    globalMoms.forEach(x => { x.sess = _sg; });
+    if (_jb) {
+      _jb.revs = _jb.revs.concat(globalRevs);
+      _jb.moms = _jb.moms.concat(globalMoms);
+      if (_jb.k < _jb.n) {
+        _jb.k++;
+        window._ssCur = _jb.k;
+        var _nm = _ssMsg(_jb.k, _jb.minC, _jb.maxC);
+        window._ssExpGid = _nm.gid;
+        _ssPost(_nm);
+        return;
+      }
+      globalRevs = _jb.revs; globalMoms = _jb.moms; window._ssJob = null;
+    }
+    scanPending = 0;
+    processVisualMatrix();
+    renderFilteredTable();
   if (window._autoSelectAfterScan) { window._autoSelectAfterScan = false; setTimeout(_autoSelectTopSignal, 100); }
 }
 
@@ -751,7 +894,8 @@ function applyCycleRange() {
   var a = parseInt(document.getElementById("scanMin").value, 10) || 300;
   var b = parseInt(document.getElementById("scanMax").value, 10) || 300;
   lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; highlightRow = -1;
-  CYCLE = Math.min(a, b);
+    CYCLE = Math.min(a, b);
+    _ssFix();
     window._scanRestart = true;
       window._scanProg = -1;
   window._autoSelectAfterScan = true;
@@ -808,7 +952,11 @@ function dispatchMultiCycleScan() {
   if (scanPending && !window._scanRestart && Date.now() - _scanStartedAt < 120000) return;
     if (window._scanRestart) { window._scanRestart = false; _spawnScanWorker(); }
     scanPending = 1; _scanStartedAt = Date.now();
-    var msg = { pair: "frxXAUUSD", times: pd.times, prices: pd.prices.slice(), minC, maxC, startIdx: 0, endIdx: 86401, startTsUtc: currentStartTsUtc, pre: window._preArr("frxXAUUSD"), gid: Date.now() };
+    var SB = _ssBounds(), _all = _ssMin > 0 && _ssSel < 1 && SB.n >= 2;
+        window._ssJob = _all ? { n: SB.n, k: 1, revs: [], moms: [], minC: minC, maxC: maxC } : null;
+        window._ssCur = _all ? 1 : (_ssMin > 0 ? _ssSel : 0);
+        var msg = _ssMsg(window._ssCur, minC, maxC);
+        window._ssExpGid = msg.gid;
   if (scanWorker) scanWorker.postMessage(msg);
   else {
     var fn = new Function("self", document.getElementById("fftWorkerLogic").textContent);
@@ -826,19 +974,21 @@ function _wsBuild(list, c2n, lvl, nui) {
     psrc.sort((a, b) => (dir === 1 ? a.s1 - b.s1 : b.s1 - a.s1) || (b.pct - a.pct) || (b.c1 - a.c1) || (a.c - b.c) || (a.r - b.r));
     var pb = {}, pout = [];
     psrc.forEach(px => {
-      var pk = "1|" + px.s1, po = pb[pk];
+      var pk = (px.sess || 0) + "|" + px.s1, po = pb[pk];
       if (!po) { pb[pk] = px; return; }
       var xd = String(px.primeReason || "").indexOf("EARLY_DURABLE_PRIME") === 0 ? 1 : 0;
       var od = String(po.primeReason || "").indexOf("EARLY_DURABLE_PRIME") === 0 ? 1 : 0;
       if (xd !== od) { if (xd > od) pb[pk] = px; return; }
       if (px.pct > po.pct || (px.pct === po.pct && px.c1 > po.c1)) pb[pk] = px;
     });
-    psrc.forEach(px => { if (pb["1|" + px.s1] === px) pout.push(px); });
+    psrc.forEach(px => { if (pb[(px.sess || 0) + "|" + px.s1] === px) pout.push(px); });
     return pout;
   }
-  var raw = _wsPipeDedupe(list.filter(z => z && !z._isPrimeWinner && z.r === 0 && (mp <= 0 || z.pct >= mp) && (lf === 0 || +z.s1 === lf) && (lvl === undefined || +z.s1 === +lvl)));
+  var _fl = list.filter(z => z && !z._isPrimeWinner && z.r === 0 && (mp <= 0 || z.pct >= mp) && (lf === 0 || +z.s1 === lf) && (lvl === undefined || +z.s1 === +lvl)), _gs = {}, raw = [];
+    _fl.forEach(z => { (_gs[z.sess || 0] || (_gs[z.sess || 0] = [])).push(z); });
+    for (var _gk in _gs) raw = raw.concat(_wsPipeDedupe(_gs[_gk]));
   var b = {}, out = [];
-  raw.forEach(x => { var o = b[x.s1]; if (!o || x.pct > o.pct || (x.pct === o.pct && x.c1 > o.c1)) b[x.s1] = x; });
+  raw.forEach(x => { var kx = (x.sess || 0) + "|" + x.s1, o = b[kx]; if (!o || x.pct > o.pct || (x.pct === o.pct && x.c1 > o.c1)) b[kx] = x; });
   for (var k in b) out.push(b[k]);
   return out.sort((a, c) => (dir === 1 ? a.s1 - c.s1 : c.s1 - a.s1) || (c.pct - a.pct) || (c.c1 - a.c1) || (a.c - c.c) || (a.r - c.r));
 }
@@ -859,12 +1009,12 @@ window._champScore = _champScore;
 
 function _champPlan(sig) {
   var pd = allPairData[sig.pair]; if (!pd || !pd.prices.length) return null;
-  var prices = pd.prices, len = prices.length, c = sig.c, nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc;
-  var lim = Math.min(nowSec - 1, len - 1, 86399); if (lim < 0) return null;
-  var rr = (((sig.r - ((currentStartTsUtc || 0) % c)) % c) + c) % c, colCode = sig.col === "G" ? 1 : 2, color = 0, streak = 0, lastI = -1;
-  for (var i = rr; i <= lim; i += c) {
-    var p = prices[i], q = i >= c ? prices[i - c] : window._preRef(sig.pair, i - c), nc, ns;
-    if (q === -1) nc = ns = (p === -1 || i < c) ? 0 : 1;
+  var SB = _ssBounds(sig.sess), prices = pd.prices, len = prices.length, c = sig.c, nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc;
+    var lim = Math.min(nowSec - 1, len - 1, SB.b - 1, 86399); if (lim < 0) return null;
+    var rr = _ssRow(sig.r, c, sig.sess), colCode = sig.col === "G" ? 1 : 2, color = 0, streak = 0, lastI = -1;
+    for (var i = rr; i <= lim; i += c) {
+      var p = prices[i], q = i >= c ? prices[i - c] : window._preRef(sig.pair, i - c), nc, ns;
+      if (q === -1) nc = ns = (p === -1 || i - SB.a < c) ? 0 : 1;
     else if (p === -1) nc = ns = 0;
     else if (p > q) { nc = 1; ns = (color === 1 && streak > 0) ? streak + 1 : 1; }
     else if (p < q) { nc = 2; ns = (color === 2 && streak > 0) ? streak + 1 : 1; }
@@ -876,17 +1026,19 @@ function _champPlan(sig) {
   else if (!(color === colCode && streak > sig.s1)) {
     need = Math.max(1, sig.s1 - (color === colCode ? streak : 0));
     var iNext = lastI < 0 ? rr : lastI + c;
-    if (iNext + (need - 1) * c < 86400) { kind = "FUT"; idx = iNext + (need - 1) * c; }
+    if (iNext + (need - 1) * c < Math.min(86400, SB.b)) { kind = "FUT"; idx = iNext + (need - 1) * c; }
   }
   return { kind, need, idx, missed: (kind === "NONE" && color === colCode && streak > sig.s1), nowSec };
 }
 
 function rpOne(x, tag, pr, pre, hi, lim) {
-  var c = x.c, s1 = x.s1, cc = x.col === "G" ? 1 : 2, base = currentStartTsUtc || 0;
-  var i = (((x.r - (base % c)) % c) + c) % c, preLen = pre ? pre.length : 0, color = 0, streak = 0, n1 = 0, since = 0, runStart = -1, lastRun = -1;
-  for (; i <= hi; i += c) {
-    var p = pr[i], q = i >= c ? pr[i - c] : (pre && preLen + i - c >= 0 ? pre[preLen + i - c] : -1), nc, ns;
-    if (q === -1) nc = ns = (p === -1 || i < c) ? 0 : 1;
+  var c = x.c, s1 = x.s1, cc = x.col === "G" ? 1 : 2, base = currentStartTsUtc || 0, SB = _ssBounds(x.sess);
+    hi = Math.min(hi, SB.b - 1); lim = Math.min(lim, SB.b);
+    while (hi > SB.a && pr[hi] === -1) hi--;
+    var i = _ssRow(x.r, c, x.sess), preLen = pre ? pre.length : 0, color = 0, streak = 0, n1 = 0, since = 0, runStart = -1, lastRun = -1;
+    for (; i <= hi; i += c) {
+      var p = pr[i], q = i >= c ? pr[i - c] : (pre && preLen + i - c >= 0 ? pre[preLen + i - c] : -1), nc, ns;
+      if (q === -1) nc = ns = (p === -1 || i - SB.a < c) ? 0 : 1;
     else if (p === -1) nc = ns = 0;
     else if (p > q) { nc = 1; ns = (color === 1 && streak > 0) ? streak + 1 : 1; }
     else if (p < q) { nc = 2; ns = (color === 2 && streak > 0) ? streak + 1 : 1; }
@@ -910,11 +1062,11 @@ function _buildScannerRowsHtml(list) {
   while (hi > 0 && pr[hi] === -1) hi--;
   return list.map(d => {
     var k = d.pair + "|" + d.c + "|" + d.r + "|" + d.s1 + "|" + d.s2 + "|" + d.col + "|" + d.type;
-    window._wpTmrMap[k] = d;
+    window._wpTmrMap[k + "|S" + (d.sess || 0)] = d;
     var ht = rpOne(d, d.type, pr, pre, hi, pr.length);
-    var sel = (k.split("|").join("-") === lastClickedSigId) ? "filter:brightness(1.25);box-shadow:inset 4px 0 0 #FFD700;" : "";
-    return `<tr class="${d.col === 'R' ? 'row-red' : 'row-green'} highlight-gem" data-k="${k}" style="${sel}" onclick="manualSelectSignal('${d.pair}',${d.c},${d.r},${d.s1},${d.s2},'${d.col}','${d.type}',${d.gap||0},${d.curGap||0})">
-      <td style="width:28%;text-align:left;padding-left:8px;">XAU/USD${window._pyHtml || ""}<span data-hold-t="${ht}" style="display:block;font-size:8px;line-height:9px;">${holdText(ht)}</span></td>
+    var sel = (k.split("|").join("-") === lastClickedSigId && (d.sess || 0) === (window._ssMatSess || 0)) ? "filter:brightness(1.25);box-shadow:inset 4px 0 0 #FFD700;" : "";
+    return `<tr class="${d.col === 'R' ? 'row-red' : 'row-green'} highlight-gem" data-k="${k}|S${d.sess || 0}" style="${sel}" onclick="window._ssPickSess=${d.sess || 0};manualSelectSignal('${d.pair}',${d.c},${d.r},${d.s1},${d.s2},'${d.col}','${d.type}',${d.gap||0},${d.curGap||0})">
+      <td style="width:28%;text-align:left;padding-left:8px;">XAU/USD${d.sess ? '<span style="font-size:8px;opacity:.7"> S' + d.sess + '</span>' : ""}${window._pyHtml || ""}<span data-hold-t="${ht}" style="display:block;font-size:8px;line-height:9px;">${holdText(ht)}</span></td>
       <td style="width:10%;text-align:center;">C${d.c}</td>
       <td style="width:10%;text-align:center;">R${d.r}</td>
       <td style="width:19%;text-align:center;">X${d.s1}-X${d.s2}</td>
@@ -952,7 +1104,7 @@ setInterval(() => {
 function _sigOutFind(pair, c, r, s1, s2, col, type) {
   var L = type === "MOM" ? globalMoms : globalRevs;
   for (var i = 0; i < L.length; i++) {
-    var x = L[i]; if (x.pair === pair && x.c === c && x.r === r && x.s1 === s1 && x.s2 === s2 && x.col === col && x.type === type) return x;
+    var x = L[i]; if (x.pair === pair && x.c === c && x.r === r && x.s1 === s1 && x.s2 === s2 && x.col === col && x.type === type && (!window._ssMatSess || (x.sess || 0) === window._ssMatSess)) return x;
   }
   return null;
 }
@@ -963,7 +1115,11 @@ function manualSelectSignal(pair, c, r, s1, s2, col, type, gap, curGap) {
 }
 
 function selectSignal(pair, c, r, s1, s2, colColor, type) {
-  var sigId = `${pair}-${c}-${r}-${s1}-${s2}-${colColor}-${type}`, isFirst = sigId !== lastClickedSigId;
+  var _ps = window._ssPickSess, _pm = window._ssMatSess;
+  window._ssPickSess = undefined;
+  if (_ps === undefined) _ps = _ssMS();
+  if (_pm !== _ps) { window._ssMatSess = _ps; processVisualMatrix(); }
+  var sigId = `${pair}-${c}-${r}-${s1}-${s2}-${colColor}-${type}`, isFirst = sigId !== lastClickedSigId || _pm !== _ps;
   if (CYCLE !== c) { CYCLE = c; processVisualMatrix(); }
   lastClickedSigId = sigId; highlightRow = r; currentInstances = []; currentInstanceIndex = -1;
   var targetHist = streakInstances[r] && streakInstances[r][colColor];
@@ -991,7 +1147,7 @@ function selectSignal(pair, c, r, s1, s2, colColor, type) {
 function _autoSelectTopSignal() {
   var list = _wsBuild(globalRevs.slice(), "lvl", undefined, true).filter(z => +z.s1 === 1);
   if (!list.length) list = _wsBuild(globalRevs.slice(), "lvl", undefined, true);
-  if (list.length) { var t = list[0]; selectSignal(t.pair, t.c, t.r, t.s1, t.s2, t.col, t.type); }
+  if (list.length) { var t = list[0]; window._ssPickSess = t.sess || 0; selectSignal(t.pair, t.c, t.r, t.s1, t.s2, t.col, t.type); }
 }
 
 (function() {
@@ -1017,10 +1173,11 @@ function _autoSelectTopSignal() {
   }
   function tcWin(type, res) { return (res === "pending" || res === "none") ? res : (((type === "MOM") === (res === "cont")) ? "win" : "loss"); }
   function tcPlan(sig, prices, lim, sEnd, lastReal) {
-    var hist = [], c = sig.c, r = (((sig.r - ((currentStartTsUtc || 0) % c)) % c) + c) % c, colCode = sig.col === "G" ? 1 : 2, color = 0, streak = 0, lastI = -1;
-    for (var i = r; i <= lim; i += c) {
-      var p = prices[i], q = i >= c ? prices[i - c] : window._preRef(sig.pair, i - c), nc, ns;
-      if (q === -1) nc = ns = (p === -1 || i < c) ? 0 : 1;
+    var SB = _ssBounds(sig.sess), hist = [], c = sig.c, r = _ssRow(sig.r, c, sig.sess), colCode = sig.col === "G" ? 1 : 2, color = 0, streak = 0, lastI = -1;
+        lim = Math.min(lim, SB.b - 1); sEnd = Math.min(sEnd, SB.b);
+        for (var i = r; i <= lim; i += c) {
+          var p = prices[i], q = i >= c ? prices[i - c] : window._preRef(sig.pair, i - c), nc, ns;
+          if (q === -1) nc = ns = (p === -1 || i - SB.a < c) ? 0 : 1;
       else if (p === -1) nc = ns = 0;
       else if (p > q) { nc = 1; ns = (color === 1 && streak > 0) ? streak + 1 : 1; }
       else if (p < q) { nc = 2; ns = (color === 2 && streak > 0) ? streak + 1 : 1; }
