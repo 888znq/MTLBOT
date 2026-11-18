@@ -126,6 +126,33 @@ tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:#F5B9
 #bootOverlay>div:first-child{color:#8FA3C7!important;font-weight:600!important;letter-spacing:.16em!important;}
 #bootLogBox{background:#0C1628;border:1px solid #263653;border-radius:10px;}
 @media(max-width:600px){#main-container{padding:6px;gap:6px;}#tcWrap{inset:4px;}.tables-split{gap:6px;}#wall-finder-pane{padding:6px;}td:first-child{padding-left:8px!important;}}
+:root{--bg-base:#000000;--bg-panel:#000000;--border:#FFFFFF;--text-primary:#FFFFFF;--pair-color:#FFFFFF;--accent-green:#00FF00;--accent-red:#FF0000;}
+html,body,#main-container{background:#000000;color:#FFFFFF;}
+#canvas-viewport,#wall-finder-pane,#tcWrap{background:#000000;border-color:#FFFFFF;}
+.table-col,#rangePill{background:#000000;border-color:#FFFFFF;}
+#scanChartTimer{color:#FFFFFF;opacity:.35;}
+#tradePill #tpBal,#tpAmt,#rangePill #tpAmt,#rangePill input,#rangePill select{background:#000000;border-color:#FFFFFF;color:#FFFFFF;}
+#rangePill select option{background:#000000;color:#FFFFFF;}
+#tradePill #tpBuy{background:#00FF00;color:#000000;}
+#tradePill #tpSell{background:#FF0000;color:#000000;}
+#tradePill #tpAuto{background:#000000;border:1px solid #FFFFFF;color:#FFFFFF;}
+#tradePill #tpAuto.on{background:#FFFFFF;border-color:#FFFFFF;color:#000000;}
+#tpAmt:focus,#rangePill input:focus,#rangePill select:focus{border-color:#FFFFFF;}
+.tpLbl{color:#FFFFFF;}
+.tcRow{background:#000000;border-color:#FFFFFF;color:#FFFFFF;}
+#bootOverlay{background:#000000;}
+#bootOverlay>div:first-child{color:#FFFFFF!important;}
+#bootLogBox{background:#000000;border-color:#FFFFFF;}
+td{color:#000000;border-right:1px solid #000000;border-bottom:1px solid #000000;}
+.row-green td{background:#00FF00;color:#000000;}
+.row-red td{background:#FF0000;color:#000000;}
+.pyP{background:#000000;color:#FFFFFF;}
+td span[data-hold-t]{opacity:1;}
+tr.highlight-gem[style*="box-shadow"] td:first-child{box-shadow:inset 4px 0 0 #FFFFFF;}
+tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:#FFFFFF;color:#000000;}
+td:first-child{line-height:1.2;}
+td:first-child .pyP{display:inline-block;vertical-align:middle;margin-left:6px;padding:1px 6px;line-height:12px;min-width:34px;text-align:center;}
+td:first-child span[data-hold-t]{display:block;margin-top:2px;line-height:10px;font-size:8px;letter-spacing:0;font-variant-numeric:tabular-nums;}
 </style>
 </head>
 <body>
@@ -432,10 +459,10 @@ var globalRevs = [], globalMoms = [], scanPending = 0, _scanStartedAt = 0, _scan
 var lastClickedSigId = "", clickCycleIndex = -1, highlightRow = -1, currentInstances = [], currentInstanceIndex = -1, liveEdgeCol = -1;
 var derivWs = null, _scanCountdownSec = 60, _scanCountdownTimer = null, _bootPairState = { frxXAUUSD: "wait" };
 window.liveTickBuffer = { frxXAUUSD: {} };
-window.pairColorHex = "#D4AF37";
-window.systemThemeHex = "#000432";
-window.accentGreenHex = "#2ED573";
-window.accentRedHex = "#E63946";
+window.pairColorHex = "#FFFFFF";
+window.systemThemeHex = "#000000";
+window.accentGreenHex = "#00FF00";
+window.accentRedHex = "#FF0000";
 
 function getPairDisplayName(p) { return p === "frxXAUUSD" ? "XAU/USD" : p; }
 function tcPairColor() { return window.pairColorHex; }
@@ -572,7 +599,7 @@ function bootLog(msg, col) {
   var b = document.getElementById("bootLogLines");
   if (!b) return;
   var d = document.createElement("div");
-  d.style.color = col || "#E2E8F0";
+  d.style.color = "#FFFFFF";
   d.textContent = "[" + new Date().toLocaleTimeString("en-GB", { hour12: false }) + "] " + msg;
   b.appendChild(d);
   b.parentElement.scrollTop = b.parentElement.scrollHeight;
@@ -907,10 +934,10 @@ function _scanUi() {
   var a = document.getElementById("scanMin"), b = document.getElementById("scanMax");
   if (scanPending) {
     var s = Math.floor((Date.now() - _scanStartedAt) / 1000), pg = window._scanProg >= 0 ? window._scanProg : 0, txt = "SCAN " + pg + "% · " + s + "s";
-    if (e2) { e2.textContent = txt; e2.style.fontSize = "22px"; e2.style.color = "#FFD700"; e2.style.opacity = ".9"; e2.style.whiteSpace = "nowrap"; }
+    if (e2) { e2.textContent = txt; e2.style.fontSize = "22px"; e2.style.color = "#FFFFFF"; e2.style.opacity = ".9"; e2.style.whiteSpace = "nowrap"; }
     if (e1) e1.textContent = txt;
-    if (a) a.style.borderColor = "#FFD700";
-    if (b) b.style.borderColor = "#FFD700";
+    if (a) a.style.borderColor = "#FFFFFF";
+    if (b) b.style.borderColor = "#FFFFFF";
   } else {
     if (e2) { e2.style.fontSize = ""; e2.style.color = ""; e2.style.opacity = ""; e2.style.whiteSpace = ""; e2.textContent = String(_scanCountdownSec); }
     if (e1) e1.textContent = _scanCountdownSec + "s";
@@ -1057,16 +1084,16 @@ function holdText(t) {
 }
 window._wpTmrMap = {};
 function _buildScannerRowsHtml(list) {
-  if (!list || !list.length) return '<tr><td colspan="7" style="text-align:center;color:#6B7689;background:transparent;padding:16px;">NO TARGETS FOUND</td></tr>';
+  if (!list || !list.length) return '<tr><td colspan="7" style="text-align:center;color:#FFFFFF;background:transparent;padding:16px;">NO TARGETS FOUND</td></tr>';
   var pr = allPairData.frxXAUUSD.prices, pre = window._preArr("frxXAUUSD"), hi = Math.min(Math.floor(Date.now() / 1000) - currentStartTsUtc, pr.length - 1);
   while (hi > 0 && pr[hi] === -1) hi--;
   return list.map(d => {
     var k = d.pair + "|" + d.c + "|" + d.r + "|" + d.s1 + "|" + d.s2 + "|" + d.col + "|" + d.type;
     window._wpTmrMap[k + "|S" + (d.sess || 0)] = d;
     var ht = rpOne(d, d.type, pr, pre, hi, pr.length);
-    var sel = (k.split("|").join("-") === lastClickedSigId && (d.sess || 0) === (window._ssMatSess || 0)) ? "filter:brightness(1.25);box-shadow:inset 4px 0 0 #FFD700;" : "";
+    var sel = (k.split("|").join("-") === lastClickedSigId && (d.sess || 0) === (window._ssMatSess || 0)) ? "filter:brightness(1.25);box-shadow:inset 4px 0 0 #FFFFFF;" : "";
     return `<tr class="${d.col === 'R' ? 'row-red' : 'row-green'} highlight-gem" data-k="${k}|S${d.sess || 0}" style="${sel}" onclick="window._ssPickSess=${d.sess || 0};manualSelectSignal('${d.pair}',${d.c},${d.r},${d.s1},${d.s2},'${d.col}','${d.type}',${d.gap||0},${d.curGap||0})">
-      <td style="width:28%;text-align:left;padding-left:8px;">XAU/USD${d.sess ? '<span style="font-size:8px;opacity:.7"> S' + d.sess + '</span>' : ""}${window._pyHtml || ""}<span data-hold-t="${ht}" style="display:block;font-size:8px;line-height:9px;">${holdText(ht)}</span></td>
+      <td style="width:28%;text-align:left;padding-left:8px;">XAU/USD${d.sess ? '<span style="font-size:8px"> S' + d.sess + '</span>' : ""}${window._pyHtml || ""}<span data-hold-t="${ht}" style="display:block;font-size:8px;line-height:9px;">${holdText(ht)}</span></td>
       <td style="width:10%;text-align:center;">C${d.c}</td>
       <td style="width:10%;text-align:center;">R${d.r}</td>
       <td style="width:19%;text-align:center;">X${d.s1}-X${d.s2}</td>
@@ -1236,7 +1263,7 @@ function _autoSelectTopSignal() {
   }
 
   function tcDrawBoxes(ctx, W, H, dpr, pair, BG, DIM) {
-    var B = Math.max(1, Math.round(CYCLE) || 300), GREEN = "#2ED573", RED = "#E63946", M = W < 500 ? 10 : 20, pr = allPairData[pair].prices, sEnd = 86400;
+    var B = Math.max(1, Math.round(CYCLE) || 300), GREEN = "#00FF00", RED = "#FF0000", M = W < 500 ? 10 : 20, pr = allPairData[pair].prices, sEnd = 86400;
     var nowF = Date.now() / 1000 - currentStartTsUtc, live = _isWithinMappedWindow() && nowF >= 0 && nowF < sEnd;
     var li = tcLastReal(pr, Math.min(live ? Math.floor(nowF) : sEnd, pr.length - 1)), lp = li >= 0 ? pr[li] : 0;
     var bxMap = {}, bxCells = null, bxTal = { REV: { w: 0, l: 0, p: 0 }, MOM: { w: 0, l: 0, p: 0 } };
@@ -1322,7 +1349,7 @@ function _autoSelectTopSignal() {
     var rkPosY = idx => rkY0 + (rkMax - rkY[idx]) * rkStepY, bxPcol = window.pairColorHex;
 
     ctx.save(); ctx.beginPath(); ctx.rect(PADL, rkTop, pw, ph); ctx.clip();
-    ctx.strokeStyle = "rgba(255,255,255,0.05)"; ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(255,255,255,0.18)"; ctx.lineWidth = 1;
     for (var gr = rkMin; gr <= rkMax; gr++) {
       var gy = Math.round(rkY0 + (rkMax - gr) * rkStepY + bh / 2) + 0.5;
       if (gy >= rkTop && gy <= rkBot) { ctx.beginPath(); ctx.moveTo(PADL, gy); ctx.lineTo(W - PADR, gy); ctx.stroke(); }
@@ -1341,7 +1368,7 @@ function _autoSelectTopSignal() {
     }
     if (bxInstSelJ >= rkVis0 && bxInstSelJ <= rkVis1) {
       var selX = (rkXOf(rkColS(bxInstSelJ)) + rkXOf(rkColE(bxInstSelJ))) / 2;
-      ctx.save(); ctx.strokeStyle = "#D500F9"; ctx.strokeStyle = "#FFFFFF"; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(selX, rkTop); ctx.lineTo(selX, rkBot); ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.strokeStyle = "#FFFFFF"; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(selX, rkTop); ctx.lineTo(selX, rkBot); ctx.stroke(); ctx.restore();
     }
     for (var j = rkVis0; j <= rkVis1; j++) {
       var hcCell = bxCells ? bxCells[j] : null, c = arr[j], hasDat = bxCells ? (!!hcCell || j === cj) : (!!c || j === cj), bxO = bxMap[j], bxIm = bxInstMap ? bxInstMap[j] : null;
@@ -1349,16 +1376,16 @@ function _autoSelectTopSignal() {
       var x0 = rkXOf(rkColS(j)), x1 = rkXOf(rkColE(j)); if (x1 < PADL || x0 > W - PADR) continue;
       var px = x0 + gp / 2, bw = Math.max(1, (x1 - x0) - gp), py = rkPosY(j);
       if (j > 0 && hasDat) {
-        var pPy = rkPosY(j - 1); ctx.strokeStyle = "rgba(255,255,255,0.22)";
+        var pPy = rkPosY(j - 1); ctx.strokeStyle = "rgba(255,255,255,0.5)";
         ctx.beginPath(); ctx.moveTo(x0 - gp / 2, pPy + (py >= pPy ? bh : 0)); ctx.lineTo(px, py + (py >= pPy ? 0 : bh)); ctx.stroke();
       }
-      ctx.fillStyle = bxCells ? ((!hcCell || j === cj) ? "#1B2A47" : (hcCell.col === 1 ? GREEN : RED)) : ((!c || j === cj) ? "#1B2A47" : (c[3] >= c[0] ? GREEN : RED));
+      ctx.fillStyle = bxCells ? ((!hcCell || j === cj) ? "#000000" : (hcCell.col === 1 ? GREEN : RED)) : ((!c || j === cj) ? "#000000" : (c[3] >= c[0] ? GREEN : RED));
       ctx.fillRect(px, py, bw, bh);
       if (j === cj) {
         var prevP = bxCells ? ((j > 0 && bxCells[j - 1]) ? bxCells[j - 1].p : window._preRef(pair, j * B + bxR0 - B)) : (c ? c[0] : -1);
         var lvUp = !(prevP > 0 && lp > 0 && lp < prevP);
         ctx.fillStyle = lvUp ? GREEN : RED; ctx.fillRect(px, py + bh * (1 - fr), bw, bh * fr);
-        ctx.strokeStyle = "#FFF"; ctx.lineWidth = 1.5; ctx.strokeRect(px, py, bw, bh);
+        ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 1.5; ctx.strokeRect(px, py, bw, bh);
         var rm = bxCells ? Math.max(0, Math.ceil((j * B + bxR0) - nowF)) : Math.max(0, Math.ceil(B - nowF % B));
         if (bw >= 18 && bh >= 12) {
           ctx.font = "bold " + Math.max(8, Math.min(bw, bh) * 0.28) + "px " + MONO; ctx.fillStyle = "#FFF"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -1369,7 +1396,7 @@ function _autoSelectTopSignal() {
       if (isFut) { ctx.save(); ctx.setLineDash([3, 3]); ctx.strokeStyle = bxPcol; ctx.strokeRect(px + 1, py + 1, bw - 2, bh - 2); ctx.restore(); }
       if (txt && j !== cj && bw >= 12 && bh >= 10) {
         var fs = Math.max(7, Math.min(bh * 0.42, 18)); ctx.font = "bold " + fs + "px " + MONO;
-        ctx.fillStyle = isFut ? bxPcol : ((!hcCell || j === cj) ? "#FFF" : BG); ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillStyle = isFut ? bxPcol : ((!hcCell || j === cj) ? "#FFFFFF" : "#000000"); ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(txt, px + bw / 2, py + bh * 0.52);
       }
       var mx = px + bw / 2, isSig = !!(bxO && bxO.sig);
@@ -1377,7 +1404,7 @@ function _autoSelectTopSignal() {
         var up2 = isFut ? bxO.fut.up : (isSig ? bxO.up : bxInstUp);
         var dt = (up2 ? "BUY" : "SELL") + (bxIm && !isSig && !isFut && bxIm.inst.isFalse ? " F" + (bxIm.inst.falseSeq || 1) : "");
         ctx.save(); ctx.font = "bold 10px " + MONO; var dw = ctx.measureText(dt).width + 10, cy = up2 ? Math.min(rkBot - 10, py + bh + 12) : Math.max(rkTop + 10, py - 12);
-        ctx.fillStyle = (bxIm && bxIm.sel) ? "#FFFFFF" : bxPcol; ctx.fillRect(mx - dw / 2, cy - 7, dw, 14);
+        ctx.fillStyle = up2 ? GREEN : RED; ctx.fillRect(mx - dw / 2, cy - 7, dw, 14);
         ctx.fillStyle = BG; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(dt, mx, cy + 0.5); ctx.restore();
       }
       if (bxIm) { ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = bxIm.sel ? 2.5 : 1.8; ctx.strokeRect(px - 1, py - 1, bw + 2, bh + 2); }
@@ -1387,14 +1414,14 @@ function _autoSelectTopSignal() {
         if (nxSec <= li && pr[nxSec] !== undefined && pr[nxSec] !== -1) resW = bxInstMap[j - 1].inst.isFalse ? "loss" : "win";
       }
       if (resW === "win" || resW === "loss") {
-        ctx.save(); ctx.font = "bold " + _tcTkFs() + "px " + MONO; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = bxPcol;
+        ctx.save(); ctx.font = "bold " + _tcTkFs() + "px " + MONO; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = resW === "win" ? GREEN : RED;
         ctx.fillText(resW === "win" ? "✓" : "✗", mx, Math.max(rkTop + 24, py - 26)); ctx.restore();
       }
     }
     ctx.restore();
     tcDrawTrades(ctx, rkXOf, null, rkTop, rkBot, W);
         ctx.fillStyle = BG; ctx.fillRect(W - PADR, 0, PADR, H); ctx.fillRect(0, rkBot, W, H - rkBot);
-    ctx.save(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(136,144,184,0.35)"; ctx.strokeRect(0.5, 0.5, W - PADR - 1, rkBot - 0.5); ctx.restore();
+    ctx.save(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.strokeStyle = "#FFFFFF"; ctx.strokeRect(0.5, 0.5, W - PADR - 1, rkBot - 0.5); ctx.restore();
     var stepV = Math.max(1, Math.ceil(rkSpan / (6 * rkYz)));
     ctx.font = "10px " + MONO; ctx.fillStyle = DIM; ctx.textAlign = "left"; ctx.textBaseline = "middle";
     for (var av = Math.ceil(rkMin / stepV) * stepV; av <= rkMax; av += stepV) {
@@ -1429,12 +1456,12 @@ function _autoSelectTopSignal() {
       TC.cv.style.width = W + "px"; TC.cv.style.height = H + "px";
     }
     var ctx = TC.ctx; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var BG = "#0F1A2E", TXT = "#D3DBEA", DIM = "#7A89A6", CY = "#2ED573", AM = "#E63946";
+    var BG = "#000000", TXT = "#FFFFFF", DIM = "#FFFFFF", CY = "#00FF00", AM = "#FF0000";
     ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
         ctx.lineWidth = 1; ctx.setLineDash([]);
         TC.hits = []; TC.hov = [];
     var ap = allPairData.frxXAUUSD.prices;
-    if (!ap || !ap.length) { ctx.fillStyle = "#FFF"; ctx.font = "bold 12px " + MONO; ctx.fillText("XAU/USD — WAITING FOR DATA...", 12, 24); return; }
+    if (!ap || !ap.length) { ctx.fillStyle = "#FFFFFF"; ctx.font = "bold 12px " + MONO; ctx.fillText("XAU/USD — WAITING FOR DATA...", 12, 24); return; }
     TC.allMap = tcCollectAll();
         tcSigStrip(TC.allMap.frxXAUUSD);
     if (TC.boxMode) { tcDrawBoxes(ctx, W, H, dpr, "frxXAUUSD", BG, DIM); return; }
@@ -1520,7 +1547,7 @@ function _autoSelectTopSignal() {
       }
       ctx.beginPath(); ctx.arc(mx, my, 4, 0, 6.283); ctx.fillStyle = it.color; ctx.fill();
       if (mk.win === "win" || mk.win === "loss") {
-        ctx.save(); ctx.font = "bold " + _tcTkFs() + "px " + MONO; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = it.color;
+        ctx.save(); ctx.font = "bold " + _tcTkFs() + "px " + MONO; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = mk.win === "win" ? CY : AM;
         ctx.fillText(mk.win === "win" ? "✓" : "✗", (mx + flXe) / 2, Math.max(ptop + 20, my - 22)); ctx.restore();
       }
       TC.hov.push({ x: mx, y: my, r: 9, o: { sig: mk.sig, idx: mk.i, kind: "MARK", res: mk.res, win: mk.win, p: mk.p, dec: 2 } });
@@ -1533,12 +1560,12 @@ function _autoSelectTopSignal() {
         if (idx < i0 || idx > it.i1 || ap[idx] === -1) return;
         var ox = xOf(idx), oy = yOf(ap[idx]), sel = n === currentInstanceIndex;
         if (sel) {
-          ctx.save(); ctx.strokeStyle = "#D500F9"; ctx.setLineDash([4, 4]);
+          ctx.save(); ctx.strokeStyle = "#FFFFFF"; ctx.setLineDash([4, 4]);
           ctx.strokeStyle = "#FFFFFF"; ctx.beginPath(); ctx.moveTo(ox, ptop); ctx.lineTo(ox, pbot); ctx.stroke(); ctx.restore();
         }
         var lbl = (((ocP[6] === "REV") ? (ocP[5] === "R") : (ocP[5] === "G")) ? "BUY" : "SELL") + (inst.isFalse ? " F" + (inst.falseSeq || 1) : "");
         ctx.save(); ctx.font = "bold 10px " + MONO; var tw = ctx.measureText(lbl).width + 10, ly = oy > ptop + 26 ? oy - 16 : oy + 16;
-        ctx.fillStyle = sel ? "#FFFFFF" : it.color; ctx.fillRect(ox - tw / 2, ly - 7, tw, 14);
+        ctx.fillStyle = (((ocP[6] === "REV") ? (ocP[5] === "R") : (ocP[5] === "G"))) ? CY : AM; ctx.fillRect(ox - tw / 2, ly - 7, tw, 14);
         ctx.fillStyle = BG; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(lbl, ox, ly); ctx.restore();
       });
     }
@@ -1560,7 +1587,7 @@ function _autoSelectTopSignal() {
 
     tcDrawTrades(ctx, xOf, yOf, ptop, pbot, W);
         ctx.fillStyle = BG; ctx.fillRect(W - PADR, 0, PADR, H); ctx.fillRect(0, pbot, W, H - pbot);
-    ctx.save(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(136,144,184,0.35)"; ctx.strokeRect(0.5, 0.5, W - PADR - 1, pbot - 0.5); ctx.restore();
+    ctx.save(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.strokeStyle = "#FFFFFF"; ctx.strokeRect(0.5, 0.5, W - PADR - 1, pbot - 0.5); ctx.restore();
     ctx.font = "10px " + MONO; ctx.fillStyle = DIM; ctx.textAlign = "left"; ctx.textBaseline = "middle";
     var lastY = it.last >= 0 ? yOf(ap[it.last]) : -999;
     pxTicks.forEach(tk => { if (tk.y > ptop + 12 && tk.y < pbot - 12 && Math.abs(tk.y - lastY) > 12) ctx.fillText(tk.v.toFixed(2), W - PADR + 5, tk.y); });
@@ -1578,7 +1605,7 @@ function _autoSelectTopSignal() {
     ctx.textAlign = "left"; ctx.font = "bold 11px " + MONO; ctx.fillStyle = TXT;
     
     if (live && nextIt) {
-      var ns = nextIt.sig; ctx.fillStyle = "#FFD700";
+      var ns = nextIt.sig; ctx.fillStyle = "#FFFFFF";
       
     }
     var tx4 = 8;
@@ -1637,13 +1664,13 @@ function _autoSelectTopSignal() {
         });
         var ch = "";
         rows.slice(-3).reverse().forEach(function(r) {
-          ch += '<div class="tcRow"><b style="color:' + (r.up ? "#2ED573" : "#E63946") + '">' + (r.up ? "▲ BUY" : "▼ SELL") + '</b><span>' + r.amt.toFixed(2) + '</span><span>ENT ' + (r.en ? r.en.toFixed(2) : "--") + '</span><span>NOW ' + (cur !== null ? cur.toFixed(2) : "--") + '</span><b style="color:' + (r.pnl === null ? "#7A89A6" : (r.pnl >= 0 ? "#2ED573" : "#E63946")) + '">' + (r.pnl === null ? "--" : (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2)) + '</b><span>' + r.ct + '</span></div>';
+          ch += '<div class="tcRow"><b style="color:' + (r.up ? "#00FF00" : "#FF0000") + '">' + (r.up ? "▲ BUY" : "▼ SELL") + '</b><span>' + r.amt.toFixed(2) + '</span><span>ENT ' + (r.en ? r.en.toFixed(2) : "--") + '</span><span>NOW ' + (cur !== null ? cur.toFixed(2) : "--") + '</span><b style="color:' + (r.pnl === null ? "#FFFFFF" : (r.pnl >= 0 ? "#00FF00" : "#FF0000")) + '">' + (r.pnl === null ? "--" : (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2)) + '</b><span>' + r.ct + '</span></div>';
         });
         if (card && card._h !== ch) { card._h = ch; card.innerHTML = ch; }
         rows.forEach(function(r, k) {
           var xs = xOf(r.ei), xe = xOf(r.ex - currentStartTsUtc);
           if (xe < PADL || xs > W - PADR) return;
-          var col = r.st === "won" ? "#2ED573" : (r.st === "lost" ? "#E63946" : "#FFFFFF");
+          var col = r.st === "won" ? "#00FF00" : (r.st === "lost" ? "#FF0000" : "#FFFFFF");
           var x0 = Math.max(PADL, xs), x1 = Math.min(W - PADR, xe);
           ctx.save(); ctx.beginPath(); ctx.rect(PADL, top, W - PADL - PADR, bot - top); ctx.clip();
           ctx.globalAlpha = 0.08; ctx.fillStyle = col; ctx.fillRect(x0, top, Math.max(0, x1 - x0), bot - top); ctx.globalAlpha = 1;
@@ -1660,10 +1687,10 @@ function _autoSelectTopSignal() {
           var t1 = (r.up ? "▲ BUY " : "▼ SELL ") + r.amt.toFixed(2) + (r.pnl !== null ? "  " + (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2) : "");
           var w1 = ctx.measureText(t1).width + 12, x2 = Math.max(PADL + 2, Math.min(W - PADR - w1 - 2, xs)), y1 = top + 8 + (k % 6) * 20;
           ctx.fillStyle = col; ctx.fillRect(x2, y1, w1, 16);
-          ctx.fillStyle = "#0F1A2E"; ctx.fillText(t1, x2 + 6, y1 + 8.5);
+          ctx.fillStyle = "#000000"; ctx.fillText(t1, x2 + 6, y1 + 8.5);
           var w2 = ctx.measureText(r.ct).width + 12, x3 = Math.max(PADL + 2, Math.min(W - PADR - w2 - 2, xe - w2 / 2)), y2 = bot - 22;
           ctx.fillStyle = col; ctx.fillRect(x3, y2, w2, 16);
-          ctx.fillStyle = "#0F1A2E"; ctx.fillText(r.ct, x3 + 6, y2 + 8.5);
+          ctx.fillStyle = "#000000"; ctx.fillText(r.ct, x3 + 6, y2 + 8.5);
           ctx.restore();
         });
       }
@@ -1783,13 +1810,13 @@ function dvAsk() {
 function tpBalShow() {
   var e = document.getElementById("tpBal"); if (!e) return;
   var v = dv.bal[dv.mode];
-  e.textContent = (dv.mode === "real" ? "R " : "D ") + (v === null ? "0.00" : v.toFixed(2));
-  e.style.color = dv.mode === "real" ? "#2ED573" : "#D4AF37";
+  e.textContent = (v === null ? "0.00" : v.toFixed(2));
+    e.style.color = "#FFFFFF";
 }
 
 function tpFlash(ok, msg) {
   var p = document.getElementById("tradePill"); if (!p) return;
-  p.style.borderColor = ok ? "#2ED573" : "#E63946";
+  p.style.borderColor = ok ? "#00FF00" : "#FF0000";
   p.title = msg || "";
   if (msg) console.log("[TRADE] " + msg);
   clearTimeout(tpFlash._t);
