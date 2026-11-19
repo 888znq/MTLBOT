@@ -423,8 +423,8 @@ function _gmPairs(m) {
 function _gmUi() {
   var b = document.getElementById("modeBtn");
   if (!b) return;
-  var L = _gmPairs(_gmList[_gmCur]), d = L.filter(function (p) { return _bootPairState[p] === "done"; }).length;
-  b.textContent = _gmList[_gmCur] + (d < L.length ? " " + d + "/" + L.length : "");
+  var d = ALL_PAIRS.filter(function (p) { return _bootPairState[p] === "done"; }).length;
+    b.textContent = _gmList[_gmCur] + (d < ALL_PAIRS.length ? " " + d + "/" + ALL_PAIRS.length : "");
 }
 var _gmVC;
 function _gmVis(p) {
@@ -558,10 +558,11 @@ async function _ssReload() {
     if (window._btUi) window._btUi();
     if (st) st.textContent = _ssShift !== 0 ? "🔵 BACKTEST " + (window._btDateStr ? window._btDateStr() : "") : ctx.isLive ? "🟢 LIVE SYNCED" : "🔵 MARKET CLOSED";
     _ssUi();
-    window._scanRestart = true; window._scanProg = -1; window._autoSelectAfterScan = true;
-    processVisualMatrix();
-    dispatchMultiCycleScan();
-  } finally {
+        _gmUi();
+        window._scanRestart = true; window._scanProg = -1; window._autoSelectAfterScan = true;
+        processVisualMatrix();
+        dispatchMultiCycleScan();
+      } finally {
     window._ssBusy = false;
     if (window._btQ) { window._btQ = 0; setTimeout(_ssReload, 0); }
     if (ov) ov.style.display = "none";
@@ -2018,13 +2019,14 @@ window.onload = async function () {
   window._autoSelectAfterScan = true;
   processVisualMatrix();
   dispatchMultiCycleScan();
-  _loadRest(ctx);
-  await new Promise(function (res) {
-    var t0 = Date.now(), iv = setInterval(function () {
-      var all = ALL_PAIRS.every(function (p) { return _bootPairState[p] === "done"; });
-      if (all || Date.now() - t0 > 90000 || ctx.startTsUtc !== currentStartTsUtc) { clearInterval(iv); res(); }
-    }, 300);
-  });
+  var _vis = activePairs.slice();
+    _loadRest(ctx);
+    await new Promise(function (res) {
+      var t0 = Date.now(), iv = setInterval(function () {
+        var ready = _vis.every(function (p) { return _pairRes[p]; });
+        if (ready || Date.now() - t0 > 25000 || ctx.startTsUtc !== currentStartTsUtc) { clearInterval(iv); res(); }
+      }, 300);
+    });
   var o = document.getElementById("bootOverlay"); if (o) o.style.display = "none";
 };
 </script>
