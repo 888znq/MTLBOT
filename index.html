@@ -533,9 +533,10 @@ function _ssDefSel() {
 function _ssUi() {
   var z = document.getElementById("ssSize");
   if (!z) return;
-  var cm = _ssCmax(), h = '<option value="0">24h</option>', q, n;
-  for (q = 1; q < 1440; q++) if (1440 % q === 0 && q % 60 === 0 && q * 60 > cm) h += '<option value="' + q + '">' + _ssFmt(q) + '</option>';
-  z.innerHTML = h;
+  var cm = _ssCmax(), h = '', q, n;
+    for (q = 1; q < 1440; q++) if (1440 % q === 0 && q % 60 === 0 && q * 60 > cm) h += '<option value="' + q + '">' + _ssFmt(q) + '</option>';
+    h += '<option value="0">24h</option>';
+    z.innerHTML = h;
   z.value = String(_ssMin);
   n = _ssMin > 0 ? Math.round(1440 / _ssMin) : 1;
   if (_ssSel > n) _ssSel = 0;
