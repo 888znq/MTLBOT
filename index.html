@@ -68,7 +68,7 @@ td:first-child span[data-hold-t]{display:block;margin-top:2px;color:var(--pf-mut
 #tradePill #tpSell{order:7;}
 #tradePill #tpAuto{order:8;}
 #tradePill #tpBal{order:9;}
-#tradePill #btToggle{order:10;}
+#tradePill #btToggle{order:10;display:none!important;}
 #tradePill #modeBtn{order:11;}
 #tradePill #btDate{order:12;color-scheme:dark;}
 #tradePill #scanMin{order:30;}
@@ -359,6 +359,52 @@ var _scanCountdownSec = 60, _scanCountdownTimer = null, _bootPairState = {};
 var PAIR_COLOR = "#FFFFFF";
 window._lmx = {};
 window._pyMap = {};
+
+var FB_URL = "https://system-data-bf026-default-rtdb.asia-southeast1.firebasedatabase.app", FB_PATH = "/wallspectrum_settings.json";
+var _fbOk = false, _fbDone = false, _fbLast = "", _fbCfg = null;
+var _fbP = (function () {
+  var ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
+  var tm = ac ? setTimeout(function () { ac.abort(); }, 4000) : 0;
+  return fetch(FB_URL + FB_PATH, ac ? { signal: ac.signal } : {})
+    .then(function (r) { if (!r.ok) throw new Error("fb " + r.status); return r.json(); })
+    .then(function (j) { clearTimeout(tm); _fbOk = true; _fbCfg = j; return j; })
+    .catch(function () { clearTimeout(tm); return null; });
+})();
+function _fbState() {
+  var g = function (id) { var e = document.getElementById(id); return e ? e.value : ""; };
+  return { ssMin: _ssMin, scanIntv: SCAN_INT, amt: g("tpAmt"), auto: !!dv.auto, mode: dv.mode, gm: _gmCur, cMin: g("scanMin"), cMax: g("scanMax") };
+}
+function _fbApply() {
+  if (_fbDone) return;
+  _fbDone = true;
+  var c = _fbCfg, el = function (id) { return document.getElementById(id); }, n, a, b, m;
+  if (c && typeof c === "object") {
+    n = parseInt(c.gm, 10);
+    if (n >= 0 && n < _gmList.length) _gmCur = n;
+    a = parseInt(c.cMin, 10); b = parseInt(c.cMax, 10);
+    if (a >= 1 && a <= 3600 && el("scanMin")) el("scanMin").value = a;
+    if (b >= 1 && b <= 3600 && el("scanMax")) el("scanMax").value = b;
+    CYCLE = Math.min(parseInt(el("scanMin").value, 10) || 300, parseInt(el("scanMax").value, 10) || 300);
+    n = parseInt(c.scanIntv, 10);
+    if (n >= 5 && n <= 3600) { SCAN_INT = n; if (el("scanIntv")) el("scanIntv").value = n; _scanCountdownSec = n; }
+    n = parseFloat(c.amt);
+    if (n > 0 && el("tpAmt")) el("tpAmt").value = String(c.amt);
+    m = parseInt(c.ssMin, 10);
+    if (m > 0 && 1440 % m === 0 && m % 60 === 0) { _ssMin = m; _ssSel = _ssDefSel(); }
+    if (c.mode === "demo" || c.mode === "real") dv.mode = c.mode;
+    dv.auto = c.auto === true;
+    if (el("tpAuto")) el("tpAuto").classList.toggle("on", dv.auto);
+    _ssFix();
+  }
+  _fbLast = c ? JSON.stringify(_fbState()) : "";
+}
+setInterval(function () {
+  if (!_fbOk || !_fbDone) return;
+  var s = JSON.stringify(_fbState());
+  if (s === _fbLast) return;
+  _fbLast = s;
+  fetch(FB_URL + FB_PATH, { method: "PUT", headers: { "Content-Type": "application/json" }, body: s }).catch(function () { _fbLast = ""; });
+}, 1500);
 
 function _clearSel() { lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; }
 function getPairDisplayName(p) { var m = /^(frx|cry)([A-Z]{3})([A-Z]{3})$/.exec(String(p)); return m ? m[2] + "/" + m[3] : String(p); }
@@ -1819,8 +1865,8 @@ document.getElementById("tpAuto").onclick = function () {
   dv.auto = !dv.auto;
   this.classList.toggle("on", dv.auto);
   if (dv.auto && !dv.ready) dvConnect(dv.mode);
-};
-dvConnect("demo");
+  };
+  _fbP.then(function () { _fbApply(); dvConnect(dv.mode); });
 
 var _pyCyc = 0;
 function pyStore(pair, txt, tip) {
@@ -1917,8 +1963,9 @@ function _loadRest(ctx) {
   for (var w = 0; w < 5; w++) run();
 }
 window.onload = async function () {
-  _gmCur = 0;
-  activePairs = _gmPairs("CRY");
+  await _fbP;
+  _fbApply();
+  activePairs = _gmPairs(_gmList[_gmCur]);
   DV_SYM = activePairs[0];
   _gmUi();
   var ctx = getTradingContext();
