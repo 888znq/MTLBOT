@@ -44,14 +44,14 @@ tr.highlight-gem>td:nth-child(4){color:#000432;font-weight:700;}
 tr.highlight-gem:hover>td{filter:brightness(1.15);}
 tr.highlight-gem[style*="box-shadow"]{box-shadow:none!important;filter:none!important;}
 tr.highlight-gem[style*="box-shadow"]>td{filter:brightness(1.35);}
-tr.highlight-gem[style*="box-shadow"]>td:first-child{border-left:5px solid var(--pf-gold)!important;}
+tr.highlight-gem[style*="box-shadow"]>td:first-child{border-left:5px solid #FFD60A!important;}
 tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4){position:relative;color:transparent!important;}
-tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--pf-pair,var(--pf-gold));color:#000432;font-size:10px;font-weight:800;letter-spacing:.06em;}
+tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#000432;font-size:10px;font-weight:800;letter-spacing:.06em;}
 tr.highlight-gem[data-wpe="WARN"][data-wph="1"]>td:nth-child(4)::after{content:"HIT SOON";}
 tr.highlight-gem[data-wpe="HIT"][data-wph="1"]>td:nth-child(4)::after{content:"HIT";}
 tr.highlight-gem[data-wpe="MISS"][data-wph="1"]>td:nth-child(4)::after{content:"MISSED";}
 td:first-child .pyP{display:inline-block;vertical-align:middle;min-width:34px;margin-left:6px;padding:1px 6px;border-radius:999px;border:none;background:rgba(0,4,50,.2);color:#000432;font-size:9px;font-weight:700;letter-spacing:.02em;line-height:12px;text-align:center;}
-td:first-child span[data-hold-t]{display:block;margin-top:2px;color:#000432;font-size:9px!important;font-weight:500;line-height:11px!important;letter-spacing:0;font-variant-numeric:tabular-nums;opacity:1;}
+td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000432;font-size:9px!important;font-weight:500;line-height:11px!important;letter-spacing:0;font-variant-numeric:tabular-nums;opacity:1;}
 #rangePill{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;margin-top:4px;padding:3px 4px;background:var(--pf-bg2);border:1px solid var(--pf-line);border-radius:10px;font:700 10px 'Roboto Mono',monospace;white-space:nowrap;}
 #tradePill{display:flex;flex:1 1 0;flex-wrap:nowrap;align-items:center;justify-content:stretch;gap:4px;width:100%;min-width:0;font:700 10px 'Roboto Mono',monospace;white-space:nowrap;}
 #tradePill>*{order:20;flex:1 1 0;min-width:0;height:26px;padding:0 2px;overflow:hidden;white-space:nowrap;text-overflow:clip;text-align:center;text-align-last:center;}
@@ -83,8 +83,8 @@ td:first-child span[data-hold-t]{display:block;margin-top:2px;color:#000432;font
 #tradePill #tpBuy{background:var(--pf-up);color:#000432;}
 #tradePill #tpSell{background:var(--pf-dn);color:#000432;}
 #bootOverlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;background:#000432;}
-#bootOverlay>div:first-child{width:min(540px,94vw);text-align:center;font-size:12px;font-weight:600;letter-spacing:.2em;color:#000432;background:var(--pf-fill);padding:6px 12px;border-radius:10px;}
-#bootLogBox{width:min(540px,94vw);height:150px;padding:10px;overflow-y:auto;background:var(--pf-fill);border:1px solid var(--pf-line2);border-radius:10px;color:#000432;font-size:10px;line-height:1.5;}
+#bootOverlay>div:first-child{width:min(540px,94vw);text-align:center;font-size:12px;font-weight:600;letter-spacing:.2em;color:#000432;background:#FFD60A;padding:6px 12px;border-radius:10px;}
+#bootLogBox{width:min(540px,94vw);height:150px;padding:10px;overflow-y:auto;background:#FFD60A;border:1px solid var(--pf-line2);border-radius:10px;color:#000432;font-size:10px;line-height:1.5;}
 #bootLogBox *{color:#000432!important;}
 @media(max-width:600px){
   #main-container{padding:3px;gap:3px;}
@@ -411,10 +411,12 @@ setInterval(function () {
 function _clearSel() { lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; }
 function getPairDisplayName(p) { var m = /^(frx|cry)([A-Z]{3})([A-Z]{3})$/.exec(String(p)); return m ? m[2] + "/" + m[3] : String(p); }
 var _poCache = {}, _poApplied = "";
+var _poPal = ["#FF7A1A", "#3BDDF2", "#EC4DF5", "#B8F34A", "#6B87FF", "#FF6EA6", "#F4F7FA", "#AB6EFF", "#1E88F0", "#B5C0CC", "#E4AEFF", "#5FE9E0", "#FF53C9", "#FFA94D", "#8570FF", "#12B5D1", "#FFB5D0", "#3F5FE6", "#EBD3A4", "#8A3FE8", "#A8F0FA", "#F7ABFB", "#FFC9A8", "#4DAAFF", "#A92EDC", "#8497AB", "#FFADE3", "#6450F0", "#7FC8C8", "#B4C3FF", "#D3B8FF", "#CC24D6", "#A6D2FF", "#C9C3E6", "#C957FF", "#E01FA8", "#C0B5FF"];
 function _pairOrange(p) {
   p = String(p || "");
   if (_poCache[p]) return _poCache[p];
   var n = (typeof ALL_PAIRS !== "undefined" && ALL_PAIRS) ? ALL_PAIRS.indexOf(p) : -1, i;
+  if (n >= 0 && _poPal[n]) return (_poCache[p] = _poPal[n]);
   if (n < 0) { n = 0; for (i = 0; i < p.length; i++) n = (n * 31 + p.charCodeAt(i)) % 9973; }
   var t = (n * 0.6180339887) % 1, u = t * 192, h = Math.round(u < 34 ? 28 + u : 138 + u), l = 52 + ((n * 7) % 4) * 6;
     return (_poCache[p] = "hsl(" + h + ",85%," + l + "%)");
@@ -1557,9 +1559,9 @@ function _autoSelectTopSignal(force) {
         if (nxSec <= li && pr[nxSec] !== undefined && pr[nxSec] !== -1) resW = bxInstMap[j - 1].inst.isFalse ? "loss" : "win";
       }
       if (resW === "win" || resW === "loss") bxMark(ctx, px + bw - 12, py + bh * 0.5, resW === "win", Math.min(_tcTkFs(), bh * 0.6), resW === "win" ? GREEN : RED, BG);
-    }
-    ctx.restore();
-    tcDrawTrades(ctx, function () { return -99999; }, null, rkTop, rkBot, W);
+          }
+          ctx.restore();
+          tcDrawTrades(ctx, function () { return -99999; }, null, rkTop, rkBot, W);
   }
 
   function tcDrawNow() {
