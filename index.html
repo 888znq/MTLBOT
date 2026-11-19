@@ -46,7 +46,7 @@ tr.highlight-gem[style*="box-shadow"]{box-shadow:none!important;filter:none!impo
 tr.highlight-gem[style*="box-shadow"]>td{filter:brightness(1.35);}
 tr.highlight-gem[style*="box-shadow"]>td:first-child{border-left:5px solid var(--pf-gold)!important;}
 tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4){position:relative;color:transparent!important;}
-tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--pf-gold);color:#000432;font-size:10px;font-weight:800;letter-spacing:.06em;}
+tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--pf-pair,var(--pf-gold));color:#000432;font-size:10px;font-weight:800;letter-spacing:.06em;}
 tr.highlight-gem[data-wpe="WARN"][data-wph="1"]>td:nth-child(4)::after{content:"HIT SOON";}
 tr.highlight-gem[data-wpe="HIT"][data-wph="1"]>td:nth-child(4)::after{content:"HIT";}
 tr.highlight-gem[data-wpe="MISS"][data-wph="1"]>td:nth-child(4)::after{content:"MISSED";}
@@ -1256,7 +1256,7 @@ setInterval(() => {
       else if (pl.missed) ev = "MISS";
       else if (pl.kind === "FUT" && rem <= 10) ev = "WARN";
     }
-    if (ev) { row.setAttribute("data-wpe", ev); row.setAttribute("data-wph", _wpEvPh ? "1" : "0"); }
+    if (ev) { row.style.setProperty("--pf-pair", _pairOrange(d.pair)); row.setAttribute("data-wpe", ev); row.setAttribute("data-wph", _wpEvPh ? "1" : "0"); }
     else { row.removeAttribute("data-wpe"); row.removeAttribute("data-wph"); }
   });
 }, 1000);
@@ -1640,6 +1640,11 @@ function _autoSelectTopSignal(force) {
         ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(flXe, my); ctx.stroke();
       }
       ctx.beginPath(); ctx.arc(mx, my, 4, 0, 6.283); ctx.fillStyle = it.color; ctx.fill();
+            if (!(lastClickedSigId && currentInstances.length)) {
+              var mUp = mk.sig.type === "REV" ? mk.sig.col === "R" : mk.sig.col === "G", mLbl = mUp ? "BUY" : "SELL", mLy = mUp ? mBot + 14 : mTop - 14;
+              if (mLy > pbot - 8) mLy = mTop - 14; else if (mLy < ptop + 8) mLy = mBot + 14;
+              ctx.save(); ctx.font = "bold 10px " + MONO; ctx.fillStyle = PO; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(mLbl, mx, mLy); ctx.restore();
+            }
       if (mk.win === "win" || mk.win === "loss") {
               var mFs = _tcTkFs(), mR = Math.max(8, mFs * 0.7) * 0.5 + 3, mY = mTop - mR - 2;
               if (mY - mR < ptop) mY = mBot + mR + 2;
