@@ -4,24 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>WALLSPECTRUM LOCAL — MULTIPAIR</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{color-scheme:dark;--pf-bg:#0B0E11;--pf-bg2:#0D1117;--pf-ctl:#141A22;--pf-line:#232A33;--pf-line2:#2F3845;--pf-text:#EAECEF;--pf-soft:#C5CBD6;--pf-mute:#848E9C;--pf-up:#0ECB81;--pf-dn:#F6465D;--pf-gold:#FCD535;--pf-up-rgb:14,203,129;--pf-dn-rgb:246,70,93;}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-html,body{height:100%;background:#06080B;color:var(--pf-text);font-family:'JetBrains Mono',monospace;font-feature-settings:"zero" 1;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
+html,body{height:100%;background:#06080B;color:var(--pf-text);font-family:'JetBrains Mono',monospace;overflow:hidden;user-select:none;-webkit-user-select:none;}
 #main-container{height:100%;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) clamp(175px,30vh,290px);gap:4px;padding:4px;overflow:hidden;position:relative;background:#06080B;}
 body.tc-solo #main-container{grid-template-rows:1fr 0px;gap:0;}
 body.tc-solo #wall-finder-pane{display:none!important;}
 #tcBar,.ctrl-row,.table-hdr{display:none;}
-#canvas-viewport,#wall-finder-pane{background:var(--pf-bg);border:1px solid var(--pf-line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.03);}
+#canvas-viewport,#wall-finder-pane{background:var(--pf-bg);border:1px solid var(--pf-line);border-radius:8px;}
 #canvas-viewport{grid-column:1;grid-row:1;position:relative;overflow:hidden;touch-action:none;}
 #tcWrap{position:absolute;inset:2px;z-index:6;background:var(--pf-bg);border-radius:10px;touch-action:none;overflow:hidden;}
 #tcCanvas{display:block;position:absolute;top:0;left:0;touch-action:none;}
-#scanChartTimer{position:fixed;right:10px;top:8px;z-index:20;display:flex;align-items:center;justify-content:center;padding:6px 12px;font-family:'JetBrains Mono',monospace;font-size:12px!important;font-weight:700;line-height:1;letter-spacing:.14em;color:var(--pf-soft);opacity:.95;background:rgba(11,14,17,.82);border:1px solid var(--pf-line2);border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.4);pointer-events:none;}
+#scanChartTimer{position:fixed;right:10px;top:8px;z-index:20;display:flex;align-items:center;justify-content:center;padding:6px 12px;font-family:'JetBrains Mono',monospace;font-size:12px!important;font-weight:700;line-height:1;letter-spacing:.14em;color:var(--pf-soft);opacity:.95;background:rgba(11,14,17,.82);border:1px solid var(--pf-line2);border-radius:999px;pointer-events:none;}
 #tradeCard{position:absolute;left:14px;top:12px;z-index:8;display:flex;flex-direction:column;gap:4px;pointer-events:none;font:700 10px 'JetBrains Mono',monospace;}
-.tcRow{display:flex;align-items:center;gap:10px;padding:4px 12px;border-radius:8px;background:rgba(18,22,28,.94);border:1px solid var(--pf-line2);color:var(--pf-text);font-weight:600;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.4);}
+.tcRow{display:flex;align-items:center;gap:10px;padding:4px 12px;border-radius:8px;background:rgba(18,22,28,.94);border:1px solid var(--pf-line2);color:var(--pf-text);font-weight:600;white-space:nowrap;}
 .tcRow b[style*="00FF00" i]{color:var(--pf-up)!important;}
 .tcRow b[style*="FF0000" i]{color:var(--pf-dn)!important;}
 .tcRow b[style*="FFFFFF" i]{color:var(--pf-mute)!important;}
@@ -35,7 +32,7 @@ td{height:34px;padding:2px 6px;font-size:11px;font-weight:600;letter-spacing:.03
 td:first-child{padding-left:14px!important;line-height:1.2;}
 td[colspan]{color:var(--pf-mute)!important;letter-spacing:.18em;}
 tr.highlight-gem{cursor:pointer;}
-tr.row-green>td,tr.row-red>td{border-style:solid;border-width:1px 0;color:var(--pf-soft);transition:background .15s,border-color .15s;}
+tr.row-green>td,tr.row-red>td{border-style:solid;border-width:1px 0;color:var(--pf-soft);}
 tr.row-green>td{background:rgba(var(--pf-up-rgb),.07);border-color:rgba(var(--pf-up-rgb),.38);}
 tr.row-red>td{background:rgba(var(--pf-dn-rgb),.07);border-color:rgba(var(--pf-dn-rgb),.38);}
 tr.row-green>td:first-child,tr.row-red>td:first-child{border-left-width:1px;border-radius:6px 0 0 6px;color:var(--pf-text);font-weight:700;}
@@ -56,7 +53,7 @@ tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{position:absolut
 tr.highlight-gem[data-wpe="WARN"][data-wph="1"]>td:nth-child(4)::after{content:"HIT SOON";}
 tr.highlight-gem[data-wpe="HIT"][data-wph="1"]>td:nth-child(4)::after{content:"HIT";}
 tr.highlight-gem[data-wpe="MISS"][data-wph="1"]>td:nth-child(4)::after{content:"MISSED";}
-td:first-child .pyP{display:inline-block;vertical-align:middle;min-width:34px;margin-left:6px;padding:1px 6px;border-radius:999px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);color:var(--pf-soft);font-size:9px;font-weight:700;letter-spacing:.02em;line-height:12px;text-align:center;}
+td:first-child .pyP{display:inline-block;vertical-align:middle;min-width:34px;margin-left:6px;padding:1px 6px;border-radius:999px;border:1px solid var(--pf-line2);color:var(--pf-soft);font-size:9px;font-weight:700;letter-spacing:.02em;line-height:12px;text-align:center;}
 td:first-child span[data-hold-t]{display:block;margin-top:2px;color:var(--pf-mute);font-size:9px!important;font-weight:500;line-height:11px!important;letter-spacing:0;font-variant-numeric:tabular-nums;opacity:1;}
 #rangePill{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;margin-top:4px;padding:3px 4px;background:var(--pf-bg2);border:1px solid var(--pf-line);border-radius:10px;font:700 10px 'JetBrains Mono',monospace;white-space:nowrap;}
 #tradePill{display:flex;flex:1 1 0;flex-wrap:nowrap;align-items:center;justify-content:stretch;gap:4px;width:100%;min-width:0;font:700 10px 'JetBrains Mono',monospace;white-space:nowrap;}
@@ -73,7 +70,7 @@ td:first-child span[data-hold-t]{display:block;margin-top:2px;color:var(--pf-mut
 #tradePill #btDate{order:12;color-scheme:dark;}
 #tradePill #scanMin{order:30;}
 #tradePill #scanMax{order:31;}
-#tradePill input,#tradePill select,#tradePill button{background:var(--pf-ctl);border:1px solid var(--pf-line2);border-radius:7px;color:var(--pf-text);font:700 10px 'JetBrains Mono',monospace;letter-spacing:.04em;outline:none;transition:border-color .15s,background .15s,color .15s;}
+#tradePill input,#tradePill select,#tradePill button{background:var(--pf-ctl);border:1px solid var(--pf-line2);border-radius:7px;color:var(--pf-text);font:700 10px 'JetBrains Mono',monospace;letter-spacing:.04em;outline:none;}
 #tradePill input{-webkit-user-select:text;user-select:text;-moz-appearance:textfield;}
 #tradePill input::-webkit-outer-spin-button,#tradePill input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 #tradePill select{cursor:pointer;-webkit-appearance:none;appearance:none;}
@@ -83,14 +80,12 @@ td:first-child span[data-hold-t]{display:block;margin-top:2px;color:var(--pf-mut
 #tradePill #tpAuto{color:var(--pf-mute);}
 #tradePill #modeBtn{color:var(--pf-gold);letter-spacing:.08em;}
 #tradePill input:hover,#tradePill select:hover,#tradePill #tpBal:hover,#tradePill #tpAuto:hover,#tradePill #btToggle:hover,#tradePill #modeBtn:hover{border-color:#4B5666;}
-#tradePill input:focus,#tradePill select:focus{border-color:var(--pf-gold);box-shadow:0 0 0 2px rgba(252,213,53,.16);}
+#tradePill input:focus,#tradePill select:focus{border-color:var(--pf-gold);}
 #tradePill #tpAuto.on{background:var(--pf-gold);border-color:var(--pf-gold);color:#0B0E11;}
 #tradePill #tpBuy,#tradePill #tpSell{border:none;font-weight:800;letter-spacing:.1em;}
 #tradePill #tpBuy{background:var(--pf-up);color:#04120B;}
 #tradePill #tpSell{background:var(--pf-dn);color:#1C050A;}
-#tradePill #tpBuy:hover,#tradePill #tpSell:hover{filter:brightness(1.1);}
-#tradePill #tpBuy:active,#tradePill #tpSell:active{transform:scale(.96);}
-#bootOverlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;background:radial-gradient(900px 500px at 50% 38%,#121923 0%,#0B0E11 72%);}
+#bootOverlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;background:#0B0E11;}
 #bootOverlay>div:first-child{font-size:12px;font-weight:600;letter-spacing:.2em;color:var(--pf-text);}
 #bootLogBox{width:min(540px,94vw);height:150px;padding:10px;overflow-y:auto;background:var(--pf-bg2);border:1px solid var(--pf-line2);border-radius:10px;color:var(--pf-soft);font-size:10px;line-height:1.5;}
 @media(max-width:600px){
@@ -482,7 +477,7 @@ function _ssRow(r, c, sess) {
 }
 function _ssMsg(k, minC, maxC, pair) {
   var pd = allPairData[pair], SB = _ssBounds(k);
-  return { pair: pair, times: pd.times, prices: pd.prices.slice(SB.a, SB.b), minC: minC, maxC: maxC, startIdx: 0, endIdx: SB.b - SB.a, startTsUtc: currentStartTsUtc + SB.a, pre: SB.a > 0 ? _ssPre(SB.a, pair) : window._preArr(pair), gid: Date.now() + k };
+  return { pair: pair, prices: pd.prices.slice(SB.a, SB.b), minC: minC, maxC: maxC, startIdx: 0, endIdx: SB.b - SB.a, startTsUtc: currentStartTsUtc + SB.a, pre: SB.a > 0 ? _ssPre(SB.a, pair) : window._preArr(pair), gid: Date.now() + k };
 }
 function _ssPost(msg) {
   if (scanWorker) scanWorker.postMessage(msg);
@@ -1017,7 +1012,7 @@ function _scanUi() {
     if (b) b.style.borderColor = "";
   }
 }
-setInterval(_scanUi, 250);
+setInterval(_scanUi, 500);
 
 function setScanInterval(v) {
   SCAN_INT = Math.max(5, Math.min(3600, parseInt(v, 10) || 60));
@@ -1206,7 +1201,13 @@ function _bestPerLevel(list) {
   return order.map(function (kk) { return best[kk]; });
 }
 
+var _rftT = 0;
 function renderFilteredTable() {
+  if (_rftT) return;
+  _rftT = setTimeout(_renderTableNow, 60);
+}
+function _renderTableNow() {
+  _rftT = 0;
   var rev = _bestPerLevel(_wsBuild(globalRevs.filter(function (x) { return _gmVis(x.pair); }), "lvl")), mom = _bestPerLevel(_wsBuild(globalMoms.filter(function (x) { return _gmVis(x.pair); }), "lvl"));
   var _gl = _gmPairs(_gmList[_gmCur]), _gp = _gl.filter(function (p) { return !_pairRes[p]; }).length;
   var _ld = '<tr><td colspan="7" style="text-align:center;background:transparent;padding:16px;">LOADING ' + _gmList[_gmCur] + ' ' + (_gl.length - _gp) + '/' + _gl.length + ' ...</td></tr>';
@@ -1482,14 +1483,14 @@ function _autoSelectTopSignal(force) {
       if (bxCol === "#000000") { ctx.fillStyle = "#10151B"; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill(); }
       else if (bw < 7 || bh < 7) { ctx.fillStyle = bxCol; ctx.fillRect(px, py, bw, bh); }
       else {
-        var pfRgb = bxCol === RED ? PF_DN : PF_UP, pfGr = ctx.createLinearGradient(0, py, 0, py + bh); pfGr.addColorStop(0, "rgba(" + pfRgb + ",0.20)"); pfGr.addColorStop(1, "rgba(" + pfRgb + ",0.06)"); ctx.fillStyle = pfGr; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill();
+        var pfRgb = bxCol === RED ? PF_DN : PF_UP; ctx.fillStyle = "rgba(" + pfRgb + ",0.12)"; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill();
         ctx.strokeStyle = "rgba(" + pfRgb + ",0.8)"; ctx.lineWidth = bxLw; ctx.setLineDash([]); bxRR(ctx, px + bxLw / 2, py + bxLw / 2, bw - bxLw, bh - bxLw, bxRad); ctx.stroke();
       }
       if (j === cj) {
         var prevP = bxCells ? ((j > 0 && bxCells[j - 1]) ? bxCells[j - 1].p : window._preRef(pair, j * B + bxR0 - B)) : (c ? c[0] : -1);
         var lvUp = !(prevP > 0 && lp > 0 && lp < prevP);
         ctx.save(); bxRR(ctx, px, py, bw, bh, bxRad); ctx.clip(); ctx.globalAlpha = 0.38; ctx.fillStyle = lvUp ? GREEN : RED; ctx.fillRect(px, py + bh * (1 - fr), bw, bh * fr); ctx.restore();
-        ctx.save(); ctx.shadowColor = "rgba(252,213,53,0.5)"; ctx.shadowBlur = 8; ctx.strokeStyle = "#FCD535"; ctx.lineWidth = 1; bxRR(ctx, px + 0.5, py + 0.5, bw - 1, bh - 1, bxRad); ctx.stroke(); ctx.restore();
+        ctx.save(); ctx.strokeStyle = "#FCD535"; ctx.lineWidth = 1; bxRR(ctx, px + 0.5, py + 0.5, bw - 1, bh - 1, bxRad); ctx.stroke(); ctx.restore();
         var rm = bxCells ? Math.max(0, Math.ceil((j * B + bxR0) - nowF)) : Math.max(0, Math.ceil(B - nowF % B));
         if (bw >= 18 && bh >= 12) {
           ctx.font = "bold " + Math.max(8, Math.min(bw, bh) * 0.28) + "px " + MONO; ctx.fillStyle = "#FFF"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -1524,7 +1525,7 @@ function _autoSelectTopSignal(force) {
 
   function tcDrawNow() {
     var W = TC.wrap.clientWidth, H = TC.wrap.clientHeight; if (W < 80 || H < 80) return;
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     if (TC.W !== W || TC.H !== H || TC.dpr !== dpr) {
       TC.W = W; TC.H = H; TC.dpr = dpr; TC.cv.width = Math.round(W * dpr); TC.cv.height = Math.round(H * dpr);
       TC.cv.style.width = W + "px"; TC.cv.style.height = H + "px";
