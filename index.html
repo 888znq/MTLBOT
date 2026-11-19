@@ -733,7 +733,7 @@ async function fetchDerivGrid(pair, startTs, endTs) {
     bootLog(getPairDisplayName(pair) + " — loaded from local cache");
     return { times: times, prices: cc.prices };
   }
-  if (_ssShift === 0) { try { g = await srvGet(pair, 0, true); } catch (e) { g = null; } }
+  if (_ssShift === 0) { try { g = await srvGet(pair, 0, true, _srvProg(pair, len, startTs)); } catch (e) { g = null; } bootProg(pair, null); }
   if (g) {
     for (i = 0; i < g.pl && i < PRE_ROLL_SECS; i++) pre[i] = g.buf[i];
     for (i = 0; i < g.buf.length - g.pl && i < len; i++) prices[i] = g.buf[g.pl + i];
@@ -747,10 +747,43 @@ async function fetchDerivGrid(pair, startTs, endTs) {
   return { times: times, prices: prices };
 }
 
-async function srvGet(pair, from, pre) {
+function bootProg(key, txt) {
+  var b = document.getElementById("bootLogLines");
+  if (!b) return;
+  var id = "bp_" + key, d = document.getElementById(id);
+  if (txt === null) { if (d) d.remove(); return; }
+  if (!d) { d = document.createElement("div"); d.id = id; d.style.color = "#FCD535"; b.appendChild(d); }
+  d.textContent = txt;
+  b.parentElement.scrollTop = b.parentElement.scrollHeight;
+}
+function _srvProg(pair, len, startTs) {
+  var last = -1;
+  return function (got, tot) {
+    var est = tot || (PRE_ROLL_SECS + Math.min(len, Math.max(1, Math.floor(Date.now() / 1000) - startTs + 1))) * 8, pct = Math.min(99, Math.floor(got / est * 100));
+    if (pct === last) return;
+    last = pct;
+    var L = activePairs.length, d = activePairs.filter(function (p) { return _bootPairState[p] === "done"; }).length;
+    bootProg(pair, "[" + d + "/" + L + "] " + getPairDisplayName(pair) + " — downloading " + pct + "% (" + (got / 1048576).toFixed(2) + " MB)");
+  };
+}
+async function srvGet(pair, from, pre, onProg) {
   var r = await fetch(TICK_SERVER + "/ticks?pair=" + encodeURIComponent(pair) + "&from=" + from + "&day=" + currentStartTsUtc + (pre ? "&pre=1" : "") + "&token=" + encodeURIComponent(TICK_TOKEN), { cache: "no-store" });
   if (!r.ok || +r.headers.get("X-Day-Epoch") !== currentStartTsUtc) return null;
-  return { buf: new Float64Array(await r.arrayBuffer()), pl: +r.headers.get("X-Pre-Length") || 0, from: +r.headers.get("X-From-Index") || 0 };
+  var ab;
+  if (onProg && r.body && r.body.getReader) {
+    var tot = +r.headers.get("Content-Length") || 0, rd = r.body.getReader(), parts = [], got = 0, ck, u, o = 0;
+    onProg(0, tot);
+    for (;;) {
+      ck = await rd.read();
+      if (ck.done) break;
+      parts.push(ck.value); got += ck.value.length;
+      onProg(got, tot);
+    }
+    u = new Uint8Array(got);
+    parts.forEach(function (x) { u.set(x, o); o += x.length; });
+    ab = u.buffer;
+  } else ab = await r.arrayBuffer();
+  return { buf: new Float64Array(ab), pl: +r.headers.get("X-Pre-Length") || 0, from: +r.headers.get("X-From-Index") || 0 };
 }
 var _srvBp = {}, _srvFp = {};
 async function srvSyncPair(pair) {
