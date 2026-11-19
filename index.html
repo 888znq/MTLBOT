@@ -1976,8 +1976,9 @@ function _loadRest(ctx) {
   var rest = ALL_PAIRS.filter(function (p) { return activePairs.indexOf(p) < 0; });
   var q = rest.filter(function (p) { return /^1HZ/.test(p); }).concat(
     rest.filter(function (p) { return _gmPairs("MTL").indexOf(p) >= 0; }),
-    rest.filter(function (p) { return /^frx/.test(p) && _gmPairs("MTL").indexOf(p) < 0; })
-  );
+    rest.filter(function (p) { return /^frx/.test(p) && _gmPairs("MTL").indexOf(p) < 0; }),
+        rest.filter(function (p) { return /^cry/.test(p); })
+      );
   rest.forEach(function (p) {
     activePairs.push(p);
     allPairData[p] = { times: new Int32Array(0), prices: new Float64Array(0) };
