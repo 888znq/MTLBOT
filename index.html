@@ -92,8 +92,17 @@ td:first-child span[data-hold-t]{display:block;margin-top:2px;color:#000432;font
     .tables-split{gap:3px;}
     #wall-finder-pane{padding:3px;}
   td:first-child{padding-left:8px!important;}
-}
-</style>
+  }
+  @media(orientation:portrait){
+    #main-container{grid-template-rows:minmax(0,1fr) clamp(230px,42vh,400px);}
+    #tradePill{flex-wrap:wrap;}
+    #tradePill>*{flex:1 1 calc(25% - 4px);height:30px;}
+    #tradeCard{left:8px;right:8px;top:8px;}
+    .tcRow{gap:6px;padding:3px 8px;font-size:9px;overflow:hidden;}
+    td{height:30px;padding:2px 4px;font-size:10px;}
+    table{font-size:10px;}
+  }
+  </style>
 </head>
 <body>
 <div id="main-container">
@@ -386,7 +395,7 @@ function _fbApply() {
     if (m > 0 && 1440 % m === 0 && m % 60 === 0) { _ssMin = m; _ssSel = _ssDefSel(); }
     if (c.mode === "demo" || c.mode === "real") dv.mode = c.mode;
     dv.auto = c.auto === true;
-    if (el("tpAuto")) el("tpAuto").classList.toggle("on", dv.auto);
+    tpAutoUi();
     _ssFix();
   }
   _fbLast = c ? JSON.stringify(_fbState()) : "";
@@ -1788,8 +1797,10 @@ function _autoSelectTopSignal(force) {
 
   function tcDraw() { if (!TC._rq) TC._rq = requestAnimationFrame(() => { TC._rq = 0; tcDrawNow(); }); }
   window.tcRedraw = tcDraw;
-  setInterval(tcDraw, 500);
-  window.addEventListener("resize", tcDraw);
+    setInterval(tcDraw, 500);
+    window.addEventListener("resize", tcDraw);
+    window.addEventListener("orientationchange", function () { setTimeout(tcDraw, 120); });
+    ["gesturestart", "gesturechange", "gestureend"].forEach(function (g) { document.addEventListener(g, function (e) { e.preventDefault(); }, { passive: false }); });
 
   document.getElementById("tcZoomOut").onclick = () => { TC.spp = Math.min(600, TC.spp * 1.5); tcDraw(); };
   document.getElementById("tcZoomIn").onclick = () => { TC.spp = Math.max(0.25, TC.spp / 1.5); tcDraw(); };
@@ -1810,14 +1821,41 @@ function _autoSelectTopSignal(force) {
   };
   document.getElementById("tcSoloBtn").onclick = () => { document.body.classList.toggle("tc-solo"); setTimeout(tcDraw, 30); };
 
-  var drag = null, dtLast = 0;
-  TC.cv.addEventListener("pointerdown", e => {
-    var rc = TC.cv.getBoundingClientRect(), x = e.clientX - rc.left, y = e.clientY - rc.top;
-    drag = { x: e.clientX, y: e.clientY, left: TC.left, yOff: TC.yOff, yZ: TC.yZ, spp: TC.spp, axis: x > TC.W - PADR ? "y" : (y > TC.H - PADB ? "x" : "pan"), moved: false };
-    try { TC.cv.setPointerCapture(e.pointerId); } catch (er) {}
-  });
+  var drag = null, dtLast = 0, ptrs = {}, pinch = null;
+    function ptrCount() { return Object.keys(ptrs).length; }
+    function pinchBegin() {
+      var k = Object.keys(ptrs), a = ptrs[k[0]], b = ptrs[k[1]], rc = TC.cv.getBoundingClientRect();
+      if (!a || !b) return;
+      var dx = Math.abs(a.x - b.x), dy = Math.abs(a.y - b.y), mx = (a.x + b.x) / 2 - rc.left;
+      pinch = { axis: dx >= dy ? "x" : "y", d0: Math.max(10, dx >= dy ? dx : dy), spp: TC.spp, yZ: TC.yZ, anchor: TC.left + (mx - PADL) * TC.spp };
+      drag = null;
+    }
+    function pinchMove() {
+      var k = Object.keys(ptrs), a = ptrs[k[0]], b = ptrs[k[1]], rc = TC.cv.getBoundingClientRect();
+      if (!a || !b || !pinch) return;
+      var dx = Math.abs(a.x - b.x), dy = Math.abs(a.y - b.y), mx = (a.x + b.x) / 2 - rc.left;
+      if (pinch.axis === "x") {
+        TC.spp = Math.max(0.1, Math.min(600, pinch.spp * pinch.d0 / Math.max(10, dx)));
+        TC.follow = false;
+        TC.left = pinch.anchor - (mx - PADL) * TC.spp;
+        tcClamp(TC.W - PADL - PADR);
+      } else {
+        TC.yZ = Math.max(0.2, Math.min(40, pinch.yZ * Math.max(10, dy) / pinch.d0));
+      }
+      tcDraw();
+    }
+    TC.cv.addEventListener("pointerdown", e => {
+      var rc = TC.cv.getBoundingClientRect(), x = e.clientX - rc.left, y = e.clientY - rc.top;
+      ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+      try { TC.cv.setPointerCapture(e.pointerId); } catch (er) {}
+      if (ptrCount() >= 2) { if (ptrCount() === 2) pinchBegin(); return; }
+      pinch = null;
+      drag = { x: e.clientX, y: e.clientY, left: TC.left, yOff: TC.yOff, yZ: TC.yZ, spp: TC.spp, axis: x > TC.W - PADR ? "y" : (y > TC.H - PADB ? "x" : "pan"), moved: false };
+    });
   TC.cv.addEventListener("pointermove", e => {
-    if (!drag) return;
+      if (ptrs[e.pointerId]) { ptrs[e.pointerId].x = e.clientX; ptrs[e.pointerId].y = e.clientY; }
+      if (pinch && ptrCount() >= 2) { pinchMove(); return; }
+      if (!drag) return;
     var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) drag.moved = true;
     if (!drag.moved) return;
@@ -1829,13 +1867,26 @@ function _autoSelectTopSignal(force) {
     }
     tcDraw();
   });
-  TC.cv.addEventListener("pointerup", e => {
-    if (drag && !drag.moved) {
-      var now = Date.now();
-      if (now - dtLast < 350) { dtLast = 0; toggleCandleMode(); } else dtLast = now;
+  function ptrEnd(e, up) {
+      delete ptrs[e.pointerId];
+      try { TC.cv.releasePointerCapture(e.pointerId); } catch (er) {}
+      var n = ptrCount();
+      if (n >= 2) { pinchBegin(); return; }
+      if (n === 1) {
+        var p = ptrs[Object.keys(ptrs)[0]];
+        pinch = null;
+        drag = { x: p.x, y: p.y, left: TC.left, yOff: TC.yOff, yZ: TC.yZ, spp: TC.spp, axis: "pan", moved: true };
+        return;
+      }
+      if (up && drag && !drag.moved) {
+        var now = Date.now();
+        if (now - dtLast < 350) { dtLast = 0; toggleCandleMode(); } else dtLast = now;
+      }
+      pinch = null; drag = null;
     }
-    drag = null;
-  });
+    TC.cv.addEventListener("pointerup", e => ptrEnd(e, true));
+    TC.cv.addEventListener("pointercancel", e => ptrEnd(e, false));
+    if (window.ResizeObserver) new ResizeObserver(function () { tcDraw(); }).observe(TC.wrap);
   TC.wrap.addEventListener("wheel", e => {
     e.preventDefault();
     if (e.altKey) TC.yZ = Math.max(0.2, Math.min(40, TC.yZ * Math.exp(-e.deltaY * 0.0015)));
@@ -1894,7 +1945,7 @@ async function dvLoadAccts() {
 async function dvConnect(mode) {
   if (!dv.acc[mode]) await dvLoadAccts();
   if (!dv.acc[mode]) { tpFlash(false, "no " + mode + " account found"); return false; }
-  if (mode !== dv.mode) { dv.auto = false; var ab = document.getElementById("tpAuto"); if (ab) ab.classList.remove("on"); }
+  if (mode !== dv.mode) { dv.auto = false; tpAutoUi(); }
   var old = dv.ws; dv.ws = null; dv.ready = false; dv.mode = mode; tpBalShow();
   if (old) { try { old.onclose = null; old.close(); } catch (e) {} }
   try {
@@ -1943,12 +1994,18 @@ function dvManual(dir) {
 document.getElementById("tpBuy").onclick = function () { dvManual("BUY"); };
 document.getElementById("tpSell").onclick = function () { dvManual("SELL"); };
 document.getElementById("tpBal").onclick = function () { dvConnect(dv.mode === "demo" ? "real" : "demo"); };
+function tpAutoUi() {
+  var b = document.getElementById("tpAuto"); if (!b) return;
+  b.classList.toggle("on", !!dv.auto);
+  b.textContent = dv.auto ? "AUTO" : "MANUAL";
+}
 document.getElementById("tpAuto").onclick = function () {
   if (!dv.auto && dv.mode === "real" && !confirm("AUTO will place REAL money trades. Enable?")) return;
   dv.auto = !dv.auto;
-  this.classList.toggle("on", dv.auto);
+  tpAutoUi();
   if (dv.auto && !dv.ready) dvConnect(dv.mode);
-  };
+};
+tpAutoUi();
   _fbP.then(function () { _fbApply(); dvConnect(dv.mode); });
 
 var _pyCyc = 0;
