@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="pc-on">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
@@ -8,249 +8,98 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg-base:#000432;--bg-panel:#000432;--accent-green:#2ED573;--accent-red:#E63946;--text-primary:#E2E8F0;--border:#E2E8F0;--pair-color:hsl(253,80%,60%);}
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-html,body{height:100%;background:var(--bg-base);color:var(--text-primary);font-family:'JetBrains Mono',monospace;overflow:hidden;user-select:none;-webkit-user-select:none;}
-#main-container{height:100%;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) clamp(175px,30vh,290px);overflow:hidden;position:relative;}
-body.tc-solo #main-container{grid-template-rows:1fr 0px;}
-body.tc-solo #wall-finder-pane{display:none!important;}
-#canvas-viewport{grid-column:1;grid-row:1;position:relative;overflow:hidden;background:var(--bg-base);touch-action:none;}
-#tcWrap{position:absolute;inset:0;z-index:6;background:var(--bg-base);touch-action:none;overflow:hidden;}
-#tcCanvas{display:block;position:absolute;top:0;left:0;touch-action:none;}
-#tcBar{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;gap:2px;z-index:3;background:#000432;padding:2px;border:1px solid var(--pair-color);border-radius:999px;}
-#tcBar button{background:var(--pair-color);color:#000432;border:none;border-radius:999px;font:800 10px 'JetBrains Mono',monospace;padding:4px 10px;cursor:pointer;height:24px;}
-#tcBar button.tcOn{background:#FFD700;color:#000432;}
-#scanChartTimer{position:fixed;right:24px;top:22px;width:160px;height:100px;display:flex;align-items:center;justify-content:center;z-index:20;pointer-events:none;opacity:.22;font:800 84px/1 'JetBrains Mono',monospace;color:var(--pair-color);}
-#wall-finder-pane{grid-column:1;grid-row:2;border-top:1px solid var(--pair-color);background:var(--bg-base);display:flex;flex-direction:column;overflow:hidden;z-index:10;}
-.ctrl-row{display:flex;align-items:center;gap:4px;padding:3px 6px;background:var(--bg-panel);border-bottom:1px solid #1e293b;flex-shrink:0;}
-.ctrl-input,.ctrl-btn{background:var(--pair-color);color:#000432;border:1px solid #000432;border-radius:999px;font:800 10px 'JetBrains Mono',monospace;height:22px;padding:0 8px;outline:none;text-align:center;cursor:pointer;}
-.ctrl-btn.on{background:var(--accent-green);color:#000432;}
-.tables-split{display:flex;flex:1;min-height:0;overflow:hidden;gap:2px;}
-.table-col{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;}
-.table-hdr{font-size:9px;font-weight:800;letter-spacing:.25em;color:#000432;background:var(--pair-color);padding:3px 8px;text-align:center;flex-shrink:0;cursor:pointer;}
-.table-wrapper{flex:1;overflow-y:auto;scrollbar-width:none;}
-.table-wrapper::-webkit-scrollbar{display:none;}
-table{width:100%;border-collapse:separate;border-spacing:0 1px;table-layout:fixed;font-size:11px;}
-td{padding:6px 3px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:clip;color:#000432;border-right:1px solid #000432;}
-td:last-child{border-right:none;}
-.row-red td{background:var(--accent-red);}
-.row-green td{background:var(--accent-green);}
-tr.highlight-gem{cursor:pointer;}
-tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4){position:relative;color:transparent!important;}
-tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#000432;font-size:10px;font-weight:900;}
-tr.highlight-gem[data-wpe="WARN"][data-wph="1"]>td:nth-child(4)::after{content:"HIT SOON";}
-tr.highlight-gem[data-wpe="HIT"][data-wph="1"]>td:nth-child(4)::after{content:"HIT";}
-tr.highlight-gem[data-wpe="MISS"][data-wph="1"]>td:nth-child(4)::after{content:"MISSED";}
-#bootOverlay{position:fixed;inset:0;background:#000432;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;}
-#bootLogBox{width:min(540px,94vw);height:150px;background:#070B2E;border:1px solid var(--pair-color);border-radius:14px;padding:10px;overflow-y:auto;font-size:10px;line-height:1.5;}
-#tcBar,.ctrl-row,.table-hdr{display:none!important;}
-html,body{background:#00021c;}
-#main-container{padding:8px;gap:8px;}
-body.tc-solo #main-container{gap:0;}
-#canvas-viewport{border:1px solid var(--pair-color);border:1px solid color-mix(in srgb,var(--pair-color) 55%,transparent);border-radius:12px;background:var(--bg-base);box-shadow:0 6px 24px rgba(0,0,0,.45);}
-#tcWrap{inset:8px;border-radius:8px;}
-#scanChartTimer{right:34px;top:30px;}
-#wall-finder-pane{border:1px solid var(--pair-color);border:1px solid color-mix(in srgb,var(--pair-color) 55%,transparent);border-radius:12px;padding:8px;background:var(--bg-base);box-shadow:0 6px 24px rgba(0,0,0,.45);}
-.tables-split{gap:8px;}
-.table-col{border:1px solid var(--pair-color);border:1px solid color-mix(in srgb,var(--pair-color) 45%,transparent);border-radius:8px;background:var(--bg-base);}
-table{border-spacing:0;font-variant-numeric:tabular-nums;}
-td{height:36px;padding:3px 4px;vertical-align:middle;border-right:1px solid rgba(0,4,50,.55);border-bottom:1px solid rgba(0,4,50,.9);}
-tr:last-child td{border-bottom:none;}
-tr.highlight-gem:hover td{filter:brightness(1.1);}
-@media(max-width:600px){#main-container{padding:4px;gap:4px;}#tcWrap{inset:4px;}.tables-split{gap:4px;}#wall-finder-pane{padding:4px;}}
-html,body{background:#00021c;font-feature-settings:"zero" 1;-webkit-font-smoothing:antialiased;}
-#canvas-viewport,#wall-finder-pane{border-color:rgba(136,144,184,.28);border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.4);}
-#wall-finder-pane{padding:6px;}
-.tables-split{gap:6px;}
-.table-col{border-color:rgba(136,144,184,.22);border-radius:8px;}
-td{font-size:11px;font-weight:600;letter-spacing:.02em;height:34px;border-right:1px solid rgba(0,4,50,.35);border-bottom:1px solid rgba(0,4,50,.6);}
-td span[data-hold-t]{opacity:.72;font-weight:600;letter-spacing:.02em;}
-#scanChartTimer{opacity:.14;font-weight:700;}
-:root{--bg-base:#0F1A2E;--bg-panel:#13203A;--accent-green:#2ED573;--accent-red:#E63946;--text-primary:#C9D1E0;--border:#1C2433;--pair-color:#D4AF37;}
-html,body{background:#0A1322;color:#D3DBEA;}
-#main-container{padding:10px;gap:10px;}
-#canvas-viewport,#wall-finder-pane{background:#0F1A2E;border:1px solid #263653;border-radius:10px;box-shadow:none;}
-#tcWrap{inset:6px;background:#0F1A2E;border-radius:6px;}
-#scanChartTimer{right:30px;top:26px;width:auto;height:auto;font:600 40px/1 'JetBrains Mono',monospace;color:#6B7689;opacity:.35;}
-#wall-finder-pane{padding:8px;}
-.tables-split{gap:10px;}
-.table-col{background:#0C1628;border:1px solid #263653;border-radius:8px;}
-table{border-spacing:0;font-size:11px;}
-td{height:34px;padding:2px 6px;font-weight:600;letter-spacing:.02em;color:#000432;border-right:1px solid rgba(0,4,50,.35);border-bottom:1px solid rgba(0,4,50,.6);}
-td:first-child{padding-left:14px!important;}
-td:last-child{font-weight:800;}
-tr:last-child td{border-bottom:none;}
-.row-green td{background:#2ED573;color:#000432;}
-.row-red td{background:#E63946;color:#000432;}
-
-
-tr.highlight-gem:hover td{filter:none;}
-
-
-tr.highlight-gem[style*="box-shadow"]{box-shadow:none!important;}
-
-
-tr.highlight-gem[style*="box-shadow"] td:first-child{box-shadow:inset 4px 0 0 #FFD700;}
-tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:#F5B942;color:#0B0F17;}
-#bootOverlay{background:#0F1A2E;}
-#tradePill{position:static;transform:none;z-index:8;display:flex;align-items:center;gap:6px;padding:0;background:transparent;border:none;border-radius:0;font:700 10px 'JetBrains Mono',monospace;white-space:nowrap;}
-#tradePill button{width:72px;height:26px;padding:0;border:none;border-radius:999px;font:800 10px 'JetBrains Mono',monospace;letter-spacing:.08em;color:#0F1A2E;cursor:pointer;}
-#tradePill button:active{transform:scale(.96);}
-#tpBuy{background:#2ED573;}
-#tpSell{background:#E63946;}
-#tpAmt{width:72px;height:26px;padding:0;background:#0F1A2E;border:1px solid #263653;border-radius:999px;color:#D3DBEA;text-align:center;font:800 10px 'JetBrains Mono',monospace;outline:none;-webkit-user-select:text;user-select:text;-moz-appearance:textfield;}
-#tpAmt::-webkit-outer-spin-button,#tpAmt::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-#tpAmt:focus{border-color:#D4AF37;}
-.tpLbl{color:#7A89A6;letter-spacing:.08em;}
-#sigStrip{position:absolute;left:12px;right:12px;bottom:76px;z-index:8;display:flex;justify-content:center;gap:8px;pointer-events:none;}
-.sgBox{flex:0 0 min(440px,calc(50% - 4px));border-radius:8px;overflow:hidden;border:1px solid #263653;}
-.sgBox table{width:100%;}
-
-
-
-#tradePill #tpBal{display:flex;align-items:center;justify-content:center;width:72px;height:26px;padding:0;background:#0F1A2E;border:1px solid #263653;border-radius:999px;color:#D4AF37;font:800 10px 'JetBrains Mono',monospace;letter-spacing:0;cursor:pointer;}
-#tradePill #tpAuto{background:#0F1A2E;border:1px solid #263653;color:#7A89A6;}
-#tradePill #tpAuto.on{background:#D4AF37;border-color:#D4AF37;color:#0F1A2E;}
-#tradeCard{position:absolute;left:14px;top:12px;z-index:8;display:flex;flex-direction:column;gap:4px;pointer-events:none;font:700 10px 'JetBrains Mono',monospace;}
-#sigStrip{display:none!important;}
-#rangePill{flex-shrink:0;flex-wrap:wrap;display:flex;align-items:center;justify-content:center;gap:6px;padding:4px 6px;margin-top:6px;background:#0C1628;border:1px solid #263653;border-radius:10px;font:700 10px 'JetBrains Mono',monospace;white-space:nowrap;}
-#rangePill input{width:72px;height:26px;padding:0;background:#0F1A2E;border:1px solid #263653;border-radius:999px;color:#D3DBEA;text-align:center;font:800 10px 'JetBrains Mono',monospace;outline:none;-webkit-user-select:text;user-select:text;-moz-appearance:textfield;}
-#rangePill input::-webkit-outer-spin-button,#rangePill input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-#rangePill input:focus{border-color:#D4AF37;}
-#rangePill select{min-width:72px;height:26px;padding:0 10px;background:#0F1A2E;border:1px solid #263653;border-radius:999px;color:#D3DBEA;text-align:center;text-align-last:center;font:800 10px 'JetBrains Mono',monospace;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;}
-#rangePill select:focus{border-color:#D4AF37;}
-#rangePill #ssWin{display:none!important;}
-#rangePill select option{background:#0F1A2E;color:#D3DBEA;}
-.tcRow{display:flex;align-items:center;gap:10px;padding:4px 12px;border-radius:999px;background:#0C1628;border:1px solid #263653;color:#D3DBEA;white-space:nowrap;}
-.pyP{margin-left:6px;padding:1px 6px;border-radius:999px;background:rgba(0,4,50,.2);font-size:9px;font-weight:800;letter-spacing:.02em;}
-#bootOverlay>div:first-child{color:#8FA3C7!important;font-weight:600!important;letter-spacing:.16em!important;}
-#bootLogBox{background:#0C1628;border:1px solid #263653;border-radius:10px;}
-@media(max-width:600px){#main-container{padding:6px;gap:6px;}#tcWrap{inset:4px;}.tables-split{gap:6px;}#wall-finder-pane{padding:6px;}td:first-child{padding-left:8px!important;}}
-:root{--bg-base:#000000;--bg-panel:#000000;--border:#FFFFFF;--text-primary:#FFFFFF;--pair-color:#FFFFFF;--accent-green:#00FF00;--accent-red:#FF0000;}
-html,body,#main-container{background:#000000;color:#FFFFFF;}
-#canvas-viewport,#wall-finder-pane,#tcWrap{background:#000000;border-color:#FFFFFF;}
-.table-col,#rangePill{background:#000000;border-color:#FFFFFF;}
-#scanChartTimer{color:#FFFFFF;opacity:.35;}
-#tradePill #tpBal,#tpAmt,#rangePill #tpAmt,#rangePill input,#rangePill select{background:#000000;border-color:#FFFFFF;color:#FFFFFF;}
-#rangePill select option{background:#000000;color:#FFFFFF;}
-#tradePill #tpBuy{background:#00FF00;color:#000000;}
-#tradePill #tpSell{background:#FF0000;color:#000000;}
-#tradePill #tpAuto{background:#000000;border:1px solid #FFFFFF;color:#FFFFFF;}
-#tradePill #tpAuto.on{background:#FFFFFF;border-color:#FFFFFF;color:#000000;}
-#tpAmt:focus,#rangePill input:focus,#rangePill select:focus{border-color:#FFFFFF;}
-.tpLbl{color:#FFFFFF;}
-.tcRow{background:#000000;border-color:#FFFFFF;color:#FFFFFF;}
-#bootOverlay{background:#000000;}
-#bootOverlay>div:first-child{color:#FFFFFF!important;}
-#bootLogBox{background:#000000;border-color:#FFFFFF;}
-td{color:#000000;border-right:1px solid #000000;border-bottom:1px solid #000000;}
-.row-green td{background:#00FF00;color:#000000;}
-.row-red td{background:#FF0000;color:#000000;}
-.pyP{background:#000000;color:#FFFFFF;}
-td span[data-hold-t]{opacity:1;}
-tr.highlight-gem[style*="box-shadow"] td:first-child{box-shadow:inset 4px 0 0 #FFFFFF;}
-tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:#FFFFFF;color:#000000;}
-td:first-child{line-height:1.2;}
-td:first-child .pyP{display:inline-block;vertical-align:middle;margin-left:6px;padding:1px 6px;line-height:12px;min-width:34px;text-align:center;}
-td:first-child span[data-hold-t]{display:block;margin-top:2px;line-height:10px;font-size:8px;letter-spacing:0;font-variant-numeric:tabular-nums;}
-table{border-spacing:0 3px;}
-table tr.row-green>td,table tr.row-red>td{border:0;border-top:1.5px solid;border-bottom:1.5px solid;}
-table tr.row-green>td{background:rgba(0,255,0,.14);color:#00FF00;border-color:#00FF00;}
-table tr.row-red>td{background:rgba(255,0,0,.14);color:#FF0000;border-color:#FF0000;}
-table tr.row-green>td:first-child,table tr.row-red>td:first-child{border-left:1.5px solid;border-radius:6px 0 0 6px;}
-table tr.row-green>td:last-child,table tr.row-red>td:last-child{border-right:1.5px solid;border-radius:0 6px 6px 0;}
-table tr.row-green.highlight-gem[style*="box-shadow"]>td{background:rgba(0,255,0,.3);}
-table tr.row-red.highlight-gem[style*="box-shadow"]>td{background:rgba(255,0,0,.3);}
 :root{color-scheme:dark;--pf-bg:#0B0E11;--pf-bg2:#0D1117;--pf-ctl:#141A22;--pf-line:#232A33;--pf-line2:#2F3845;--pf-text:#EAECEF;--pf-soft:#C5CBD6;--pf-mute:#848E9C;--pf-up:#0ECB81;--pf-dn:#F6465D;--pf-gold:#FCD535;--pf-up-rgb:14,203,129;--pf-dn-rgb:246,70,93;}
-html,body,#main-container{background:#06080B;color:var(--pf-text);}
-html,body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:#06080B;color:var(--pf-text);font-family:'JetBrains Mono',monospace;font-feature-settings:"zero" 1;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
+#main-container{height:100%;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) clamp(175px,30vh,290px);gap:10px;padding:10px;overflow:hidden;position:relative;background:#06080B;}
+body.tc-solo #main-container{grid-template-rows:1fr 0px;gap:0;}
+body.tc-solo #wall-finder-pane{display:none!important;}
+#tcBar,.ctrl-row,.table-hdr{display:none;}
 #canvas-viewport,#wall-finder-pane{background:var(--pf-bg);border:1px solid var(--pf-line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.03);}
-#tcWrap{background:var(--pf-bg);border-radius:8px;}
-#scanChartTimer{right:28px;top:26px;width:auto;height:auto;padding:6px 12px;font-size:12px!important;font-weight:700;letter-spacing:.14em;line-height:1;color:var(--pf-soft);opacity:.95;background:rgba(11,14,17,.82);border:1px solid var(--pf-line2);border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.4);}
-#wall-finder-pane .table-col{background:var(--pf-bg2);border:1px solid var(--pf-line);border-radius:8px;}
-#wall-finder-pane table td{font-weight:600;letter-spacing:.03em;}
-#wall-finder-pane table tr.row-green>td,#wall-finder-pane table tr.row-red>td{border-style:solid;border-width:1px 0;color:var(--pf-soft);transition:background .15s,border-color .15s;}
-#wall-finder-pane table tr.row-green>td{background:rgba(var(--pf-up-rgb),.07);border-color:rgba(var(--pf-up-rgb),.38);}
-#wall-finder-pane table tr.row-red>td{background:rgba(var(--pf-dn-rgb),.07);border-color:rgba(var(--pf-dn-rgb),.38);}
-#wall-finder-pane table tr.row-green>td:first-child,#wall-finder-pane table tr.row-red>td:first-child{border-left-width:1px;border-radius:6px 0 0 6px;color:var(--pf-text);font-weight:700;}
-#wall-finder-pane table tr.row-green>td:last-child,#wall-finder-pane table tr.row-red>td:last-child{border-right-width:1px;border-radius:0 6px 6px 0;font-weight:800;}
-#wall-finder-pane table tr.row-green>td:first-child{box-shadow:inset 3px 0 0 var(--pf-up);}
-#wall-finder-pane table tr.row-red>td:first-child{box-shadow:inset 3px 0 0 var(--pf-dn);}
-#wall-finder-pane table tr.row-green>td:last-child{color:var(--pf-up);}
-#wall-finder-pane table tr.row-red>td:last-child{color:var(--pf-dn);}
-#wall-finder-pane table tr.highlight-gem>td:nth-child(4){color:var(--pf-text);font-weight:700;}
-#wall-finder-pane table td:first-child .pyP{background:rgba(255,255,255,.06);color:var(--pf-soft);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);font-weight:700;}
-#wall-finder-pane table td:first-child span[data-hold-t]{color:var(--pf-mute);font-weight:500;font-size:9px!important;line-height:11px!important;opacity:1;}
-#wall-finder-pane table td[colspan]{color:var(--pf-mute)!important;letter-spacing:.18em;}
-#wall-finder-pane table tr.row-green.highlight-gem:hover>td{background:rgba(var(--pf-up-rgb),.12);border-color:rgba(var(--pf-up-rgb),.6);}
-#wall-finder-pane table tr.row-red.highlight-gem:hover>td{background:rgba(var(--pf-dn-rgb),.12);border-color:rgba(var(--pf-dn-rgb),.6);}
-#wall-finder-pane table tr.highlight-gem[style*="box-shadow"]{filter:none!important;}
-#wall-finder-pane table tr.row-green.highlight-gem[style*="box-shadow"]>td{background:rgba(var(--pf-up-rgb),.16);border-color:rgba(var(--pf-up-rgb),.9);}
-#wall-finder-pane table tr.row-red.highlight-gem[style*="box-shadow"]>td{background:rgba(var(--pf-dn-rgb),.16);border-color:rgba(var(--pf-dn-rgb),.9);}
-#wall-finder-pane table tr.highlight-gem[style*="box-shadow"]>td:first-child{box-shadow:inset 3px 0 0 var(--pf-gold);}
-tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:var(--pf-gold);color:#0B0E11;font-weight:800;letter-spacing:.06em;}
-#wall-finder-pane #rangePill{background:var(--pf-bg2);border:1px solid var(--pf-line);border-radius:10px;gap:8px;}
-#wall-finder-pane #rangePill input,#wall-finder-pane #rangePill select,#wall-finder-pane #rangePill #tpBal,#wall-finder-pane #rangePill #tpAuto{background:var(--pf-ctl);border:1px solid var(--pf-line2);border-radius:7px;color:var(--pf-text);font-weight:700;letter-spacing:.04em;transition:border-color .15s,background .15s,color .15s;}
-#wall-finder-pane #rangePill #tpBal{color:var(--pf-gold);}
-#wall-finder-pane #rangePill #tpAuto{color:var(--pf-mute);}
-#wall-finder-pane #rangePill input:hover,#wall-finder-pane #rangePill select:hover,#wall-finder-pane #rangePill #tpBal:hover,#wall-finder-pane #rangePill #tpAuto:hover{border-color:#4B5666;}
-#wall-finder-pane #rangePill input:focus,#wall-finder-pane #rangePill select:focus{border-color:var(--pf-gold);box-shadow:0 0 0 2px rgba(252,213,53,.16);}
-#wall-finder-pane #rangePill #tpAuto.on{background:var(--pf-gold);border-color:var(--pf-gold);color:#0B0E11;}
-#wall-finder-pane #rangePill #tpBuy{background:var(--pf-up);color:#04120B;border-radius:7px;letter-spacing:.1em;}
-#wall-finder-pane #rangePill #tpSell{background:var(--pf-dn);color:#1C050A;border-radius:7px;letter-spacing:.1em;}
-#wall-finder-pane #rangePill #tpBuy:hover,#wall-finder-pane #rangePill #tpSell:hover{filter:brightness(1.1);}
-#wall-finder-pane #rangePill select option{background:var(--pf-ctl);color:var(--pf-text);}
-.tcRow{background:rgba(18,22,28,.94);border:1px solid var(--pf-line2);border-radius:8px;color:var(--pf-text);font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.4);}
+#canvas-viewport{grid-column:1;grid-row:1;position:relative;overflow:hidden;touch-action:none;}
+#tcWrap{position:absolute;inset:6px;z-index:6;background:var(--pf-bg);border-radius:8px;touch-action:none;overflow:hidden;}
+#tcCanvas{display:block;position:absolute;top:0;left:0;touch-action:none;}
+#scanChartTimer{position:fixed;right:28px;top:26px;z-index:20;display:flex;align-items:center;justify-content:center;padding:6px 12px;font-family:'JetBrains Mono',monospace;font-size:12px!important;font-weight:700;line-height:1;letter-spacing:.14em;color:var(--pf-soft);opacity:.95;background:rgba(11,14,17,.82);border:1px solid var(--pf-line2);border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.4);pointer-events:none;}
+#tradeCard{position:absolute;left:14px;top:12px;z-index:8;display:flex;flex-direction:column;gap:4px;pointer-events:none;font:700 10px 'JetBrains Mono',monospace;}
+.tcRow{display:flex;align-items:center;gap:10px;padding:4px 12px;border-radius:8px;background:rgba(18,22,28,.94);border:1px solid var(--pf-line2);color:var(--pf-text);font-weight:600;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.4);}
 .tcRow b[style*="00FF00" i]{color:var(--pf-up)!important;}
 .tcRow b[style*="FF0000" i]{color:var(--pf-dn)!important;}
 .tcRow b[style*="FFFFFF" i]{color:var(--pf-mute)!important;}
-#bootOverlay{background:radial-gradient(900px 500px at 50% 38%,#121923 0%,#0B0E11 72%);}
-#bootOverlay>div:first-child{color:var(--pf-text)!important;font-weight:600!important;letter-spacing:.2em!important;}
-#bootLogBox{background:var(--pf-bg2);border:1px solid var(--pf-line2);border-radius:10px;color:var(--pf-soft);}
-#wall-finder-pane #rangePill #btToggle{width:auto;min-width:72px;height:26px;padding:0 12px;background:var(--pf-ctl);border:1px solid var(--pf-line2);border-radius:7px;color:var(--pf-text);font:700 10px 'JetBrains Mono',monospace;letter-spacing:.04em;cursor:pointer;white-space:nowrap;}
-#wall-finder-pane #rangePill #btToggle:hover{border-color:#4B5666;}
-#wall-finder-pane #rangePill #btDate{width:118px;color-scheme:dark;}
-#wall-finder-pane #rangePill #pairBtn{width:auto;min-width:72px;height:26px;padding:0 12px;background:var(--pf-ctl);border:1px solid var(--pf-line2);border-radius:7px;color:var(--pf-text);font:700 10px 'JetBrains Mono',monospace;letter-spacing:.04em;cursor:pointer;white-space:nowrap;}
-#wall-finder-pane #rangePill #pairBtn:hover{border-color:#4B5666;}
-#wall-finder-pane #rangePill #modeBtn{width:auto;min-width:72px;height:26px;padding:0 12px;background:var(--pf-ctl);border:1px solid var(--pf-line2);border-radius:7px;color:var(--pf-gold);font:700 10px 'JetBrains Mono',monospace;letter-spacing:.08em;cursor:pointer;white-space:nowrap;}
-#wall-finder-pane #rangePill #modeBtn:hover{border-color:#4B5666;}
-#pairPanel{display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,94vw);max-height:84vh;overflow-y:auto;z-index:600;background:#0B0E11;border:1px solid #2F3845;border-radius:12px;padding:12px;color:#EAECEF;font:700 10px 'JetBrains Mono',monospace;box-shadow:0 10px 30px rgba(0,0,0,.6);}
-#pairPanel input{accent-color:#FCD535;width:14px;height:14px;}
-#pairPanel button{height:26px;padding:0 14px;background:#141A22;border:1px solid #2F3845;border-radius:7px;color:#EAECEF;font:700 10px 'JetBrains Mono',monospace;cursor:pointer;}
-#pairPanel button#pairOk{background:#FCD535;border-color:#FCD535;color:#0B0E11;}
-#tradePill{flex:1 1 0!important;width:100%!important;min-width:0!important;flex-wrap:nowrap!important;justify-content:stretch!important;gap:6px!important;}
-#tradePill::after{display:none!important;}
-#tradePill>*{box-sizing:border-box!important;flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important;height:26px!important;padding:0 2px!important;margin:0!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:clip!important;text-align:center!important;text-align-last:center!important;order:20;}
-#tradePill #scanMin{order:30!important;}
-#tradePill #scanMax{order:31!important;}
-#tradePill #scanMin{order:1;}
-#tradePill #scanMax{order:2;}
+#wall-finder-pane{grid-column:1;grid-row:2;padding:8px;display:flex;flex-direction:column;overflow:hidden;z-index:10;}
+.tables-split{display:flex;flex:1;min-height:0;overflow:hidden;gap:10px;}
+.table-col{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;background:var(--pf-bg2);border:1px solid var(--pf-line);border-radius:8px;}
+.table-wrapper{flex:1;overflow-y:auto;scrollbar-width:none;}
+.table-wrapper::-webkit-scrollbar{display:none;}
+table{width:100%;border-collapse:separate;border-spacing:0 3px;table-layout:fixed;font-size:11px;font-variant-numeric:tabular-nums;}
+td{height:34px;padding:2px 6px;font-size:11px;font-weight:600;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:clip;vertical-align:middle;color:#000;}
+td:first-child{padding-left:14px!important;line-height:1.2;}
+td[colspan]{color:var(--pf-mute)!important;letter-spacing:.18em;}
+tr.highlight-gem{cursor:pointer;}
+tr.row-green>td,tr.row-red>td{border-style:solid;border-width:1px 0;color:var(--pf-soft);transition:background .15s,border-color .15s;}
+tr.row-green>td{background:rgba(var(--pf-up-rgb),.07);border-color:rgba(var(--pf-up-rgb),.38);}
+tr.row-red>td{background:rgba(var(--pf-dn-rgb),.07);border-color:rgba(var(--pf-dn-rgb),.38);}
+tr.row-green>td:first-child,tr.row-red>td:first-child{border-left-width:1px;border-radius:6px 0 0 6px;color:var(--pf-text);font-weight:700;}
+tr.row-green>td:last-child,tr.row-red>td:last-child{border-right-width:1px;border-radius:0 6px 6px 0;font-weight:800;}
+tr.row-green>td:first-child{box-shadow:inset 3px 0 0 var(--pf-up);}
+tr.row-red>td:first-child{box-shadow:inset 3px 0 0 var(--pf-dn);}
+tr.row-green>td:last-child{color:var(--pf-up);}
+tr.row-red>td:last-child{color:var(--pf-dn);}
+tr.highlight-gem>td:nth-child(4){color:var(--pf-text);font-weight:700;}
+tr.row-green.highlight-gem:hover>td{background:rgba(var(--pf-up-rgb),.12);border-color:rgba(var(--pf-up-rgb),.6);}
+tr.row-red.highlight-gem:hover>td{background:rgba(var(--pf-dn-rgb),.12);border-color:rgba(var(--pf-dn-rgb),.6);}
+tr.highlight-gem[style*="box-shadow"]{box-shadow:none!important;filter:none!important;}
+tr.row-green.highlight-gem[style*="box-shadow"]>td{background:rgba(var(--pf-up-rgb),.16);border-color:rgba(var(--pf-up-rgb),.9);}
+tr.row-red.highlight-gem[style*="box-shadow"]>td{background:rgba(var(--pf-dn-rgb),.16);border-color:rgba(var(--pf-dn-rgb),.9);}
+tr.highlight-gem[style*="box-shadow"]>td:first-child{box-shadow:inset 3px 0 0 var(--pf-gold);}
+tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4){position:relative;color:transparent!important;}
+tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--pf-gold);color:#0B0E11;font-size:10px;font-weight:800;letter-spacing:.06em;}
+tr.highlight-gem[data-wpe="WARN"][data-wph="1"]>td:nth-child(4)::after{content:"HIT SOON";}
+tr.highlight-gem[data-wpe="HIT"][data-wph="1"]>td:nth-child(4)::after{content:"HIT";}
+tr.highlight-gem[data-wpe="MISS"][data-wph="1"]>td:nth-child(4)::after{content:"MISSED";}
+td:first-child .pyP{display:inline-block;vertical-align:middle;min-width:34px;margin-left:6px;padding:1px 6px;border-radius:999px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);color:var(--pf-soft);font-size:9px;font-weight:700;letter-spacing:.02em;line-height:12px;text-align:center;}
+td:first-child span[data-hold-t]{display:block;margin-top:2px;color:var(--pf-mute);font-size:9px!important;font-weight:500;line-height:11px!important;letter-spacing:0;font-variant-numeric:tabular-nums;opacity:1;}
+#rangePill{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin-top:6px;padding:4px 6px;background:var(--pf-bg2);border:1px solid var(--pf-line);border-radius:10px;font:700 10px 'JetBrains Mono',monospace;white-space:nowrap;}
+#tradePill{display:flex;flex:1 1 0;flex-wrap:nowrap;align-items:center;justify-content:stretch;gap:6px;width:100%;min-width:0;font:700 10px 'JetBrains Mono',monospace;white-space:nowrap;}
+#tradePill>*{order:20;flex:1 1 0;min-width:0;height:26px;padding:0 2px;overflow:hidden;white-space:nowrap;text-overflow:clip;text-align:center;text-align-last:center;}
 #tradePill #ssSize{order:3;}
-#tradePill #tpAmt{order:4;}
-#tradePill #tpBuy{order:5;}
-#tradePill #tpSell{order:6;}
-#tradePill #tpAuto{order:7;}
-#tradePill #tpBal{order:8;}
-#tradePill #scanIntv{order:9;}
-#tradePill #btToggle{order:10;}
-#tradePill #modeBtn{order:11;}
-#tradePill #btDate{order:12;}
-#tradePill #scanMin{order:1;}
-#tradePill #scanMax{order:2;}
-#tradePill #ssSize{order:3;width:72px;}
 #tradePill #scanIntv{order:4;}
 #tradePill #tpAmt{order:5;}
 #tradePill #tpBuy{order:6;}
 #tradePill #tpSell{order:7;}
 #tradePill #tpAuto{order:8;}
 #tradePill #tpBal{order:9;}
-#wall-finder-pane #rangePill #tradePill #btToggle,#wall-finder-pane #rangePill #tradePill #modeBtn{width:72px;min-width:72px;padding:0;}
 #tradePill #btToggle{order:10;}
 #tradePill #modeBtn{order:11;}
-#tradePill #btDate{order:12;}
-#tradePill::after{content:"";order:13;flex:0 0 150px;height:26px;visibility:hidden;}
-#tradePill:has(#btDate:not([style*="none"]))::after{flex-basis:26px;}
-@media(max-width:1100px){#tradePill::after{display:none;}}
+#tradePill #btDate{order:12;color-scheme:dark;}
+#tradePill #scanMin{order:30;}
+#tradePill #scanMax{order:31;}
+#tradePill input,#tradePill select,#tradePill button{background:var(--pf-ctl);border:1px solid var(--pf-line2);border-radius:7px;color:var(--pf-text);font:700 10px 'JetBrains Mono',monospace;letter-spacing:.04em;outline:none;transition:border-color .15s,background .15s,color .15s;}
+#tradePill input{-webkit-user-select:text;user-select:text;-moz-appearance:textfield;}
+#tradePill input::-webkit-outer-spin-button,#tradePill input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+#tradePill select{cursor:pointer;-webkit-appearance:none;appearance:none;}
+#tradePill select option{background:var(--pf-ctl);color:var(--pf-text);}
+#tradePill button{cursor:pointer;}
+#tradePill #tpBal{color:var(--pf-gold);}
+#tradePill #tpAuto{color:var(--pf-mute);}
+#tradePill #modeBtn{color:var(--pf-gold);letter-spacing:.08em;}
+#tradePill input:hover,#tradePill select:hover,#tradePill #tpBal:hover,#tradePill #tpAuto:hover,#tradePill #btToggle:hover,#tradePill #modeBtn:hover{border-color:#4B5666;}
+#tradePill input:focus,#tradePill select:focus{border-color:var(--pf-gold);box-shadow:0 0 0 2px rgba(252,213,53,.16);}
+#tradePill #tpAuto.on{background:var(--pf-gold);border-color:var(--pf-gold);color:#0B0E11;}
+#tradePill #tpBuy,#tradePill #tpSell{border:none;font-weight:800;letter-spacing:.1em;}
+#tradePill #tpBuy{background:var(--pf-up);color:#04120B;}
+#tradePill #tpSell{background:var(--pf-dn);color:#1C050A;}
+#tradePill #tpBuy:hover,#tradePill #tpSell:hover{filter:brightness(1.1);}
+#tradePill #tpBuy:active,#tradePill #tpSell:active{transform:scale(.96);}
+#bootOverlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;background:radial-gradient(900px 500px at 50% 38%,#121923 0%,#0B0E11 72%);}
+#bootOverlay>div:first-child{font-size:12px;font-weight:600;letter-spacing:.2em;color:var(--pf-text);}
+#bootLogBox{width:min(540px,94vw);height:150px;padding:10px;overflow-y:auto;background:var(--pf-bg2);border:1px solid var(--pf-line2);border-radius:10px;color:var(--pf-soft);font-size:10px;line-height:1.5;}
+@media(max-width:600px){
+  #main-container{padding:6px;gap:6px;}
+  #tcWrap{inset:4px;}
+  .tables-split{gap:6px;}
+  #wall-finder-pane{padding:6px;}
+  td:first-child{padding-left:8px!important;}
+}
 </style>
 </head>
 <body>
@@ -269,31 +118,22 @@ tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:var(-
       </div>
     </div>
     <div id="scanChartTimer">60</div>
-        <div id="tradeCard"></div>
-                <!-- range bar moved below the signal tables -->
-            <div id="sigStrip"></div>
-            <div id="tradePill">
-          <input type="number" id="tpAmt" value="0.50" min="0.35" step="0.01">
-          <button type="button" id="tpBuy">BUY</button>
-          <button type="button" id="tpSell">SELL</button>
-          <button type="button" id="tpAuto">AUTO</button><input type="number" id="scanMin" value="300" min="1" max="3600" title="Cycle min" onchange="applyCycleRange()"><input type="number" id="scanMax" value="300" min="1" max="3600" title="Cycle max" onchange="applyCycleRange()"><input type="number" id="scanIntv" value="60" min="5" max="3600" title="Scan interval (seconds)" onchange="setScanInterval(this.value)"><button type="button" id="tpBal">D 0.00</button><button type="button" id="btToggle" title="Toggle live / backtest">LIVE</button><button type="button" id="modeBtn" title="Pair group: CRY / DRV / MTL / FRX / ALL" onclick="_gmNext()">CRY</button><input type="date" id="btDate" style="display:none;width:118px;" title="Backtest date (session 05:30-05:30 IST)">
-        </div>
+    <div id="tradeCard"></div>
   </div>
   <div id="wall-finder-pane">
     <div class="ctrl-row">
-      <span style="font-size:10px;font-weight:800;color:var(--pair-color);padding:0 4px;">XAU/USD · 05:30-05:30 IST</span>
-      <input type="number" id="minPctInput" class="ctrl-input" value="10" min="0" max="100" title="Min %" style="width:52px;" onchange="renderFilteredTable()">
-      <select id="levelFilterSelect" class="ctrl-input" onchange="renderFilteredTable()" style="width:78px;">
+      <span>XAU/USD · 05:30-05:30 IST</span>
+      <input type="number" id="minPctInput" value="10" min="0" max="100" title="Min %" onchange="renderFilteredTable()">
+      <select id="levelFilterSelect" onchange="renderFilteredTable()">
         <option value="0" selected>ALL LVL</option>
         <option value="1">X1-X2</option><option value="2">X2-X3</option><option value="3">X3-X4</option>
         <option value="4">X4-X5</option><option value="5">X5-X6</option><option value="6">X6-X7</option>
         <option value="7">X7-X8</option><option value="8">X8-X9</option><option value="9">X9-X10</option>
       </select>
-      <!-- cycle range and scan interval inputs live in #rangePill -->
-      <button type="button" id="r0OnlyBtn" class="ctrl-btn" onclick="toggleR0Only()">R0</button>
-      <button type="button" class="ctrl-btn" onclick="window._wsLvlToggle()">SORT ▲▼</button>
-            <span id="syncStatusText" style="margin-left:auto;font-size:10px;font-weight:800;color:#2ED573;">BOOTING...</span>
-      <span id="scanTimerDisplay" class="ctrl-input" style="min-width:42px;line-height:20px;">60s</span>
+      <button type="button" id="r0OnlyBtn" onclick="toggleR0Only()">R0</button>
+      <button type="button" onclick="window._wsLvlToggle()">SORT ▲▼</button>
+      <span id="syncStatusText">BOOTING...</span>
+      <span id="scanTimerDisplay">60s</span>
     </div>
     <div class="tables-split">
       <div class="table-col">
@@ -303,14 +143,28 @@ tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:var(-
       <div class="table-col">
         <div class="table-hdr" onclick="window._wsLvlToggle()">MOMENTUM</div>
         <div class="table-wrapper"><table><tbody id="peaksTableBodyMom"></tbody></table></div>
-              </div>
-            </div>
-            <div id="rangePill"></div>
-                <script>document.getElementById("rangePill").appendChild(document.getElementById("tradePill"));</script>
-          </div>
-        </div>
-        <div id="bootOverlay">
-  <div style="font-size:12px;font-weight:800;letter-spacing:.2em;color:#FFD700;">⬡ MULTIPAIR STANDALONE LOCAL ENGINE (05:30-05:30 IST | C300 | 60s)</div>
+      </div>
+    </div>
+    <div id="rangePill">
+      <div id="tradePill">
+        <input type="number" id="tpAmt" value="0.50" min="0.35" step="0.01">
+        <button type="button" id="tpBuy">BUY</button>
+        <button type="button" id="tpSell">SELL</button>
+        <button type="button" id="tpAuto">AUTO</button>
+        <input type="number" id="scanMin" value="300" min="1" max="3600" title="Cycle min" onchange="applyCycleRange()">
+        <input type="number" id="scanMax" value="300" min="1" max="3600" title="Cycle max" onchange="applyCycleRange()">
+        <select id="ssSize"></select>
+        <input type="number" id="scanIntv" value="60" min="5" max="3600" title="Scan interval (seconds)" onchange="setScanInterval(this.value)">
+        <button type="button" id="tpBal">D 0.00</button>
+        <button type="button" id="btToggle" title="Toggle live / backtest">LIVE</button>
+        <button type="button" id="modeBtn" title="Pair group: CRY / DRV / MTL / FRX / ALL" onclick="_gmNext()">CRY</button>
+        <input type="date" id="btDate" style="display:none" title="Backtest date (session 05:30-05:30 IST)">
+      </div>
+    </div>
+  </div>
+</div>
+<div id="bootOverlay">
+  <div>⬡ MULTIPAIR STANDALONE LOCAL ENGINE (05:30-05:30 IST | C300 | 60s)</div>
   <div id="bootLogBox"><div id="bootLogLines"></div></div>
 </div>
 
@@ -320,60 +174,9 @@ function applyCumulative(hist, maxS) {
   for (let i = maxS; i >= 1; i--) { const v = hist[i]; if (v) cum += v; if (cum > 0) res[i] = cum; }
   return res;
 }
-function computeGapMapFromEvents(events) {
-  const curRun = [], runPeaks = [];
-  for (let i = 0; i < events.length; i++) {
-    const L = events[i];
-    for (let s = 1; s < L; s++) curRun[s] = (curRun[s] || 0) + 1;
-    if (curRun[L] > 0) { if (!runPeaks[L]) runPeaks[L] = []; runPeaks[L].push(curRun[L]); }
-    curRun[L] = 0;
-  }
-  const modeRun = [], modeCount = [], freqMap = [], maxLen = Math.max(curRun.length, runPeaks.length);
-  for (let s = 1; s < maxLen; s++) {
-    const freq = {};
-    if (runPeaks[s]) for (const v of runPeaks[s]) if (v >= 1) freq[v] = (freq[v] || 0) + 1;
-    const liveLen = curRun[s] || 0;
-    if (liveLen >= 1) freq[liveLen] = (freq[liveLen] || 0) + 1;
-    const lens = Object.keys(freq);
-    if (!lens.length) continue;
-    let bestLen = 0, bestCount = 0;
-    for (const lenStr of lens) {
-      const len = lenStr | 0, cnt = freq[lenStr];
-      if (cnt > bestCount || (cnt === bestCount && len > bestLen)) { bestCount = cnt; bestLen = len; }
-    }
-    modeRun[s] = bestLen; modeCount[s] = bestCount; freqMap[s] = freq;
-  }
-  return { modeRun, curRun, modeCount, freqMap };
-}
-function computeMomGapFromEvents(events) {
-  var curRun = [], runPeaks = [];
-  for (var i = 0; i < events.length; i++) {
-    var L = events[i];
-    for (var s = 1; s < L; s++) {
-      if (curRun[s] > 0) { if (!runPeaks[s]) runPeaks[s] = []; runPeaks[s].push(curRun[s]); curRun[s] = 0; }
-    }
-    curRun[L] = (curRun[L] || 0) + 1;
-  }
-  var modeRun = [], modeCount = [], freqMap = [], maxLen = Math.max(curRun.length, runPeaks.length);
-  for (var s2 = 1; s2 < maxLen; s2++) {
-    var freq = {};
-    if (runPeaks[s2]) for (var q = 0; q < runPeaks[s2].length; q++) { var pv = runPeaks[s2][q]; if (pv >= 1) freq[pv] = (freq[pv] || 0) + 1; }
-    var liveLen = curRun[s2] || 0;
-    if (liveLen >= 1) freq[liveLen] = (freq[liveLen] || 0) + 1;
-    var lens = Object.keys(freq);
-    if (!lens.length) continue;
-    var bestLen = 0, bestCount = 0;
-    for (var z = 0; z < lens.length; z++) {
-      var ln = lens[z] | 0, cnt = freq[lens[z]];
-      if (cnt > bestCount || (cnt === bestCount && ln > bestLen)) { bestCount = cnt; bestLen = ln; }
-    }
-    modeRun[s2] = bestLen; modeCount[s2] = bestCount; freqMap[s2] = freq;
-  }
-  return { modeRun, curRun, modeCount, freqMap };
-}
 function primeEngine(prices, n, minC, maxC, baseTs, preArr) {
-  var kings = [], fb = [], preLen = preArr ? preArr.length : 0;
-  if (!(n > 0)) return { kings, fb };
+  var kings = [], preLen = preArr ? preArr.length : 0;
+  if (!(n > 0)) return { kings };
   var step = 30, curC = 0, rowColor, rowStreak, rowCol, maxLen, hist, cur, leaders;
   var tmp = new Int32Array(Math.ceil(n / Math.max(1, minC)) + 8);
   var qR = [], qK = [], qS = [], qC1 = [], qC2 = [], mBuf = new Int32Array(512), oBuf = new Int32Array(512), mo = { c1: 0, c2: 0, pct: 0 };
@@ -458,9 +261,10 @@ function primeEngine(prices, n, minC, maxC, baseTs, preArr) {
   }
   for (var c = minC; c <= maxC; c++) {
     self.postMessage({ prog: 50 + Math.round((c - minC) / (maxC - minC + 1) * 50) });
-        curC = c; rowColor = new Int8Array(c); rowStreak = new Int16Array(c); rowCol = new Int32Array(c).fill(-2);
+    curC = c; rowColor = new Int8Array(c); rowStreak = new Int16Array(c); rowCol = new Int32Array(c).fill(-2);
     maxLen = [new Int16Array(c), new Int16Array(c)]; hist = [new Array(c).fill(null), new Array(c).fill(null)];
-    cur = [{}, {}]; leaders = [{}, {}]; var nextEval = baseTs;
+    cur = [{}, {}]; leaders = [{}, {}];
+    var nextEval = baseTs;
     for (var i = 0; i < n; i++) {
       var total = baseTs + i, p = prices[i], prevP = -1;
       if (i >= c) prevP = prices[i - c];
@@ -477,26 +281,26 @@ function primeEngine(prices, n, minC, maxC, baseTs, preArr) {
     }
     for (var r = 0; r < c; r++) if (rowStreak[r] >= 1 && rowColor[r] !== 0) rec(r, rowColor[r], rowStreak[r]);
     evalAt(baseTs + n - 1, true); updateAll(false);
-    var nq = snap(false);
     for (var t = 0; t < 2; t++) {
-      var surv = pick(nq, t === 1);
-      for (var i2 = 0; i2 < surv.length; i2++) { var j = surv[i2]; fb.push([t, c, qR[j], qK[j], qS[j], 0, qC1[j], qC2[j], pctOf(j, t === 1)]); }
-      for (var s in leaders[t]) { var L = leaders[t][s]; for (var lk in L) { var rc = L[lk]; kings.push([t, c, rc.r, rc.k, +s, rc.ts, rc.c1, rc.c2, rc.pct]); } }
+      for (var s in leaders[t]) {
+        var L = leaders[t][s];
+        for (var lk in L) { var rc = L[lk]; kings.push([t, c, rc.r, rc.k, +s, rc.ts, rc.c1, rc.c2, rc.pct]); }
+      }
     }
   }
-  return { kings, fb };
+  return { kings };
 }
-self.onmessage = function(e) {
+self.onmessage = function (e) {
   const { pair, prices, minC, maxC, startIdx, endIdx, startTsUtc, pre, gid } = e.data;
   const baseTs = startTsUtc || 0, preArr = pre || null, preLen = preArr ? preArr.length : 0, len = prices.length;
-  if (!len) { postMessage({ pair, bestRevs: [], bestMoms: [], deadSigs: [] }); return; }
+  if (!len) { postMessage({ pair, bestRevs: [], bestMoms: [] }); return; }
   const sStart = startIdx !== undefined ? startIdx : 0, sEnd = endIdx !== undefined ? Math.min(endIdx, len) : len;
   const rowColor = new Int8Array(maxC), rowStreak = new Int16Array(maxC), rowCol = new Int32Array(maxC), shGMax = new Int16Array(maxC), shRMax = new Int16Array(maxC);
   const revs = [], moms = [];
   for (let c = minC; c <= maxC; c++) {
     self.postMessage({ prog: Math.round((c - minC) / (maxC - minC + 1) * 50) });
-        rowColor.fill(0, 0, c); rowStreak.fill(0, 0, c); rowCol.fill(-2, 0, c); shGMax.fill(0, 0, c); shRMax.fill(0, 0, c);
-    const shG = new Array(c).fill(null), shR = new Array(c).fill(null), termLenG = new Array(c).fill(null), termLenR = new Array(c).fill(null);
+    rowColor.fill(0, 0, c); rowStreak.fill(0, 0, c); rowCol.fill(-2, 0, c); shGMax.fill(0, 0, c); shRMax.fill(0, 0, c);
+    const shG = new Array(c).fill(null), shR = new Array(c).fill(null);
     for (let i = sStart; i < sEnd; i++) {
       const p = prices[i]; let prevP = -1.0;
       if (i >= sStart + c) prevP = prices[i - c];
@@ -510,67 +314,56 @@ self.onmessage = function(e) {
       else { newColor = rowColor[row]; newStreak = 0; }
       if (newStreak === 1 && rowStreak[row] > 0 && rowColor[row] !== 0 && rowCol[row] === col - 1) {
         const s = rowStreak[row];
-        if (rowColor[row] === 1) { (shG[row] || (shG[row] = {}))[s] = (shG[row][s] || 0) + 1; if (s > shGMax[row]) shGMax[row] = s; (termLenG[row] || (termLenG[row] = [])).push(s); }
-        else { (shR[row] || (shR[row] = {}))[s] = (shR[row][s] || 0) + 1; if (s > shRMax[row]) shRMax[row] = s; (termLenR[row] || (termLenR[row] = [])).push(s); }
+        if (rowColor[row] === 1) { (shG[row] || (shG[row] = {}))[s] = (shG[row][s] || 0) + 1; if (s > shGMax[row]) shGMax[row] = s; }
+        else { (shR[row] || (shR[row] = {}))[s] = (shR[row][s] || 0) + 1; if (s > shRMax[row]) shRMax[row] = s; }
       }
       rowColor[row] = newColor; rowStreak[row] = newStreak; rowCol[row] = col;
     }
     for (let row = 0; row < c; row++) {
       const liveLen = rowStreak[row];
       if (liveLen < 1 || rowColor[row] === 0) continue;
-      if (rowColor[row] === 1) { (shG[row] || (shG[row] = {}))[liveLen] = (shG[row][liveLen] || 0) + 1; if (liveLen > shGMax[row]) shGMax[row] = liveLen; (termLenG[row] || (termLenG[row] = [])).push(liveLen); }
-      else { (shR[row] || (shR[row] = {}))[liveLen] = (shR[row][liveLen] || 0) + 1; if (liveLen > shRMax[row]) shRMax[row] = liveLen; (termLenR[row] || (termLenR[row] = [])).push(liveLen); }
+      if (rowColor[row] === 1) { (shG[row] || (shG[row] = {}))[liveLen] = (shG[row][liveLen] || 0) + 1; if (liveLen > shGMax[row]) shGMax[row] = liveLen; }
+      else { (shR[row] || (shR[row] = {}))[liveLen] = (shR[row][liveLen] || 0) + 1; if (liveLen > shRMax[row]) shRMax[row] = liveLen; }
     }
     for (let r = 0; r < c; r++) {
-      const gapDataG = computeGapMapFromEvents(termLenG[r] || []), gapDataR = computeGapMapFromEvents(termLenR[r] || []);
-      const gapMomG = computeMomGapFromEvents(termLenG[r] || []), gapMomR = computeMomGapFromEvents(termLenR[r] || []);
       for (let ci = 0; ci < 2; ci++) {
         const raw = ci === 0 ? shG[r] : shR[r], maxS = ci === 0 ? shGMax[r] : shRMax[r];
         if (!raw || !maxS) continue;
-        const colColor = ci === 0 ? 'G' : 'R', gapD = ci === 0 ? gapDataG : gapDataR, momD = ci === 0 ? gapMomG : gapMomR;
-        const cum = applyCumulative(raw, maxS);
+        const colColor = ci === 0 ? 'G' : 'R', cum = applyCumulative(raw, maxS);
         for (const sStr in cum) {
           const s = sStr | 0; if (s < 1) continue;
           const c1 = cum[s], c2 = cum[s + 1] || 0, pctRev = c1 > 0 ? 100 - Math.round((c2 / c1) * 100) : 0, pctMom = c1 > 0 ? Math.round((c2 / c1) * 100) : 0;
-          revs.push({ pair, c, r, s1: s, s2: s + 1, c1, c2, pct: pctRev, col: colColor, type: 'REV', gap: gapD.modeRun[s] || 0, curGap: gapD.curRun[s] || 0, gapCount: (gapD.modeCount && gapD.modeCount[s]) || 0, gapFreq: (gapD.freqMap && gapD.freqMap[s]) || {} });
-          if (c1 > 1) moms.push({ pair, c, r, s1: s, s2: s + 1, c1, c2, pct: pctMom, col: colColor, type: 'MOM', gap: momD.modeRun[s] || 0, curGap: momD.curRun[s] || 0, gapCount: (momD.modeCount && momD.modeCount[s]) || 0, gapFreq: (momD.freqMap && momD.freqMap[s]) || {} });
+          revs.push({ pair, c, r, s1: s, s2: s + 1, c1, c2, pct: pctRev, col: colColor, type: 'REV' });
+          if (c1 > 1) moms.push({ pair, c, r, s1: s, s2: s + 1, c1, c2, pct: pctMom, col: colColor, type: 'MOM' });
         }
       }
     }
   }
   const pk = gid !== undefined ? primeEngine(prices, sEnd, minC, maxC, baseTs, preArr) : null;
-  postMessage({ pair, bestRevs: revs, bestMoms: moms, deadSigs: [], gid, pk });
+  postMessage({ pair, bestRevs: revs, bestMoms: moms, gid, pk });
 };
 </script>
 
 <script>
 const DERIV_WS_URL = "wss://api.derivws.com/trading/v1/options/ws/public?app_id=1089";
-var DV_SYM = "frxXAUUSD";
-var ALL_PAIRS = ["1HZ10V", "1HZ15V", "1HZ25V", "1HZ30V", "1HZ50V", "1HZ75V", "1HZ90V", "1HZ100V", "frxAUDCAD", "frxAUDCHF", "frxAUDJPY", "frxAUDNZD", "frxAUDUSD", "cryBTCUSD", "cryETHUSD", "frxEURAUD", "frxEURCAD", "frxEURCHF", "frxEURGBP", "frxEURJPY", "frxEURNZD", "frxEURUSD", "frxGBPAUD", "frxGBPCAD", "frxGBPCHF", "frxGBPJPY", "frxGBPNZD", "frxGBPUSD", "frxNZDJPY", "frxNZDUSD", "frxUSDCAD", "frxUSDCHF", "frxUSDJPY", "frxUSDMXN", "frxXAGUSD", "frxXAUUSD", "frxXPTUSD"], SPECIAL_ALL_PAIRS = ALL_PAIRS;
-var activePair = "frxXAUUSD", activePairs = ["frxXAUUSD", "frxEURUSD", "frxXAGUSD"], _hiddenPairs = new Set(), _pairRes = {}, _scanQ = [];
-try {
-  var _pv = JSON.parse(localStorage.getItem("wsPairs") || "null");
-  if (Array.isArray(_pv)) { _pv = _pv.filter(function (p) { return ALL_PAIRS.indexOf(p) >= 0; }); if (_pv.length) activePairs = _pv; }
-} catch (e) {}
-DV_SYM = activePair = activePairs[0];
-var sessionWindowStartMin = 0, sessionWindowEndMin = 1440, currentStartTsUtc = 0, currentDuration = 86400;
-var CYCLE = 300, SCAN_INT = 60, r0OnlyMode = false, currentMode = "REV", _wsLvlDir = 1;
+var ALL_PAIRS = ["1HZ10V", "1HZ15V", "1HZ25V", "1HZ30V", "1HZ50V", "1HZ75V", "1HZ90V", "1HZ100V", "frxAUDCAD", "frxAUDCHF", "frxAUDJPY", "frxAUDNZD", "frxAUDUSD", "cryBTCUSD", "cryETHUSD", "frxEURAUD", "frxEURCAD", "frxEURCHF", "frxEURGBP", "frxEURJPY", "frxEURNZD", "frxEURUSD", "frxGBPAUD", "frxGBPCAD", "frxGBPCHF", "frxGBPJPY", "frxGBPNZD", "frxGBPUSD", "frxNZDJPY", "frxNZDUSD", "frxUSDCAD", "frxUSDCHF", "frxUSDJPY", "frxUSDMXN", "frxXAGUSD", "frxXAUUSD", "frxXPTUSD"];
+var activePairs = ["frxXAUUSD", "frxEURUSD", "frxXAGUSD"], DV_SYM = activePairs[0], _pairRes = {}, _scanQ = [];
+var currentStartTsUtc = 0, CYCLE = 300, SCAN_INT = 60, r0OnlyMode = false, _wsLvlDir = 1;
 var _ssShift = 0, _ssMin = 0, _ssSel = 0;
 var allPairData = {};
 activePairs.forEach(function (p) { allPairData[p] = { times: new Int32Array(0), prices: new Float64Array(0) }; });
-var timesArray = new Int32Array(0), pricesArray = new Float64Array(0), matrixData = {}, streakInstances = {}, streakHistoryApp3 = {};
-var globalRevs = [], globalMoms = [], scanPending = 0, _scanStartedAt = 0, _scanRerunQueued = false;
-var lastClickedSigId = "", clickCycleIndex = -1, highlightRow = -1, currentInstances = [], currentInstanceIndex = -1, liveEdgeCol = -1;
-var derivWs = null, _scanCountdownSec = 60, _scanCountdownTimer = null, _bootPairState = {};
-window.liveTickBuffer = {};
+var timesArray = new Int32Array(0), pricesArray = new Float64Array(0), matrixData = {}, streakInstances = {};
+var globalRevs = [], globalMoms = [], scanPending = 0, _scanStartedAt = 0;
+var lastClickedSigId = "", clickCycleIndex = -1, currentInstances = [], currentInstanceIndex = -1;
+var _scanCountdownSec = 60, _scanCountdownTimer = null, _bootPairState = {};
+var PAIR_COLOR = "#FFFFFF";
 window._lmx = {};
-window.pairColorHex = "#FFFFFF";
-window.systemThemeHex = "#000000";
-window.accentGreenHex = "#00FF00";
-window.accentRedHex = "#FF0000";
+window._pyMap = {};
 
+function _clearSel() { lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; }
 function getPairDisplayName(p) { var m = /^(frx|cry)([A-Z]{3})([A-Z]{3})$/.exec(String(p)); return m ? m[2] + "/" + m[3] : String(p); }
 function _pxDec(p) { p = String(p); if (/JPY$/.test(p)) return 3; if (/^frx(XAU|XPT)/.test(p)) return 2; if (/^frxXAG/.test(p)) return 4; if (/^frx/.test(p)) return 5; return 2; }
+
 var _gmList = ["CRY", "DRV", "MTL", "FRX", "ALL"], _gmCur = 0;
 function _gmPairs(m) {
   return ALL_PAIRS.filter(function (p) {
@@ -590,41 +383,39 @@ function _gmUi() {
 function _gmVis(p) { return _gmPairs(_gmList[_gmCur]).indexOf(p) >= 0; }
 function _gmNext() {
   _gmCur = (_gmCur + 1) % _gmList.length;
-    _gmUi();
-    var _pf = function (a, b) { return (_gmVis(b) ? 1 : 0) - (_gmVis(a) ? 1 : 0); };
-    _scanQ.sort(_pf);
-    if (window._loadQ) window._loadQ.sort(_pf);
-  lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; highlightRow = -1;
-  var chg = false, ok = false, vis, q, sel;
-    if (!_gmVis(DV_SYM)) {
-      vis = activePairs.filter(function (p) { return _gmVis(p) && allPairData[p] && allPairData[p].times.length; });
-      q = vis.filter(function (p) { return _pairRes[p] && (_pairRes[p].revs.length || _pairRes[p].moms.length); })[0] || vis[0];
-      if (q) {
-        DV_SYM = activePair = q; chg = true;
-        timesArray = allPairData[q].times; pricesArray = allPairData[q].prices;
-        window._liveMaxIndex = (window._lmx && window._lmx[q]) || 0;
-        sel = document.getElementById("pairSel");
-        if (sel && sel.value !== q) sel.value = q;
-      }
+  _gmUi();
+  var byVis = function (a, b) { return (_gmVis(b) ? 1 : 0) - (_gmVis(a) ? 1 : 0); };
+  _scanQ.sort(byVis);
+  if (window._loadQ) window._loadQ.sort(byVis);
+  _clearSel();
+  var chg = false, ok = false, vis, q;
+  if (!_gmVis(DV_SYM)) {
+    vis = activePairs.filter(function (p) { return _gmVis(p) && allPairData[p] && allPairData[p].times.length; });
+    q = vis.filter(function (p) { return _pairRes[p] && (_pairRes[p].revs.length || _pairRes[p].moms.length); })[0] || vis[0];
+    if (q) {
+      DV_SYM = q; chg = true;
+      timesArray = allPairData[q].times; pricesArray = allPairData[q].prices;
+      window._liveMaxIndex = (window._lmx && window._lmx[q]) || 0;
     }
-    if (_gmVis(DV_SYM)) ok = _autoSelectTopSignal(chg);
-    if (!ok) {
-      if (chg) processVisualMatrix();
-      renderFilteredTable();
-    }
+  }
+  if (_gmVis(DV_SYM)) ok = _autoSelectTopSignal(chg);
+  if (!ok) {
+    if (chg) processVisualMatrix();
+    renderFilteredTable();
+  }
 }
-function tcPairColor() { return window.pairColorHex; }
+
 function _cycleOff() { return (currentStartTsUtc || 0) % CYCLE; }
 function _fxClosedNow(p) {
   var d = new Date(), dow = d.getUTCDay(), s = d.getUTCHours() * 3600 + d.getUTCMinutes() * 60 + d.getUTCSeconds();
   return /^frx/.test(p || DV_SYM) && (dow === 6 || (dow === 5 && s >= 75600));
 }
-function _pairMarketClosed() { return _fxClosedNow(); }
 function _isWithinMappedWindow(p) { return !_fxClosedNow(p) && _ssShift === 0; }
 function getTradingContext() {
   var now = Math.floor(Date.now() / 1000), mid = now - (now % 86400) + _ssShift * 86400;
   return { dateStr: "A" + mid + (DV_SYM === "frxXAUUSD" ? "" : "_" + DV_SYM) + "_0-1440", isLive: !_fxClosedNow() && _ssShift === 0, startTsUtc: mid, duration: 86400 };
 }
+
 function _ssBounds(sess) {
   var n = _ssMin > 0 ? Math.max(1, Math.round(1440 / _ssMin)) : 1, s = sess === undefined ? _ssSel : sess;
   if (_ssMin <= 0 || s < 1 || s > n) return { a: 0, b: 86401, n: n };
@@ -656,8 +447,6 @@ function _ssPre(a, pair) {
   }
   return out;
 }
-function _ssP2(n) { return n < 10 ? "0" + n : "" + n; }
-function _ssHm(m) { var t = ((m % 1440) + 1440) % 1440; return _ssP2(Math.floor(t / 60)) + ":" + _ssP2(t % 60); }
 function _ssFmt(z) { return z < 60 ? z + "m" : Math.floor(z / 60) + "h" + (z % 60 ? (z % 60) + "m" : ""); }
 function _ssCmax() {
   var a = parseInt(document.getElementById("scanMin").value, 10) || 300, b = parseInt(document.getElementById("scanMax").value, 10) || 300;
@@ -670,28 +459,22 @@ function _ssDefSel() {
   return Math.max(1, Math.min(n, ix + 1));
 }
 function _ssUi() {
-  var w = document.getElementById("ssWin"), z = document.getElementById("ssSize"), s = document.getElementById("ssSlice");
-  if (!w || !z || !s) return;
-  var cm = _ssCmax(), h = '<option value="0">24h</option>', q, n, o = "", i;
-  w.value = String(_ssShift);
+  var z = document.getElementById("ssSize");
+  if (!z) return;
+  var cm = _ssCmax(), h = '<option value="0">24h</option>', q, n;
   for (q = 1; q < 1440; q++) if (1440 % q === 0 && q % 60 === 0 && q * 60 > cm) h += '<option value="' + q + '">' + _ssFmt(q) + '</option>';
   z.innerHTML = h;
   z.value = String(_ssMin);
   n = _ssMin > 0 ? Math.round(1440 / _ssMin) : 1;
-    if (_ssSel > n) _ssSel = 0;
-    o = '<option value="0">' + (n < 2 ? "" : "ALL ") + _ssHm(330) + "-" + _ssHm(330 + 1440) + '</option>';
-    if (n >= 2) for (i = 0; i < n; i++) o += '<option value="' + (i + 1) + '">S' + (i + 1) + " " + _ssHm(330 + i * _ssMin) + "-" + _ssHm(330 + (i + 1) * _ssMin) + '</option>';
-  s.innerHTML = o;
-    s.value = String(n < 2 ? 0 : _ssSel);
-    s.style.display = "none";
-  }
+  if (_ssSel > n) _ssSel = 0;
+}
 function _ssFix() {
   if (_ssMin > 0 && _ssMin * 60 <= _ssCmax()) { _ssMin = 0; _ssSel = 0; }
   _ssUi();
 }
 function _ssApply() {
   window._ssMatSess = 0;
-  lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; highlightRow = -1;
+  _clearSel();
   globalRevs = []; globalMoms = [];
   window._scanRestart = true; window._scanProg = -1; window._autoSelectAfterScan = true;
   processVisualMatrix();
@@ -707,77 +490,64 @@ async function _ssReload() {
     _spawnScanWorker();
     _bootPairState = {}; _pairRes = {}; _scanQ = [];
     window._ssMatSess = 0; window._ssJob = null; scanPending = 0; globalRevs = []; globalMoms = [];
-    lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; highlightRow = -1;
+    _clearSel();
     activePairs.forEach(function (p) { allPairData[p] = { times: new Int32Array(0), prices: new Float64Array(0) }; });
     timesArray = new Int32Array(0); pricesArray = new Float64Array(0);
-    matrixData = {}; streakInstances = {}; streakHistoryApp3 = {};
+    matrixData = {}; streakInstances = {};
     window._liveMaxIndex = 0; window._lmx = {};
     var ctx = getTradingContext();
-    currentStartTsUtc = ctx.startTsUtc; currentDuration = ctx.duration;
-    bootLog("SESSION " + (_ssShift ? "OLDER" : "NEW") + " — " + ctx.dateStr + " (05:30-05:30 IST)", "#00E676");
+    currentStartTsUtc = ctx.startTsUtc;
+    bootLog("SESSION " + (_ssShift ? "OLDER" : "NEW") + " — " + ctx.dateStr + " (05:30-05:30 IST)");
     renderFilteredTable();
     if (window.tcRedraw) window.tcRedraw();
     await _loadPairs(ctx);
-        var st = document.getElementById("syncStatusText");
+    var st = document.getElementById("syncStatusText");
     if (window._btUi) window._btUi();
-        if (st) st.textContent = _ssShift !== 0 ? "🔵 BACKTEST " + (window._btDateStr ? window._btDateStr() : "") : ctx.isLive ? "🟢 LIVE SYNCED" : "🔵 MARKET CLOSED";
+    if (st) st.textContent = _ssShift !== 0 ? "🔵 BACKTEST " + (window._btDateStr ? window._btDateStr() : "") : ctx.isLive ? "🟢 LIVE SYNCED" : "🔵 MARKET CLOSED";
     _ssUi();
     window._scanRestart = true; window._scanProg = -1; window._autoSelectAfterScan = true;
     processVisualMatrix();
     dispatchMultiCycleScan();
   } finally {
     window._ssBusy = false;
-        if (window._btQ) { window._btQ = 0; setTimeout(_ssReload, 0); }
+    if (window._btQ) { window._btQ = 0; setTimeout(_ssReload, 0); }
     if (ov) ov.style.display = "none";
   }
 }
 (function () {
-  var rp = document.getElementById("rangePill"), tp = document.getElementById("tradePill");
-  if (!rp) return;
-  var si = document.getElementById("scanIntv");
-    var mk = function (id) { var e = document.createElement("select"); e.id = id; if (si && si.parentNode) si.parentNode.insertBefore(e, si); else rp.insertBefore(e, tp && tp.parentNode === rp ? tp : null); return e; };
-  var w = mk("ssWin"), z = mk("ssSize"), s = mk("ssSlice");
-  w.innerHTML = '<option value="0">05:30\u219205:30 NEW</option><option value="-1">05:30\u219205:30 OLDER</option>';
-  w.addEventListener("change", function () { _ssShift = parseInt(w.value, 10) || 0; _ssSel = 0; _ssReload(); });
-    z.addEventListener("change", function () { _ssMin = parseInt(z.value, 10) || 0; _ssSel = _ssDefSel(); _ssUi(); _ssApply(); });
-  s.addEventListener("change", function () { _ssSel = parseInt(s.value, 10) || 0; _ssApply(); });
-    var bt = document.getElementById("btToggle"), bd = document.getElementById("btDate");
-    var btDay = function (sh) { var n = Math.floor(Date.now() / 1000); return new Date((n - (n % 86400) + sh * 86400) * 1000).toISOString().slice(0, 10); };
-    window._btDateStr = function () { return btDay(_ssShift); };
-    var btUi = function () {
-      if (!bt || !bd) return;
-      var on = _ssShift !== 0;
-      bt.textContent = on ? "BACKTEST " + btDay(_ssShift) : (bt._open ? "BACKTEST" : "LIVE");
-      bt.style.color = on ? "#FCD535" : "";
-      bd.style.display = (on || bt._open) ? "" : "none";
-      bd.max = btDay(-1);
-      bd.value = on ? btDay(_ssShift) : "";
-    };
-    window._btUi = btUi;
-    var btGo = function (sh) {
-      _ssShift = sh; _ssSel = 0;
-      if (sh !== 0 && !w.querySelector('option[value="' + sh + '"]')) {
-        var o = document.createElement("option"); o.value = String(sh); o.textContent = "05:30\u219205:30 " + btDay(sh); w.appendChild(o);
-      }
-      btUi();
-      if (window._ssBusy) { window._btQ = 1; return; }
-      _ssReload();
-    };
-    if (bt && bd) {
-      bt.addEventListener("click", function () {
-        if (_ssShift !== 0) { bt._open = false; btGo(0); return; }
-        bt._open = !bt._open; btUi();
-        if (bt._open) { try { bd.focus(); if (bd.showPicker) bd.showPicker(); } catch (e) {} }
-      });
-      bd.addEventListener("change", function () {
-        var v = bd.value, t = Date.parse(v + "T00:00:00Z"), n = Math.floor(Date.now() / 1000);
-        if (!v || isNaN(t)) return;
-        var sh = Math.round((t / 1000 - (n - (n % 86400))) / 86400);
-        bt._open = false;
-        if (sh >= 0) { if (_ssShift !== 0) btGo(0); else btUi(); return; }
-        btGo(sh);
-      });
-    }
+  var z = document.getElementById("ssSize");
+  z.addEventListener("change", function () { _ssMin = parseInt(z.value, 10) || 0; _ssSel = _ssDefSel(); _ssUi(); _ssApply(); });
+  var bt = document.getElementById("btToggle"), bd = document.getElementById("btDate");
+  var btDay = function (sh) { var n = Math.floor(Date.now() / 1000); return new Date((n - (n % 86400) + sh * 86400) * 1000).toISOString().slice(0, 10); };
+  window._btDateStr = function () { return btDay(_ssShift); };
+  var btUi = function () {
+    var on = _ssShift !== 0;
+    bt.textContent = on ? "BACKTEST " + btDay(_ssShift) : (bt._open ? "BACKTEST" : "LIVE");
+    bt.style.color = on ? "#FCD535" : "";
+    bd.style.display = (on || bt._open) ? "" : "none";
+    bd.max = btDay(-1);
+    bd.value = on ? btDay(_ssShift) : "";
+  };
+  window._btUi = btUi;
+  var btGo = function (sh) {
+    _ssShift = sh; _ssSel = 0;
+    btUi();
+    if (window._ssBusy) { window._btQ = 1; return; }
+    _ssReload();
+  };
+  bt.addEventListener("click", function () {
+    if (_ssShift !== 0) { bt._open = false; btGo(0); return; }
+    bt._open = !bt._open; btUi();
+    if (bt._open) { try { bd.focus(); if (bd.showPicker) bd.showPicker(); } catch (e) {} }
+  });
+  bd.addEventListener("change", function () {
+    var v = bd.value, t = Date.parse(v + "T00:00:00Z"), n = Math.floor(Date.now() / 1000);
+    if (!v || isNaN(t)) return;
+    var sh = Math.round((t / 1000 - (n - (n % 86400))) / 86400);
+    bt._open = false;
+    if (sh >= 0) { if (_ssShift !== 0) btGo(0); else btUi(); return; }
+    btGo(sh);
+  });
   _ssUi();
 })();
 async function _loadPairs(ctx) {
@@ -786,7 +556,7 @@ async function _loadPairs(ctx) {
     p = activePairs[i];
     if (allPairData[p] && allPairData[p].times.length) continue;
     _bootPairState[p] = "wait";
-    g = await fetchDerivGrid(p, ctx.dateStr, ctx.startTsUtc, ctx.startTsUtc + ctx.duration);
+    g = await fetchDerivGrid(p, ctx.startTsUtc, ctx.startTsUtc + ctx.duration);
     allPairData[p] = g;
     for (j = g.prices.length - 1; j > 0 && g.prices[j] === -1; j--);
     window._lmx[p] = j > 0 ? j : 0;
@@ -796,74 +566,16 @@ async function _loadPairs(ctx) {
 }
 function _viewPair(pair) {
   if (!allPairData[pair]) return;
-  var chg = pair !== DV_SYM, sel = document.getElementById("pairSel");
-  DV_SYM = activePair = pair;
+  var chg = pair !== DV_SYM;
+  DV_SYM = pair;
   timesArray = allPairData[pair].times; pricesArray = allPairData[pair].prices;
   window._liveMaxIndex = (window._lmx && window._lmx[pair]) || 0;
-  if (chg) { lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; highlightRow = -1; }
-  if (sel && sel.value !== pair) sel.value = pair;
+  if (chg) _clearSel();
   processVisualMatrix();
   renderFilteredTable();
   if (window.tcRedraw) window.tcRedraw();
 }
-function _pairUi() {
-  var s = document.getElementById("pairSel"), b = document.getElementById("pairBtn"), h = "", i;
-  if (s) { for (i = 0; i < activePairs.length; i++) h += '<option value="' + activePairs[i] + '">' + getPairDisplayName(activePairs[i]) + '</option>'; s.innerHTML = h; s.value = DV_SYM; }
-  if (b) b.textContent = "PAIRS " + activePairs.length;
-}
-async function _applyPairs(list) {
-  if (window._ssBusy) return;
-  var i, ov = document.getElementById("bootOverlay"), ctx = getTradingContext(), old = activePairs;
-  list = list.filter(function (p) { return ALL_PAIRS.indexOf(p) >= 0; });
-  if (!list.length) list = [DV_SYM];
-  window._ssBusy = true;
-  try {
-      activePairs = list.slice();
-    try { localStorage.setItem("wsPairs", JSON.stringify(activePairs)); } catch (e) {}
-    for (i = 0; i < old.length; i++) if (activePairs.indexOf(old[i]) < 0) { delete allPairData[old[i]]; delete _pairRes[old[i]]; delete _bootPairState[old[i]]; }
-    for (i = 0; i < activePairs.length; i++) if (!allPairData[activePairs[i]]) allPairData[activePairs[i]] = { times: new Int32Array(0), prices: new Float64Array(0) };
-    if (activePairs.indexOf(DV_SYM) < 0) { DV_SYM = activePair = activePairs[0]; }
-    await _loadPairs(ctx);
-    _pairUi();
-    _pyCyc = 0;
-    _viewPair(DV_SYM);
-    window._scanRestart = true; window._scanProg = -1; window._autoSelectAfterScan = true;
-    dispatchMultiCycleScan();
-  } finally {
-    window._ssBusy = false;
-    if (window._btQ) { window._btQ = 0; setTimeout(_ssReload, 0); }
-    if (ov) ov.style.display = "none";
-  }
-}
-(function () {
-  var si = document.getElementById("scanMin");
-  if (!si || !si.parentNode) return;
-  var ps = document.createElement("select"), pb = document.createElement("button"), pp = document.createElement("div");
-  ps.id = "pairSel"; pb.id = "pairBtn"; pb.type = "button"; pp.id = "pairPanel"; pb.style.display = "none";
-  si.parentNode.insertBefore(ps, si); si.parentNode.insertBefore(pb, si); document.body.appendChild(pp);
-  ps.style.display = "none";
-    ps.addEventListener("change", function () { _viewPair(ps.value); });
-  var build = function () {
-    var h = '<div style="margin-bottom:8px;letter-spacing:.12em;color:#848E9C;">SCAN PAIRS</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px;">', i, p;
-    for (i = 0; i < ALL_PAIRS.length; i++) {
-      p = ALL_PAIRS[i];
-      h += '<label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid #2F3845;border-radius:6px;cursor:pointer;"><input type="checkbox" value="' + p + '"' + (activePairs.indexOf(p) >= 0 ? " checked" : "") + '>' + getPairDisplayName(p) + '</label>';
-    }
-    h += '</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;"><button type="button" id="pairNone">CLEAR</button><button type="button" id="pairCancel">CANCEL</button><button type="button" id="pairOk">APPLY</button></div>';
-    pp.innerHTML = h;
-    pp.querySelector("#pairCancel").onclick = function () { pp.style.display = "none"; };
-    pp.querySelector("#pairNone").onclick = function () { var c = pp.querySelectorAll("input[type=checkbox]"), k; for (k = 0; k < c.length; k++) c[k].checked = false; };
-    pp.querySelector("#pairOk").onclick = function () {
-      var c = pp.querySelectorAll("input[type=checkbox]"), k, sel = [];
-      for (k = 0; k < c.length; k++) if (c[k].checked) sel.push(c[k].value);
-      pp.style.display = "none";
-      _applyPairs(sel);
-    };
-  };
-  pb.addEventListener("click", function () { build(); pp.style.display = "block"; });
-  _pairUi();
-})();
-function bootLog(msg, col) {
+function bootLog(msg) {
   var b = document.getElementById("bootLogLines");
   if (!b) return;
   var d = document.createElement("div");
@@ -886,29 +598,8 @@ function initDB() {
   });
   return _dbP;
 }
-async function aofs_read(pair, dateStr) {
-  try {
-    var db = await initDB();
-    return await new Promise(res => {
-      var req = db.transaction("matrix_cache", "readonly").objectStore("matrix_cache").get("aofs_" + pair + "_" + dateStr);
-      req.onsuccess = e => res(e.target.result || null);
-      req.onerror = () => res(null);
-    });
-  } catch (e) { return null; }
-}
-async function aofs_write(pair, dateStr, times, prices) {
-  try {
-    var db = await initDB();
-    await new Promise(res => {
-      var tx = db.transaction("matrix_cache", "readwrite");
-      tx.objectStore("matrix_cache").put({ times, prices }, "aofs_" + pair + "_" + dateStr);
-      tx.oncomplete = tx.onerror = () => res();
-    });
-  } catch (e) {}
-}
 
-var TICK_SERVER = "https://tck-iy0g.onrender.com", TICK_TOKEN = "", _srvBusy = false, _srvFullAt = 0;
-
+var TICK_SERVER = "https://tck-iy0g.onrender.com", TICK_TOKEN = "";
 var PRE_ROLL_SECS = 900;
 window._preRoll = {};
 window._preArr = p => (window._preRoll[p] && window._preRoll[p].ts === currentStartTsUtc) ? window._preRoll[p].a : null;
@@ -976,45 +667,38 @@ setInterval(function () {
     _cachePut("t2|" + p + "|" + currentStartTsUtc, { prices: pd.prices, pre: window._preArr(p), at: Date.now() });
   }
 }, 15000);
-async function fetchDerivGrid(pair, dateStr, startTs, endTs) {
-  var len = endTs - startTs + 1, times = new Int32Array(len), prices = new Float64Array(len).fill(-1.0), pre = new Float64Array(PRE_ROLL_SECS).fill(-1.0), i, g = null;
+async function fetchDerivGrid(pair, startTs, endTs) {
+  var len = endTs - startTs + 1, times = new Int32Array(len), prices = new Float64Array(len).fill(-1.0), pre = new Float64Array(PRE_ROLL_SECS).fill(-1.0), i, g = null, cc = null;
   for (i = 0; i < len; i++) times[i] = i;
-  var cc = null;
-    if (_ssShift === 0) {
-      _cacheLoadRes(pair, startTs).catch(function () {});
-      cc = await _cacheGet("t2|" + pair + "|" + startTs);
-    }
-    if (cc && cc.prices && cc.prices.length === len) {
-      if (cc.pre && cc.pre.length === PRE_ROLL_SECS) pre = cc.pre;
-      window._preRoll[pair] = { ts: startTs, a: pre };
-      var _cp = cc.prices, _lr = _cp.length - 1;
-            while (_lr > 0 && _cp[_lr] === -1) _lr--;
-            try {
-              var _gd = await Promise.race([srvGet(pair, Math.max(0, _lr - 30), false), new Promise(function (r) { setTimeout(function () { r(null); }, 4000); })]);
-              if (_gd) for (var _k = _gd.pl; _k < _gd.buf.length; _k++) { var _bv = _gd.buf[_k], _bi = _gd.from + _k - _gd.pl; if (_bv !== -1 && _bi >= 0 && _bi < len) _cp[_bi] = _bv; }
-            } catch (e) {}
-            _srvFp[pair] = Date.now() - 30000 + Math.floor(Math.random() * 25000);
-      bootLog(getPairDisplayName(pair) + " — loaded from local cache", "#00B0FF");
-      return { times: times, prices: cc.prices };
-    }
-    if (_ssShift === 0) { try { g = await srvGet(pair, 0, true); } catch (e) { g = null; } }
-    if (g) {
-      for (i = 0; i < g.pl && i < PRE_ROLL_SECS; i++) pre[i] = g.buf[i];
-      for (i = 0; i < g.buf.length - g.pl && i < len; i++) prices[i] = g.buf[g.pl + i];
-      bootLog(getPairDisplayName(pair) + " — loaded from tick server", "#00B0FF");
-    } else bootLog(getPairDisplayName(pair) + " — tick server has no data for this session", "#FF0000");
+  if (_ssShift === 0) {
+    _cacheLoadRes(pair, startTs).catch(function () {});
+    cc = await _cacheGet("t2|" + pair + "|" + startTs);
+  }
+  if (cc && cc.prices && cc.prices.length === len) {
+    if (cc.pre && cc.pre.length === PRE_ROLL_SECS) pre = cc.pre;
+    window._preRoll[pair] = { ts: startTs, a: pre };
+    var _cp = cc.prices, _lr = _cp.length - 1;
+    while (_lr > 0 && _cp[_lr] === -1) _lr--;
+    try {
+      var _gd = await Promise.race([srvGet(pair, Math.max(0, _lr - 30), false), new Promise(function (r) { setTimeout(function () { r(null); }, 4000); })]);
+      if (_gd) for (var _k = _gd.pl; _k < _gd.buf.length; _k++) { var _bv = _gd.buf[_k], _bi = _gd.from + _k - _gd.pl; if (_bv !== -1 && _bi >= 0 && _bi < len) _cp[_bi] = _bv; }
+    } catch (e) {}
+    _srvFp[pair] = Date.now() - 30000 + Math.floor(Math.random() * 25000);
+    bootLog(getPairDisplayName(pair) + " — loaded from local cache");
+    return { times: times, prices: cc.prices };
+  }
+  if (_ssShift === 0) { try { g = await srvGet(pair, 0, true); } catch (e) { g = null; } }
+  if (g) {
+    for (i = 0; i < g.pl && i < PRE_ROLL_SECS; i++) pre[i] = g.buf[i];
+    for (i = 0; i < g.buf.length - g.pl && i < len; i++) prices[i] = g.buf[g.pl + i];
+    bootLog(getPairDisplayName(pair) + " — loaded from tick server");
+  } else bootLog(getPairDisplayName(pair) + " — tick server has no data for this session");
   window._preRoll[pair] = { ts: startTs, a: pre };
-    if (g) {
-        _srvFp[pair] = Date.now();
-        _cachePut("t2|" + pair + "|" + startTs, { prices: prices, pre: pre, at: Date.now() });
-      }
-    return { times: times, prices: prices };
-}
-
-function buildGrid(tickMap, startTs, endTs) {
-  var len = endTs - startTs + 1, times = new Int32Array(len), prices = new Float64Array(len).fill(-1.0);
-  for (var i = 0; i < len; i++) { times[i] = i; if (tickMap[startTs + i] !== undefined) prices[i] = tickMap[startTs + i]; }
-  return { times, prices };
+  if (g) {
+    _srvFp[pair] = Date.now();
+    _cachePut("t2|" + pair + "|" + startTs, { prices: prices, pre: pre, at: Date.now() });
+  }
+  return { times: times, prices: prices };
 }
 
 async function srvGet(pair, from, pre) {
@@ -1054,23 +738,20 @@ async function srvSyncPair(pair) {
   } finally { _srvBp[pair] = false; }
 }
 function srvSync() { for (var i = 0; i < activePairs.length; i++) srvSyncPair(activePairs[i]); }
-
 setInterval(srvSync, 1000);
 
 function injectLiveTick(pair, ts, p) {
-  if (!allPairData[pair]) return;
-    (window.liveTickBuffer[pair] || (window.liveTickBuffer[pair] = {}))[ts] = p;
-      if (_ssShift !== 0) return;
-    var pd = allPairData[pair];
-    if (!pd || !pd.times.length) return;
-    var idx = ts - currentStartTsUtc;
-    window._lmx[pair] = Math.max(window._lmx[pair] || 0, idx);
-    if (pair !== DV_SYM) { if (idx >= 0 && idx < pd.times.length) pd.prices[idx] = p; return; }
-    window._liveMaxIndex = Math.max(window._liveMaxIndex || 0, idx);
+  if (!allPairData[pair] || _ssShift !== 0) return;
+  var pd = allPairData[pair];
+  if (!pd || !pd.times.length) return;
+  var idx = ts - currentStartTsUtc;
+  window._lmx[pair] = Math.max(window._lmx[pair] || 0, idx);
+  if (pair !== DV_SYM) { if (idx >= 0 && idx < pd.times.length) pd.prices[idx] = p; return; }
+  window._liveMaxIndex = Math.max(window._liveMaxIndex || 0, idx);
   if (idx < 0 || idx >= pd.times.length) return;
   pd.prices[idx] = p;
-    var _sb = _ssBounds(_ssMS());
-      if (idx < _sb.a || idx >= _sb.b) return;
+  var _sb = _ssBounds(_ssMS());
+  if (idx < _sb.a || idx >= _sb.b) return;
   var totalSec = pd.times[idx] + _cycleOff(), col = Math.floor(totalSec / CYCLE), row = totalSec % CYCLE;
   if (!matrixData[col]) matrixData[col] = {};
   var sc = "G", sl = 1, prev = matrixData[col - 1] && matrixData[col - 1][row];
@@ -1079,7 +760,7 @@ function injectLiveTick(pair, ts, p) {
     else if (p < prev.p) { sc = "R"; sl = prev.c === "R" ? prev.s + 1 : 1; }
     else { sc = prev.c; sl = 0; }
   } else if (idx < _sb.a + CYCLE) {
-      var rf = idx - CYCLE >= 0 ? pd.prices[idx - CYCLE] : window._preRef(pair, idx - CYCLE);
+    var rf = idx - CYCLE >= 0 ? pd.prices[idx - CYCLE] : window._preRef(pair, idx - CYCLE);
     if (rf === -1 || p === rf) { sc = "N"; sl = 0; } else if (p > rf) { sc = "G"; sl = 1; } else { sc = "R"; sl = 1; }
   }
   matrixData[col][row] = { c: sc, s: sl, p: p };
@@ -1090,12 +771,12 @@ function injectLiveTick(pair, ts, p) {
 
 function processVisualMatrix() {
   if (!timesArray.length) return;
-  matrixData = {}; streakInstances = {}; streakHistoryApp3 = {};
-  for (var r = 0; r < CYCLE; r++) { streakInstances[r] = { R: {}, G: {} }; streakHistoryApp3[r] = { R: {}, G: {} }; }
+  matrixData = {}; streakInstances = {};
+  for (var r = 0; r < CYCLE; r++) streakInstances[r] = { R: {}, G: {} };
   var off = _cycleOff(), localMax = 0, _sb = _ssBounds(_ssMS());
-    for (var i = 0; i < timesArray.length; i++) {
-      var tSec = timesArray[i], p = pricesArray[i];
-      if (tSec >= 86400 || tSec < _sb.a || tSec >= _sb.b) continue;
+  for (var i = 0; i < timesArray.length; i++) {
+    var tSec = timesArray[i], p = pricesArray[i];
+    if (tSec >= 86400 || tSec < _sb.a || tSec >= _sb.b) continue;
     if (p !== -1.0) localMax = Math.max(localMax, tSec);
     var tot = tSec + off, col = Math.floor(tot / CYCLE), row = tot % CYCLE;
     if (!matrixData[col]) matrixData[col] = {};
@@ -1107,7 +788,7 @@ function processVisualMatrix() {
       else { sc = prev.c; sl = 0; }
     } else if (p === -1.0) { sl = 0; sc = "N"; }
     else if (tSec < _sb.a + CYCLE) {
-          var rf = tSec - CYCLE >= 0 ? pricesArray[tSec - CYCLE] : window._preRef(DV_SYM, tSec - CYCLE);
+      var rf = tSec - CYCLE >= 0 ? pricesArray[tSec - CYCLE] : window._preRef(DV_SYM, tSec - CYCLE);
       if (rf === -1 || p === rf) { sl = 0; sc = "N"; } else if (p > rf) { sc = "G"; sl = 1; } else { sc = "R"; sl = 1; }
     }
     matrixData[col][row] = { c: sc, s: sl, p: p };
@@ -1121,17 +802,11 @@ function processVisualMatrix() {
     for (var c2 = 0; c2 <= maxCol; c2++) {
       var cell = matrixData[c2] && matrixData[c2][r2];
       if (cell) {
-        if ((cell.s === 0 || cell.s === 1 || cell.c !== cc) && cs > 0 && cc !== "N" && cell.s === 1) {
-          (streakInstances[r2][cc][cs] || (streakInstances[r2][cc][cs] = [])).push(lc);
-          streakHistoryApp3[r2][cc][cs] = (streakHistoryApp3[r2][cc][cs] || 0) + 1;
-        }
+        if ((cell.s === 0 || cell.s === 1 || cell.c !== cc) && cs > 0 && cc !== "N" && cell.s === 1) (streakInstances[r2][cc][cs] || (streakInstances[r2][cc][cs] = [])).push(lc);
         cc = cell.s > 0 ? cell.c : "N"; cs = cell.s; if (cell.s > 0) lc = c2;
       } else { cs = 0; cc = "N"; }
     }
-    if (cs > 0 && cc !== "N") {
-      (streakInstances[r2][cc][cs] || (streakInstances[r2][cc][cs] = [])).push(lc);
-      streakHistoryApp3[r2][cc][cs] = (streakHistoryApp3[r2][cc][cs] || 0) + 1;
-    }
+    if (cs > 0 && cc !== "N") (streakInstances[r2][cc][cs] || (streakInstances[r2][cc][cs] = [])).push(lc);
   }
   if (window.tcRedraw) window.tcRedraw();
 }
@@ -1159,26 +834,23 @@ function _wsPipeDedupe(list) {
   return out.sort((a, b) => (a.c - b.c) || (a.s1 - b.s1) || (c2k(a) - c2k(b)) || ((b.c1 || 0) - (a.c1 || 0)) || (b.pct - a.pct) || (a.r - b.r));
 }
 
-function primeSelect(kings, fb, pair, rawRevs, rawMoms) {
-  var res = { rev: [], mom: [] }, gi = [{}, {}], srcs = [rawRevs || [], rawMoms || []];
-  for (var t = 0; t < 2; t++) for (var i = 0; i < srcs[t].length; i++) {
-    var x = srcs[t][i]; if (x && x.pair === pair && !x._isPrimeWinner) gi[t][x.c + "|" + x.r + "|" + x.col + "|" + x.s1] = x;
-  }
-  for (var t2 = 0; t2 < 2; t2++) {
+function primeSelect(kings, pair, rawRevs, rawMoms) {
+  var res = { rev: [], mom: [] }, srcs = [rawRevs || [], rawMoms || []];
+  for (var t = 0; t < 2; t++) {
     var byL = {}, fbL = {}, lvls = {};
-    for (var i2 = 0; i2 < kings.length; i2++) {
-      var kk = kings[i2]; if (kk[0] !== t2) continue;
+    for (var i = 0; i < kings.length; i++) {
+      var kk = kings[i]; if (kk[0] !== t) continue;
       (byL[kk[4]] || (byL[kk[4]] = [])).push(kk); lvls[kk[4]] = 1;
     }
-    var dd = _wsPipeDedupe(srcs[t2].filter(z => z && z.pair === pair && !z._isPrimeWinner));
-    for (var i3 = 0; i3 < dd.length; i3++) {
-      var x2 = dd[i3], k2 = [t2, x2.c, x2.r, x2.col === "R" ? 1 : 0, x2.s1, 0, x2.c1, x2.c2, x2.pct], pf = fbL[x2.s1];
-      if (!pf || k2[8] > pf[8] || (k2[8] === pf[8] && k2[6] > pf[6])) fbL[x2.s1] = k2;
-      lvls[x2.s1] = 1;
+    var dd = _wsPipeDedupe(srcs[t].filter(z => z && z.pair === pair && !z._isPrimeWinner));
+    for (var i2 = 0; i2 < dd.length; i2++) {
+      var x = dd[i2], k2 = [t, x.c, x.r, x.col === "R" ? 1 : 0, x.s1, 0, x.c1, x.c2, x.pct], pf = fbL[x.s1];
+      if (!pf || k2[8] > pf[8] || (k2[8] === pf[8] && k2[6] > pf[6])) fbL[x.s1] = k2;
+      lvls[x.s1] = 1;
     }
     var keys = Object.keys(lvls).map(Number).sort((a, b) => a - b);
-    for (var i4 = 0; i4 < keys.length; i4++) {
-      var s = keys[i4], pool = byL[s] || [], pickK = null, reason = "";
+    for (var i3 = 0; i3 < keys.length; i3++) {
+      var s = keys[i3], pool = byL[s] || [], pickK = null, reason = "";
       if (!pool.length) { pickK = fbL[s]; if (!pickK) continue; reason = "FALLBACK_BEST"; }
       else {
         var maxC1 = 0; for (var j = 0; j < pool.length; j++) if (pool[j][6] > maxC1) maxC1 = pool[j][6];
@@ -1187,10 +859,8 @@ function primeSelect(kings, fb, pair, rawRevs, rawMoms) {
         if (dur.length) { pickK = dur[0]; reason = "EARLY_DURABLE_PRIME"; }
         else { pickK = pool.slice().sort((a, b) => (b[8] - a[8]) || (a[5] - b[5]) || (b[6] - a[6]) || (a[1] - b[1]) || (a[2] - b[2]) || (a[3] - b[3]))[0]; reason = "ADAPTIVE_BEST_PRIME"; }
       }
-      var ent = { pair, c: pickK[1], r: pickK[2], s1: s, s2: s + 1, c1: pickK[6], c2: pickK[7], pct: pickK[8], col: pickK[3] ? "R" : "G", type: t2 ? "MOM" : "REV", _isPrimeWinner: true, primeReason: reason, gap: 0, curGap: 0, gapCount: 0 };
-      var g = gi[t2][ent.c + "|" + ent.r + "|" + ent.col + "|" + s];
-      if (g) { ent.gap = g.gap || 0; ent.curGap = g.curGap || 0; ent.gapCount = g.gapCount || 0; if (g.gapFreq) ent.gapFreq = g.gapFreq; }
-      if (t2) res.mom.push(ent); else res.rev.push(ent);
+      var ent = { pair, c: pickK[1], r: pickK[2], s1: s, s2: s + 1, c1: pickK[6], c2: pickK[7], pct: pickK[8], col: pickK[3] ? "R" : "G", type: t ? "MOM" : "REV", _isPrimeWinner: true, primeReason: reason };
+      if (t) res.mom.push(ent); else res.rev.push(ent);
     }
   }
   return res;
@@ -1199,47 +869,47 @@ function primeSelect(kings, fb, pair, rawRevs, rawMoms) {
 function handleWorkerMessage(e) {
   if (e.data && e.data.prog !== undefined) { window._scanProg = e.data.prog; _scanUi(); return; }
   if (e.data && e.data.gid !== undefined && window._ssExpGid && e.data.gid !== window._ssExpGid) return;
-    window._scanProg = -1;
-    var { pair, bestRevs, bestMoms, pk } = e.data;
+  window._scanProg = -1;
+  var { pair, bestRevs, bestMoms, pk } = e.data;
   var _rv = bestRevs.slice(), _mm = bestMoms.slice();
-    if (pk) {
-      var ps = primeSelect(pk.kings || [], pk.fb || [], pair, _rv, _mm);
-      ps.rev.forEach(x => _rv.push(x));
-      ps.mom.forEach(x => _mm.push(x));
+  if (pk) {
+    var ps = primeSelect(pk.kings || [], pair, _rv, _mm);
+    ps.rev.forEach(x => _rv.push(x));
+    ps.mom.forEach(x => _mm.push(x));
+  }
+  var _sg = window._ssCur || 0, _jb = window._ssJob;
+  _rv.forEach(x => { x.sess = _sg; });
+  _mm.forEach(x => { x.sess = _sg; });
+  if (_jb) {
+    _jb.revs = _jb.revs.concat(_rv);
+    _jb.moms = _jb.moms.concat(_mm);
+    if (_jb.k < _jb.n) {
+      _jb.k++;
+      window._ssCur = _jb.k;
+      var _nm = _ssMsg(_jb.k, _jb.minC, _jb.maxC, pair);
+      window._ssExpGid = _nm.gid;
+      _ssPost(_nm);
+      return;
     }
-    var _sg = window._ssCur || 0, _jb = window._ssJob;
-      _rv.forEach(x => { x.sess = _sg; });
-      _mm.forEach(x => { x.sess = _sg; });
-      if (_jb) {
-        _jb.revs = _jb.revs.concat(_rv);
-        _jb.moms = _jb.moms.concat(_mm);
-        if (_jb.k < _jb.n) {
-          _jb.k++;
-          window._ssCur = _jb.k;
-          var _nm = _ssMsg(_jb.k, _jb.minC, _jb.maxC, pair);
-          window._ssExpGid = _nm.gid;
-          _ssPost(_nm);
-          return;
-        }
-        _rv = _jb.revs; _mm = _jb.moms; window._ssJob = null;
-      }
-      if (allPairData[pair] && activePairs.indexOf(pair) >= 0) { _pairRes[pair] = { revs: _rv, moms: _mm }; _resSave(pair); }
-      _scanMerge();
-      if (_scanNext()) { renderFilteredTable(); return; }
-      scanPending = 0;
-      processVisualMatrix();
-      renderFilteredTable();
+    _rv = _jb.revs; _mm = _jb.moms; window._ssJob = null;
+  }
+  if (allPairData[pair] && activePairs.indexOf(pair) >= 0) { _pairRes[pair] = { revs: _rv, moms: _mm }; _resSave(pair); }
+  _scanMerge();
+  if (_scanNext()) { renderFilteredTable(); return; }
+  scanPending = 0;
+  processVisualMatrix();
+  renderFilteredTable();
   if (window._autoSelectAfterScan) { window._autoSelectAfterScan = false; setTimeout(_autoSelectTopSignal, 100); }
 }
 
 function applyCycleRange() {
   var a = parseInt(document.getElementById("scanMin").value, 10) || 300;
   var b = parseInt(document.getElementById("scanMax").value, 10) || 300;
-  lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; highlightRow = -1;
-    CYCLE = Math.min(a, b);
-    _ssFix();
-    window._scanRestart = true;
-      window._scanProg = -1;
+  _clearSel();
+  CYCLE = Math.min(a, b);
+  _ssFix();
+  window._scanRestart = true;
+  window._scanProg = -1;
   window._autoSelectAfterScan = true;
   dispatchMultiCycleScan();
 }
@@ -1274,7 +944,7 @@ function _startScanCountdown() {
   _scanCountdownSec = SCAN_INT;
   var upd = () => {
     if (scanPending) return;
-        var e1 = document.getElementById("scanTimerDisplay"), e2 = document.getElementById("scanChartTimer");
+    var e1 = document.getElementById("scanTimerDisplay"), e2 = document.getElementById("scanChartTimer");
     if (e1) e1.textContent = _scanCountdownSec + "s";
     if (e2) e2.textContent = String(_scanCountdownSec);
   };
@@ -1315,12 +985,12 @@ function dispatchMultiCycleScan() {
   var maxC = parseInt(document.getElementById("scanMax").value, 10) || 300;
   if (minC > maxC) { var t = minC; minC = maxC; maxC = t; }
   if (scanPending && !window._scanRestart && Date.now() - _scanStartedAt < 120000 * pl.length) return;
-    if (window._scanRestart) { window._scanRestart = false; _spawnScanWorker(); _pairRes = {}; }
-    scanPending = 1; _scanStartedAt = Date.now();
-    window._scanMin = minC; window._scanMax = maxC; window._ssJob = null;
-    pl.sort(function (a, b) { return (_gmVis(b) ? 1 : 0) - (_gmVis(a) ? 1 : 0); });
-        _scanQ = pl.slice();
-    if (!_scanNext()) scanPending = 0;
+  if (window._scanRestart) { window._scanRestart = false; _spawnScanWorker(); _pairRes = {}; }
+  scanPending = 1; _scanStartedAt = Date.now();
+  window._scanMin = minC; window._scanMax = maxC; window._ssJob = null;
+  pl.sort(function (a, b) { return (_gmVis(b) ? 1 : 0) - (_gmVis(a) ? 1 : 0); });
+  _scanQ = pl.slice();
+  if (!_scanNext()) scanPending = 0;
 }
 
 function _wsBuild(list, c2n, lvl, nui) {
@@ -1343,14 +1013,14 @@ function _wsBuild(list, c2n, lvl, nui) {
     return pout;
   }
   var _fl = list.filter(z => z && !z._isPrimeWinner && z.r === 0 && (mp <= 0 || z.pct >= mp) && (lf === 0 || +z.s1 === lf) && (lvl === undefined || +z.s1 === +lvl)), _gs = {}, raw = [];
-    _fl.forEach(z => { (_gs[z.sess || 0] || (_gs[z.sess || 0] = [])).push(z); });
-    for (var _gk in _gs) raw = raw.concat(_wsPipeDedupe(_gs[_gk]));
+  _fl.forEach(z => { (_gs[z.sess || 0] || (_gs[z.sess || 0] = [])).push(z); });
+  for (var _gk in _gs) raw = raw.concat(_wsPipeDedupe(_gs[_gk]));
   var b = {}, out = [];
   raw.forEach(x => { var kx = (x.pair || "") + "|" + (x.sess || 0) + "|" + x.s1, o = b[kx]; if (!o || x.pct > o.pct || (x.pct === o.pct && x.c1 > o.c1)) b[kx] = x; });
   for (var k in b) out.push(b[k]);
   return out.sort((a, c) => (dir === 1 ? a.s1 - c.s1 : c.s1 - a.s1) || (c.pct - a.pct) || (c.c1 - a.c1) || (a.c - c.c) || (a.r - c.r));
 }
-window._wsLvlToggle = function() { _wsLvlDir = _wsLvlDir === -1 ? 1 : -1; renderFilteredTable(); };
+window._wsLvlToggle = function () { _wsLvlDir = _wsLvlDir === -1 ? 1 : -1; renderFilteredTable(); };
 function toggleR0Only() {
   r0OnlyMode = !r0OnlyMode;
   var b = document.getElementById("r0OnlyBtn");
@@ -1363,16 +1033,15 @@ function _champScore(x) {
   var p = Math.max(0, Math.min(1, (x.pct || 0) / 100)), z = 1.645, z2 = z * z;
   return Math.max(0, (p + z2 / (2 * n) - z * Math.sqrt((p * (1 - p) + z2 / (4 * n)) / n)) / (1 + z2 / n)) * 100;
 }
-window._champScore = _champScore;
 
 function _champPlan(sig) {
   var pd = allPairData[sig.pair]; if (!pd || !pd.prices.length) return null;
   var SB = _ssBounds(sig.sess), prices = pd.prices, len = prices.length, c = sig.c, nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc;
-    var lim = Math.min(nowSec - 1, len - 1, SB.b - 1, 86399); if (lim < 0) return null;
-    var rr = _ssRow(sig.r, c, sig.sess), colCode = sig.col === "G" ? 1 : 2, color = 0, streak = 0, lastI = -1;
-    for (var i = rr; i <= lim; i += c) {
-      var p = prices[i], q = i >= c ? prices[i - c] : window._preRef(sig.pair, i - c), nc, ns;
-      if (q === -1) nc = ns = (p === -1 || i - SB.a < c) ? 0 : 1;
+  var lim = Math.min(nowSec - 1, len - 1, SB.b - 1, 86399); if (lim < 0) return null;
+  var rr = _ssRow(sig.r, c, sig.sess), colCode = sig.col === "G" ? 1 : 2, color = 0, streak = 0, lastI = -1;
+  for (var i = rr; i <= lim; i += c) {
+    var p = prices[i], q = i >= c ? prices[i - c] : window._preRef(sig.pair, i - c), nc, ns;
+    if (q === -1) nc = ns = (p === -1 || i - SB.a < c) ? 0 : 1;
     else if (p === -1) nc = ns = 0;
     else if (p > q) { nc = 1; ns = (color === 1 && streak > 0) ? streak + 1 : 1; }
     else if (p < q) { nc = 2; ns = (color === 2 && streak > 0) ? streak + 1 : 1; }
@@ -1391,12 +1060,12 @@ function _champPlan(sig) {
 
 function rpOne(x, tag, pr, pre, hi, lim) {
   var c = x.c, s1 = x.s1, cc = x.col === "G" ? 1 : 2, base = currentStartTsUtc || 0, SB = _ssBounds(x.sess);
-    hi = Math.min(hi, SB.b - 1); lim = Math.min(lim, SB.b);
-    while (hi > SB.a && pr[hi] === -1) hi--;
-    var i = _ssRow(x.r, c, x.sess), preLen = pre ? pre.length : 0, color = 0, streak = 0, n1 = 0, since = 0, runStart = -1, lastRun = -1;
-    for (; i <= hi; i += c) {
-      var p = pr[i], q = i >= c ? pr[i - c] : (pre && preLen + i - c >= 0 ? pre[preLen + i - c] : -1), nc, ns;
-      if (q === -1) nc = ns = (p === -1 || i - SB.a < c) ? 0 : 1;
+  hi = Math.min(hi, SB.b - 1); lim = Math.min(lim, SB.b);
+  while (hi > SB.a && pr[hi] === -1) hi--;
+  var i = _ssRow(x.r, c, x.sess), preLen = pre ? pre.length : 0, color = 0, streak = 0, n1 = 0, since = 0, runStart = -1, lastRun = -1;
+  for (; i <= hi; i += c) {
+    var p = pr[i], q = i >= c ? pr[i - c] : (pre && preLen + i - c >= 0 ? pre[preLen + i - c] : -1), nc, ns;
+    if (q === -1) nc = ns = (p === -1 || i - SB.a < c) ? 0 : 1;
     else if (p === -1) nc = ns = 0;
     else if (p > q) { nc = 1; ns = (color === 1 && streak > 0) ? streak + 1 : 1; }
     else if (p < q) { nc = 2; ns = (color === 2 && streak > 0) ? streak + 1 : 1; }
@@ -1415,28 +1084,28 @@ function holdText(t) {
 }
 window._wpTmrMap = {};
 function _buildScannerRowsHtml(list) {
-  if (!list || !list.length) return '<tr><td colspan="7" style="text-align:center;color:#FFFFFF;background:transparent;padding:16px;">NO TARGETS FOUND</td></tr>';
+  if (!list || !list.length) return '<tr><td colspan="7" style="text-align:center;background:transparent;padding:16px;">NO TARGETS FOUND</td></tr>';
   var _pcx = {};
-    return list.map(d => {
-      var _c = _pcx[d.pair], _pd, _pp, _hh;
-      if (!_c) {
-        _pd = allPairData[d.pair]; _pp = _pd ? _pd.prices : new Float64Array(0); _hh = Math.min(Math.floor(Date.now() / 1000) - currentStartTsUtc, _pp.length - 1);
-        while (_hh > 0 && _pp[_hh] === -1) _hh--;
-        _c = _pcx[d.pair] = { pr: _pp, pre: window._preArr(d.pair), hi: _hh };
-      }
-      var pr = _c.pr, pre = _c.pre, hi = _c.hi;
+  return list.map(d => {
+    var _c = _pcx[d.pair], _pd, _pp, _hh;
+    if (!_c) {
+      _pd = allPairData[d.pair]; _pp = _pd ? _pd.prices : new Float64Array(0); _hh = Math.min(Math.floor(Date.now() / 1000) - currentStartTsUtc, _pp.length - 1);
+      while (_hh > 0 && _pp[_hh] === -1) _hh--;
+      _c = _pcx[d.pair] = { pr: _pp, pre: window._preArr(d.pair), hi: _hh };
+    }
+    var pr = _c.pr, pre = _c.pre, hi = _c.hi;
     var k = d.pair + "|" + d.c + "|" + d.r + "|" + d.s1 + "|" + d.s2 + "|" + d.col + "|" + d.type;
     window._wpTmrMap[k + "|S" + (d.sess || 0)] = d;
     var ht = rpOne(d, d.type, pr, pre, hi, pr.length);
     var sel = (k.split("|").join("-") === lastClickedSigId && (d.sess || 0) === (window._ssMatSess || 0)) ? "filter:brightness(1.25);box-shadow:inset 4px 0 0 #FFFFFF;" : "";
-    return `<tr class="${d.col === 'R' ? 'row-red' : 'row-green'} highlight-gem" data-k="${k}|S${d.sess || 0}" style="${sel}" onclick="window._ssPickSess=${d.sess || 0};manualSelectSignal('${d.pair}',${d.c},${d.r},${d.s1},${d.s2},'${d.col}','${d.type}',${d.gap||0},${d.curGap||0})">
-      <td style="width:28%;text-align:left;padding-left:8px;">${getPairDisplayName(d.pair)}${d.sess ? '<span style="font-size:8px"> S' + d.sess + '</span>' : ""}${window._pyMap[d.pair] || ""}<span data-hold-t="${ht}" style="display:block;font-size:8px;line-height:9px;">${holdText(ht)}</span></td>
-      <td style="width:10%;text-align:center;">C${d.c}</td>
-      <td style="width:10%;text-align:center;">R${d.r}</td>
-      <td style="width:19%;text-align:center;">X${d.s1}-X${d.s2}</td>
-      <td style="width:10%;text-align:center;">${d.c1}</td>
-      <td style="width:10%;text-align:center;">${d.c2}</td>
-      <td style="width:13%;text-align:center;">${d.pct}%</td></tr>`;
+    return `<tr class="${d.col === 'R' ? 'row-red' : 'row-green'} highlight-gem" data-k="${k}|S${d.sess || 0}" style="${sel}" onclick="window._ssPickSess=${d.sess || 0};manualSelectSignal('${d.pair}',${d.c},${d.r},${d.s1},${d.s2},'${d.col}','${d.type}')">
+<td style="width:28%;text-align:left;padding-left:8px;">${getPairDisplayName(d.pair)}${d.sess ? '<span style="font-size:8px"> S' + d.sess + '</span>' : ""}${window._pyMap[d.pair] || ""}<span data-hold-t="${ht}">${holdText(ht)}</span></td>
+<td style="width:10%;text-align:center;">C${d.c}</td>
+<td style="width:10%;text-align:center;">R${d.r}</td>
+<td style="width:19%;text-align:center;">X${d.s1}-X${d.s2}</td>
+<td style="width:10%;text-align:center;">${d.c1}</td>
+<td style="width:10%;text-align:center;">${d.c2}</td>
+<td style="width:13%;text-align:center;">${d.pct}%</td></tr>`;
   }).join("");
 }
 
@@ -1453,10 +1122,10 @@ function _bestPerLevel(list) {
 function renderFilteredTable() {
   var rev = _bestPerLevel(_wsBuild(globalRevs.filter(function (x) { return _gmVis(x.pair); }), "lvl")), mom = _bestPerLevel(_wsBuild(globalMoms.filter(function (x) { return _gmVis(x.pair); }), "lvl"));
   var _gl = _gmPairs(_gmList[_gmCur]), _gp = _gl.filter(function (p) { return !_pairRes[p]; }).length;
-    var _ld = '<tr><td colspan="7" style="text-align:center;color:#FFFFFF;background:transparent;padding:16px;">LOADING ' + _gmList[_gmCur] + ' ' + (_gl.length - _gp) + '/' + _gl.length + ' ...</td></tr>';
-    document.getElementById("peaksTableBodyRev").innerHTML = (!rev.length && _gp) ? _ld : _buildScannerRowsHtml(rev);
-    document.getElementById("peaksTableBodyMom").innerHTML = (!mom.length && _gp) ? _ld : _buildScannerRowsHtml(mom);
-  if (window.tcOnTableRendered) window.tcOnTableRendered();
+  var _ld = '<tr><td colspan="7" style="text-align:center;background:transparent;padding:16px;">LOADING ' + _gmList[_gmCur] + ' ' + (_gl.length - _gp) + '/' + _gl.length + ' ...</td></tr>';
+  document.getElementById("peaksTableBodyRev").innerHTML = (!rev.length && _gp) ? _ld : _buildScannerRowsHtml(rev);
+  document.getElementById("peaksTableBodyMom").innerHTML = (!mom.length && _gp) ? _ld : _buildScannerRowsHtml(mom);
+  if (window.tcRedraw) window.tcRedraw();
 }
 
 var _wpEvPh = false;
@@ -1485,22 +1154,22 @@ function _sigOutFind(pair, c, r, s1, s2, col, type) {
   return null;
 }
 
-function manualSelectSignal(pair, c, r, s1, s2, col, type, gap, curGap) {
-  selectSignal(pair, c, r, s1, s2, col, type, -1, gap, curGap);
+function manualSelectSignal(pair, c, r, s1, s2, col, type) {
+  selectSignal(pair, c, r, s1, s2, col, type);
   if (window.tcRedraw) window.tcRedraw();
 }
 
 function selectSignal(pair, c, r, s1, s2, colColor, type) {
   if (pair !== DV_SYM && allPairData[pair]) _viewPair(pair);
-    var _ps = window._ssPickSess, _pm = window._ssMatSess;
+  var _ps = window._ssPickSess, _pm = window._ssMatSess;
   window._ssPickSess = undefined;
   if (_ps === undefined) _ps = _ssMS();
   var _cyc = CYCLE !== c;
-    if (_cyc) CYCLE = c;
-    if (_pm !== _ps) window._ssMatSess = _ps;
-    if (_pm !== _ps || _cyc) processVisualMatrix();
-    var sigId = `${pair}-${c}-${r}-${s1}-${s2}-${colColor}-${type}`, isFirst = sigId !== lastClickedSigId || _pm !== _ps;
-  lastClickedSigId = sigId; highlightRow = r; currentInstances = []; currentInstanceIndex = -1;
+  if (_cyc) CYCLE = c;
+  if (_pm !== _ps) window._ssMatSess = _ps;
+  if (_pm !== _ps || _cyc) processVisualMatrix();
+  var sigId = `${pair}-${c}-${r}-${s1}-${s2}-${colColor}-${type}`, isFirst = sigId !== lastClickedSigId || _pm !== _ps;
+  lastClickedSigId = sigId; currentInstances = []; currentInstanceIndex = -1;
   var targetHist = streakInstances[r] && streakInstances[r][colColor];
   if (targetHist) {
     var maxCol = Math.floor((86400 + _cycleOff()) / CYCLE);
@@ -1535,9 +1204,9 @@ function _autoSelectTopSignal(force) {
   return false;
 }
 
-(function() {
-  var TC = { on: true, boxMode: true, follow: true, spp: 3, left: 0, yZ: 1, yOff: 0, W: 0, H: 0, dpr: 1, hits: [], hov: [], bxCache: null, tip: null, mx: -1, my: -1, sigMode: "MIX", allMap: null };
-  var PADL = 6, PADR = 50, PADT = 4, PADB = 24, ZOOMS = [0.25, 0.5, 1, 2, 3, 5, 10, 20, 30, 60, 120, 300], MONO = "'JetBrains Mono',monospace";
+(function () {
+  var TC = { boxMode: true, follow: true, spp: 3, left: 0, yZ: 1, yOff: 0, W: 0, H: 0, dpr: 1, bxCache: null, sigMode: "MIX", allMap: null };
+  var PADL = 6, PADR = 50, PADT = 4, PADB = 24, MONO = "'JetBrains Mono',monospace";
   TC.wrap = document.getElementById("tcWrap"); TC.cv = document.getElementById("tcCanvas"); TC.ctx = TC.cv.getContext("2d");
 
   function tcOffset() { return (currentStartTsUtc % 86400) + 19800; }
@@ -1559,10 +1228,10 @@ function _autoSelectTopSignal(force) {
   function tcWin(type, res) { return (res === "pending" || res === "none") ? res : (((type === "MOM") === (res === "cont")) ? "win" : "loss"); }
   function tcPlan(sig, prices, lim, sEnd, lastReal) {
     var SB = _ssBounds(sig.sess), hist = [], c = sig.c, r = _ssRow(sig.r, c, sig.sess), colCode = sig.col === "G" ? 1 : 2, color = 0, streak = 0, lastI = -1;
-        lim = Math.min(lim, SB.b - 1); sEnd = Math.min(sEnd, SB.b);
-        for (var i = r; i <= lim; i += c) {
-          var p = prices[i], q = i >= c ? prices[i - c] : window._preRef(sig.pair, i - c), nc, ns;
-          if (q === -1) nc = ns = (p === -1 || i - SB.a < c) ? 0 : 1;
+    lim = Math.min(lim, SB.b - 1); sEnd = Math.min(sEnd, SB.b);
+    for (var i = r; i <= lim; i += c) {
+      var p = prices[i], q = i >= c ? prices[i - c] : window._preRef(sig.pair, i - c), nc, ns;
+      if (q === -1) nc = ns = (p === -1 || i - SB.a < c) ? 0 : 1;
       else if (p === -1) nc = ns = 0;
       else if (p > q) { nc = 1; ns = (color === 1 && streak > 0) ? streak + 1 : 1; }
       else if (p < q) { nc = 2; ns = (color === 2 && streak > 0) ? streak + 1 : 1; }
@@ -1578,7 +1247,7 @@ function _autoSelectTopSignal(force) {
     return { kind: "FUT", idx, need, ref: (need === 1 && lastI >= 0 && prices[lastI] !== -1) ? prices[lastI] : null, hist };
   }
 
-  window._tcClicked = function() {
+  window._tcClicked = function () {
     if (!lastClickedSigId) return null;
     var p = lastClickedSigId.split("-");
     return p.length === 7 ? _sigOutFind(p[0], +p[1], +p[2], +p[3], +p[4], p[5], p[6]) : null;
@@ -1595,24 +1264,24 @@ function _autoSelectTopSignal(force) {
     if (TC.sigMode !== "MOM") pick(globalRevs, "rev");
     if (TC.sigMode !== "REV") pick(globalMoms, "mom");
     var clk = window._tcClicked();
-        if (clk && clk.pair === DV_SYM) m = { rev: clk.type === "REV" ? clk : null, mom: clk.type === "MOM" ? clk : null };
-        var mo = {}; mo[DV_SYM] = m; return mo;
+    if (clk && clk.pair === DV_SYM) m = { rev: clk.type === "REV" ? clk : null, mom: clk.type === "MOM" ? clk : null };
+    var mo = {}; mo[DV_SYM] = m; return mo;
   }
 
   function bxMark(ctx, x, y, win, fs, col, BG) {
-      var r = Math.max(8, fs * 0.7);
-            ctx.save(); ctx.setLineDash([]); ctx.lineCap = "round"; ctx.lineJoin = "round";
-            for (var bp = 0; bp < 2; bp++) {
-              ctx.strokeStyle = bp === 0 ? BG : col; ctx.lineWidth = bp === 0 ? 4.5 : 2;
-              ctx.beginPath();
-              if (win) { ctx.moveTo(x - r * 0.6, y); ctx.lineTo(x - r * 0.15, y + r * 0.45); ctx.lineTo(x + r * 0.65, y - r * 0.5); }
-              else { ctx.moveTo(x - r * 0.5, y - r * 0.5); ctx.lineTo(x + r * 0.5, y + r * 0.5); ctx.moveTo(x + r * 0.5, y - r * 0.5); ctx.lineTo(x - r * 0.5, y + r * 0.5); }
-              ctx.stroke();
-            }
-            ctx.restore();
+    var r = Math.max(8, fs * 0.7);
+    ctx.save(); ctx.setLineDash([]); ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (var bp = 0; bp < 2; bp++) {
+      ctx.strokeStyle = bp === 0 ? BG : col; ctx.lineWidth = bp === 0 ? 4.5 : 2;
+      ctx.beginPath();
+      if (win) { ctx.moveTo(x - r * 0.6, y); ctx.lineTo(x - r * 0.15, y + r * 0.45); ctx.lineTo(x + r * 0.65, y - r * 0.5); }
+      else { ctx.moveTo(x - r * 0.5, y - r * 0.5); ctx.lineTo(x + r * 0.5, y + r * 0.5); ctx.moveTo(x + r * 0.5, y - r * 0.5); ctx.lineTo(x - r * 0.5, y + r * 0.5); }
+      ctx.stroke();
     }
-  
-    function _tcTkFs() {
+    ctx.restore();
+  }
+
+  function _tcTkFs() {
     var c0 = Math.max(1, Math.round(CYCLE) || 300), sp = TC.spp || 1, cw0 = c0 / sp, mul = cw0 >= 3 ? 1 : Math.ceil(3 / cw0);
     return Math.max(10, Math.min(44, Math.round(c0 * mul / sp * 1.5)));
   }
@@ -1634,15 +1303,15 @@ function _autoSelectTopSignal(force) {
   }
 
   function bxRR(ctx, x, y, w, h, r) {
-      r = Math.max(0, Math.min(r, w / 2, h / 2));
-      ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
-    }
-  
-    function tcDrawBoxes(ctx, W, H, dpr, pair, BG, DIM) {
-    var B = Math.max(1, Math.round(CYCLE) || 300), GREEN = "#0ECB81", RED = "#F6465D", PF_UP = "14,203,129", PF_DN = "246,70,93", M = W < 500 ? 10 : 20, pr = allPairData[pair].prices, sEnd = 86400;
+    r = Math.max(0, Math.min(r, w / 2, h / 2));
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+
+  function tcDrawBoxes(ctx, W, H, dpr, pair, BG) {
+    var B = Math.max(1, Math.round(CYCLE) || 300), GREEN = "#0ECB81", RED = "#F6465D", PF_UP = "14,203,129", PF_DN = "246,70,93", pr = allPairData[pair].prices, sEnd = 86400;
     var nowF = Date.now() / 1000 - currentStartTsUtc, live = _isWithinMappedWindow() && nowF >= 0 && nowF < sEnd;
     var li = tcLastReal(pr, Math.min(live ? Math.floor(nowF) : sEnd, pr.length - 1)), lp = li >= 0 ? pr[li] : 0;
-    var bxMap = {}, bxCells = null, bxTal = { REV: { w: 0, l: 0, p: 0 }, MOM: { w: 0, l: 0, p: 0 } };
+    var bxMap = {}, bxCells = null;
     var bxSg = TC.allMap ? TC.allMap[pair] : null, bxClk = window._tcClicked();
     if (bxClk && bxClk.pair === pair) bxSg = { rev: bxClk.type === "REV" ? bxClk : null, mom: bxClk.type === "MOM" ? bxClk : null };
     var bxMain = bxSg ? (bxSg.rev || bxSg.mom) : null;
@@ -1679,7 +1348,6 @@ function _autoSelectTopSignal(force) {
           var bxW = tcWin(bxS.type, bxE.res), bxJ = Math.round((bxE.i - bxR0) / B);
           if (bxJ >= 0 && bxJ < n) { var o = bxMap[bxJ] || (bxMap[bxJ] = {}); o.sig = true; o.up = bxU; }
           if (bxJ + 1 >= 0 && bxJ + 1 < n) { var o2 = bxMap[bxJ + 1] || (bxMap[bxJ + 1] = {}); o2.resW = bxW; }
-          if (bxW === "win") bxTal[bxS.type].w++; else if (bxW === "loss") bxTal[bxS.type].l++; else bxTal[bxS.type].p++;
         });
         if (live && (bxPl.kind === "FUT" || bxPl.kind === "FIRED") && bxPl.idx >= 0) {
           var j2 = Math.round((bxPl.idx - bxR0) / B);
@@ -1691,21 +1359,7 @@ function _autoSelectTopSignal(force) {
         }
       });
     }
-    var rkY = new Array(n), rkCur = 0, rkPrevDir = 0, rkMin = 0, rkMax = 0;
-    for (var j = 0; j < n; j++) {
-      var hc = bxCells ? bxCells[j] : null, rkC = arr[j], rkDir = 0;
-      if (j === cj) {
-        var pp = bxCells ? ((j > 0 && bxCells[j - 1]) ? bxCells[j - 1].p : window._preRef(pair, j * B + bxR0 - B)) : (rkC ? rkC[0] : -1);
-        var cp = bxCells ? lp : (rkC ? rkC[3] : -1);
-        rkDir = (pp > 0 && cp > 0 && cp < pp) ? -1 : 1;
-      } else if (bxCells) { if (hc) rkDir = hc.col === 1 ? 1 : -1; }
-      else if (rkC) rkDir = rkC[3] >= rkC[0] ? 1 : -1;
-      if (rkDir === 0 && bxMap[j] && bxMap[j].fut) rkDir = bxMap[j].fut.up ? 1 : -1;
-      if (rkDir !== 0) { if (rkPrevDir !== 0) rkCur += rkDir; rkPrevDir = rkDir; }
-      rkY[j] = rkCur;
-      if (rkDir !== 0 || (bxMap[j] && (bxMap[j].sig || bxMap[j].resW || bxMap[j].fut))) { if (rkCur < rkMin) rkMin = rkCur; if (rkCur > rkMax) rkMax = rkCur; }
-    }
-    var rkTop = 0, rkBot = H, pw = W, ph = H, rkSpp = TC.spp || 3;
+    var rkTop = 0, rkBot = H, pw = W, ph = H, rkSpp = TC.spp || 3, bxPcol = "#FCD535";
     var rkNowSec = live ? Math.floor(nowF) : Math.min(li >= 0 ? li : 0, sEnd);
     var rkOcSig = lastClickedSigId + "|" + clickCycleIndex + "|" + currentInstanceIndex;
     if (TC.ocSig !== rkOcSig) {
@@ -1716,17 +1370,9 @@ function _autoSelectTopSignal(force) {
       }
     }
     if (TC.follow) TC.left = rkNowSec - pw * rkSpp * 0.4; else tcClamp(pw);
-    var rkLeft = TC.left, rkRight = rkLeft + pw * rkSpp, rkXOf = ix => PADL + (ix - rkLeft) / rkSpp;
-    var rkColS = idx => bxCells ? ((idx - 1) * B + bxR0) : (idx * B), rkColE = idx => bxCells ? (idx * B + bxR0) : ((idx + 1) * B);
-    var rkVis0 = Math.max(0, Math.floor((rkLeft - bxR0) / B) - 1), rkVis1 = Math.min(n - 1, Math.ceil((rkRight - bxR0) / B) + 1);
-    var rkSpan = Math.max(1, rkMax - rkMin + 1), tw = Math.max(2, B / rkSpp), gp = tw >= 8 ? Math.min(3, tw * 0.12) : (tw >= 4 ? 0.5 : 0);
-    var rkYz = TC.yZ || 1, rkYo = TC.yOff || 0, rkPlotH = Math.max(40, H - PADT - PADB), rkStepY = Math.max(4, (ph / rkSpan) * rkYz), bh = Math.max(2, rkStepY - gp);
-    var rkCenterVal = (rkMin + rkMax) / 2 + rkYo * rkYz * (rkPlotH / rkStepY), rkY0 = rkTop + ph / 2 - (rkMax - rkCenterVal + 0.5) * rkStepY + gp / 2;
-    var rkPosY = idx => rkY0 + (rkMax - rkY[idx]) * rkStepY, bxPcol = "#FCD535";
 
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
-    bh = ph; gp = 0;
-    var bxInstMap = null, bxInstSelJ = -1, bxInstUp = true;
+    var bxInstMap = null, bxInstUp = true;
     if (lastClickedSigId && currentInstances.length) {
       var sp = lastClickedSigId.split("-");
       if (sp.length === 7 && (+sp[1]) === B) {
@@ -1734,27 +1380,24 @@ function _autoSelectTopSignal(force) {
         var cycOff = _cycleOff();
         currentInstances.forEach((it2, inx) => {
           var bIdx = it2.col * B + it2.row - cycOff, bIj = bxCells ? Math.round((bIdx - bxR0) / B) : Math.floor(bIdx / B);
-          if (bIj >= 0 && bIj < n) { bxInstMap[bIj] = { inst: it2, sel: inx === currentInstanceIndex, sec: bIdx }; if (inx === currentInstanceIndex) bxInstSelJ = bIj; }
+          if (bIj >= 0 && bIj < n) bxInstMap[bIj] = { inst: it2, sel: inx === currentInstanceIndex, sec: bIdx };
         });
       }
     }
-    if (false) {
-      var selX = (rkXOf(rkColS(bxInstSelJ)) + rkXOf(rkColE(bxInstSelJ))) / 2;
-      ctx.save(); ctx.strokeStyle = "#FFFFFF"; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(selX, rkTop); ctx.lineTo(selX, rkBot); ctx.stroke(); ctx.restore();
-    }
     var gcols = (B >= 60 && B <= 3600 && 3600 % B === 0) ? 3600 / B : Math.max(1, Math.ceil(Math.sqrt(n * pw / ph))), grows = Math.ceil(n / gcols), gw = pw / gcols, gh = ph / grows;
-        for (var j = 0; j < n; j++) {
+    for (var j = 0; j < n; j++) {
       var hcCell = bxCells ? bxCells[j] : null, c = arr[j], hasDat = bxCells ? (!!hcCell || j === cj) : (!!c || j === cj), bxO = bxMap[j], bxIm = bxInstMap ? bxInstMap[j] : null;
       if (!hasDat && !bxO && !bxIm) continue;
-      var x0 = (j % gcols) * gw, x1 = x0 + gw, gRow = Math.floor(j / gcols), bxG = Math.min(6, gh * 0.25); bh = Math.max(2, gh - bxG);
-      var px = Math.round((x0 + bxG / 2) * dpr) / dpr, bw = Math.max(1, Math.round((x1 - bxG / 2) * dpr) / dpr - px), py = Math.round((rkTop + gRow * gh + bxG / 2) * dpr) / dpr; bh = Math.max(2, Math.round((rkTop + (gRow + 1) * gh - bxG / 2) * dpr) / dpr - py);
-      var bxCol = bxCells ? ((!hcCell || j === cj) ? "#000000" : (hcCell.col === 1 ? GREEN : RED)) : ((!c || j === cj) ? "#000000" : (c[3] >= c[0] ? GREEN : RED)), bxIsSg = !!(bxO && bxO.sig), bxRad = Math.min(4, bh * 0.22), bxLw = 1;
-            if (bxCol === "#000000") { ctx.fillStyle = "#10151B"; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill(); }
-            else if (bw < 7 || bh < 7) { ctx.fillStyle = bxCol; ctx.fillRect(px, py, bw, bh); }
-            else {
-              var pfRgb = bxCol === RED ? PF_DN : PF_UP, pfGr = ctx.createLinearGradient(0, py, 0, py + bh); pfGr.addColorStop(0, "rgba(" + pfRgb + ",0.20)"); pfGr.addColorStop(1, "rgba(" + pfRgb + ",0.06)"); ctx.fillStyle = pfGr; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill();
-              ctx.strokeStyle = "rgba(" + pfRgb + ",0.8)"; ctx.lineWidth = bxLw; ctx.setLineDash([]); bxRR(ctx, px + bxLw / 2, py + bxLw / 2, bw - bxLw, bh - bxLw, bxRad); ctx.stroke();
-            }
+      var x0 = (j % gcols) * gw, x1 = x0 + gw, gRow = Math.floor(j / gcols), bxG = Math.min(6, gh * 0.25);
+      var px = Math.round((x0 + bxG / 2) * dpr) / dpr, bw = Math.max(1, Math.round((x1 - bxG / 2) * dpr) / dpr - px), py = Math.round((rkTop + gRow * gh + bxG / 2) * dpr) / dpr;
+      var bh = Math.max(2, Math.round((rkTop + (gRow + 1) * gh - bxG / 2) * dpr) / dpr - py);
+      var bxCol = bxCells ? ((!hcCell || j === cj) ? "#000000" : (hcCell.col === 1 ? GREEN : RED)) : ((!c || j === cj) ? "#000000" : (c[3] >= c[0] ? GREEN : RED)), bxRad = Math.min(4, bh * 0.22), bxLw = 1;
+      if (bxCol === "#000000") { ctx.fillStyle = "#10151B"; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill(); }
+      else if (bw < 7 || bh < 7) { ctx.fillStyle = bxCol; ctx.fillRect(px, py, bw, bh); }
+      else {
+        var pfRgb = bxCol === RED ? PF_DN : PF_UP, pfGr = ctx.createLinearGradient(0, py, 0, py + bh); pfGr.addColorStop(0, "rgba(" + pfRgb + ",0.20)"); pfGr.addColorStop(1, "rgba(" + pfRgb + ",0.06)"); ctx.fillStyle = pfGr; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill();
+        ctx.strokeStyle = "rgba(" + pfRgb + ",0.8)"; ctx.lineWidth = bxLw; ctx.setLineDash([]); bxRR(ctx, px + bxLw / 2, py + bxLw / 2, bw - bxLw, bh - bxLw, bxRad); ctx.stroke();
+      }
       if (j === cj) {
         var prevP = bxCells ? ((j > 0 && bxCells[j - 1]) ? bxCells[j - 1].p : window._preRef(pair, j * B + bxR0 - B)) : (c ? c[0] : -1);
         var lvUp = !(prevP > 0 && lp > 0 && lp < prevP);
@@ -1773,8 +1416,7 @@ function _autoSelectTopSignal(force) {
         ctx.fillStyle = isFut ? bxPcol : ((!hcCell || j === cj) ? "#FFFFFF" : bxCol); ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(txt, px + bw / 2, py + bh * 0.52);
       }
-      
-            var mx = px + bw / 2, isSig = !!(bxO && bxO.sig);
+      var isSig = !!(bxO && bxO.sig);
       if (isSig || isFut || bxIm) {
         var up2 = isFut ? bxO.fut.up : (isSig ? bxO.up : bxInstUp);
         var dt = (up2 ? "BUY" : "SELL") + (bxIm && !isSig && !isFut && bxIm.inst.isFalse ? " F" + (bxIm.inst.falseSeq || 1) : "");
@@ -1782,39 +1424,15 @@ function _autoSelectTopSignal(force) {
         ctx.fillStyle = up2 ? GREEN : RED; bxRR(ctx, lx - dw / 2, cy - lh / 2, dw, lh, lh / 2); ctx.fill();
         ctx.fillStyle = "#000000"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(dt, lx, cy + 0.5); ctx.restore();
       }
-      /* signal border removed */
       var resW = (bxO && (bxO.resW === "win" || bxO.resW === "loss")) ? bxO.resW : null;
       if (!resW && bxInstMap && j > 0 && bxInstMap[j - 1]) {
         var nxSec = bxInstMap[j - 1].sec + B;
         if (nxSec <= li && pr[nxSec] !== undefined && pr[nxSec] !== -1) resW = bxInstMap[j - 1].inst.isFalse ? "loss" : "win";
       }
-      if (resW === "win" || resW === "loss") {
-        bxMark(ctx, px + bw - 12, py + bh * 0.5, resW === "win", Math.min(_tcTkFs(), bh * 0.6), resW === "win" ? GREEN : RED, BG);
-      }
+      if (resW === "win" || resW === "loss") bxMark(ctx, px + bw - 12, py + bh * 0.5, resW === "win", Math.min(_tcTkFs(), bh * 0.6), resW === "win" ? GREEN : RED, BG);
     }
     ctx.restore();
-    tcDrawTrades(ctx, function() { return -99999; }, null, rkTop, rkBot, W);
-        
-    
-    ctx.font = "10px " + MONO; ctx.fillStyle = DIM; ctx.textAlign = "left"; ctx.textBaseline = "middle";
-    var steps = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 14400], tstep = 14400;
-    for (var sk = 0; sk < steps.length; sk++) if (steps[sk] / rkSpp >= 78) { tstep = steps[sk]; break; }
-    var off = tcOffset(), firstT = Math.ceil((rkLeft + off) / tstep) * tstep - off;
-    ctx.textAlign = "center";
-    for (var tm = firstT; tm < firstT; tm += tstep) {
-      if (tm < 0 || tm > sEnd) continue;
-      var tx = rkXOf(tm); if (tx > PADL + 28 && tx < W - PADR - 28) ctx.fillText(tcFmt(tm, tstep < 60), tx, rkBot + 12);
-    }
-    ctx.textAlign = "left"; ctx.font = "bold 10px " + MONO; ctx.fillStyle = DIM;
-    var hdr = getPairDisplayName(pair) + "  |  BOX " + (B / 60) + "m" + (bxMain ? " R" + bxMain.r : "") + "  |  DOUBLE-CLICK = SWITCH MODE   ";
-    
-    var tx3 = M + ctx.measureText(hdr).width;
-    ["REV", "MOM"].forEach(k2 => {
-      var tt = bxTal[k2], td = tt.w + tt.l; if (!(td + tt.p)) return;
-      [[k2 + " ", "#E2E8F0"], ["✓" + tt.w + " ", GREEN], ["✗" + tt.l + " ", RED], [(td ? Math.round(tt.w / td * 100) + "%" : "--") + "   ", "#E2E8F0"]].forEach(s => {
-        tx3 += ctx.measureText(s[0]).width;
-      });
-    });
+    tcDrawTrades(ctx, function () { return -99999; }, null, rkTop, rkBot, W);
   }
 
   function tcDrawNow() {
@@ -1825,15 +1443,13 @@ function _autoSelectTopSignal(force) {
       TC.cv.style.width = W + "px"; TC.cv.style.height = H + "px";
     }
     var ctx = TC.ctx; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var BG = "#0B0E11", TXT = "#EAECEF", DIM = "#848E9C", CY = "#0ECB81", AM = "#F6465D";
+    var BG = "#0B0E11", DIM = "#848E9C", CY = "#0ECB81", AM = "#F6465D";
     ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
-        ctx.lineWidth = 1; ctx.setLineDash([]);
-        TC.hits = []; TC.hov = [];
+    ctx.lineWidth = 1; ctx.setLineDash([]);
     var ap = allPairData[DV_SYM] ? allPairData[DV_SYM].prices : null;
-        if (!ap || !ap.length) { ctx.fillStyle = "#FFFFFF"; ctx.font = "bold 12px " + MONO; ctx.fillText(getPairDisplayName(DV_SYM) + " — WAITING FOR DATA...", 12, 24); return; }
-        TC.allMap = tcCollectAll();
-            tcSigStrip(TC.allMap[DV_SYM]);
-        if (TC.boxMode) { tcDrawBoxes(ctx, W, H, dpr, DV_SYM, BG, DIM); return; }
+    if (!ap || !ap.length) { ctx.fillStyle = "#FFFFFF"; ctx.font = "bold 12px " + MONO; ctx.fillText(getPairDisplayName(DV_SYM) + " — WAITING FOR DATA...", 12, 24); return; }
+    TC.allMap = tcCollectAll();
+    if (TC.boxMode) { tcDrawBoxes(ctx, W, H, dpr, DV_SYM, BG); return; }
     var nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc, live = _isWithinMappedWindow() && nowSec >= 0 && nowSec < 86400;
     var apLast = tcLastReal(ap, Math.min(live ? nowSec : 86400, ap.length - 1)), nowIdx = live ? nowSec : Math.max(0, apLast);
     var plotW = W - PADL - PADR, ptop = PADT, pbot = H - PADB, spp = TC.spp;
@@ -1847,7 +1463,7 @@ function _autoSelectTopSignal(force) {
     }
     if (TC.follow) TC.left = nowIdx - plotW * spp * 0.4; else tcClamp(plotW);
     var left = TC.left, right = left + plotW * spp, i0 = Math.max(0, Math.floor(left)), st = Math.max(1, Math.floor(spp / 2));
-    var it = { pair: DV_SYM, prices: ap, len: ap.length, last: apLast, color: window.pairColorHex, lo: Infinity, hi: -Infinity, dec: 2, i1: Math.min(ap.length - 1, 86400, Math.ceil(right)) };
+    var it = { len: ap.length, last: apLast, color: PAIR_COLOR, lo: Infinity, hi: -Infinity, i1: Math.min(ap.length - 1, 86400, Math.ceil(right)) };
     for (var i = i0; i <= it.i1; i += st) { var pv = ap[i]; if (pv !== -1) { if (pv < it.lo) it.lo = pv; if (pv > it.hi) it.hi = pv; } }
     if (!(it.hi > it.lo)) { var v0 = it.last >= 0 ? ap[it.last] : 2000; it.lo = v0 - 1; it.hi = v0 + 1; }
     var pad0 = (it.hi - it.lo) * 0.06; it.lo -= pad0; it.hi += pad0;
@@ -1886,21 +1502,12 @@ function _autoSelectTopSignal(force) {
     ctx.stroke();
     if (it.last >= i0 && it.last <= it.i1) { ctx.beginPath(); ctx.arc(xOf(it.last), yOf(ap[it.last]), 4.5, 0, 6.283); ctx.fillStyle = it.color; ctx.fill(); }
 
-    var sgs = TC.allMap[DV_SYM], lim = Math.min(live ? nowSec - 1 : it.len - 1, it.len - 1, 86399);
-    var marks = [], items = [], tally = { REV: { w: 0, l: 0, p: 0 }, MOM: { w: 0, l: 0, p: 0 } }, nextIt = null, nReady = 0, nFired = 0;
+    var sgs = TC.allMap[DV_SYM], lim = Math.min(live ? nowSec - 1 : it.len - 1, it.len - 1, 86399), marks = [], items = [];
     [sgs.rev, sgs.mom].forEach(sg0 => {
       if (!sg0) return;
       var pl = tcPlan(sg0, ap, lim, 86400, it.last);
-      pl.hist.forEach(hh => {
-        var hw = tcWin(sg0.type, hh.res);
-        marks.push({ sig: sg0, i: hh.i, p: hh.p, res: hh.res, win: hw });
-        if (hw === "win") tally[sg0.type].w++; else if (hw === "loss") tally[sg0.type].l++; else if (hw === "pending") tally[sg0.type].p++;
-      });
-      if (pl.kind !== "NONE" && live) {
-        var nd = { sig: sg0, idx: pl.idx, need: pl.need, kind: pl.kind, ref: pl.ref };
-        items.push(nd);
-        if (pl.kind === "FIRED") nFired++; else { if (pl.need === 1) nReady++; if (!nextIt || pl.idx < nextIt.idx) nextIt = nd; }
-      }
+      pl.hist.forEach(hh => marks.push({ sig: sg0, i: hh.i, p: hh.p, res: hh.res, win: tcWin(sg0.type, hh.res) }));
+      if (pl.kind !== "NONE" && live) items.push({ idx: pl.idx, kind: pl.kind });
     });
 
     marks.forEach(mk => {
@@ -1915,25 +1522,22 @@ function _autoSelectTopSignal(force) {
         ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(flXe, my); ctx.stroke();
       }
       ctx.beginPath(); ctx.arc(mx, my, 4, 0, 6.283); ctx.fillStyle = it.color; ctx.fill();
-      if (mk.win === "win" || mk.win === "loss") {
-        bxMark(ctx, (mx + flXe) / 2, Math.max(ptop + 20, my - 22), mk.win === "win", _tcTkFs(), mk.win === "win" ? CY : AM, BG);
-      }
-      TC.hov.push({ x: mx, y: my, r: 9, o: { sig: mk.sig, idx: mk.i, kind: "MARK", res: mk.res, win: mk.win, p: mk.p, dec: 2 } });
+      if (mk.win === "win" || mk.win === "loss") bxMark(ctx, (mx + flXe) / 2, Math.max(ptop + 20, my - 22), mk.win === "win", _tcTkFs(), mk.win === "win" ? CY : AM, BG);
     });
 
     if (lastClickedSigId && currentInstances.length) {
-      var ocP = lastClickedSigId.split("-"), ocOff = _cycleOff();
+      var ocP = lastClickedSigId.split("-"), ocOff = _cycleOff(), ocUp = ocP[6] === "REV" ? ocP[5] === "R" : ocP[5] === "G";
       currentInstances.forEach((inst, n) => {
         var idx = inst.col * CYCLE + inst.row - ocOff;
         if (idx < i0 || idx > it.i1 || ap[idx] === -1) return;
         var ox = xOf(idx), oy = yOf(ap[idx]), sel = n === currentInstanceIndex;
         if (sel) {
           ctx.save(); ctx.strokeStyle = "#FFFFFF"; ctx.setLineDash([4, 4]);
-          ctx.strokeStyle = "#FFFFFF"; ctx.beginPath(); ctx.moveTo(ox, ptop); ctx.lineTo(ox, pbot); ctx.stroke(); ctx.restore();
+          ctx.beginPath(); ctx.moveTo(ox, ptop); ctx.lineTo(ox, pbot); ctx.stroke(); ctx.restore();
         }
-        var lbl = (((ocP[6] === "REV") ? (ocP[5] === "R") : (ocP[5] === "G")) ? "BUY" : "SELL") + (inst.isFalse ? " F" + (inst.falseSeq || 1) : "");
+        var lbl = (ocUp ? "BUY" : "SELL") + (inst.isFalse ? " F" + (inst.falseSeq || 1) : "");
         ctx.save(); ctx.font = "bold 10px " + MONO; var tw = ctx.measureText(lbl).width + 10, ly = oy > ptop + 26 ? oy - 16 : oy + 16;
-        ctx.fillStyle = (((ocP[6] === "REV") ? (ocP[5] === "R") : (ocP[5] === "G"))) ? CY : AM; bxRR(ctx, ox - tw / 2, ly - 7, tw, 14, 7); ctx.fill();
+        ctx.fillStyle = ocUp ? CY : AM; bxRR(ctx, ox - tw / 2, ly - 7, tw, 14, 7); ctx.fill();
         ctx.fillStyle = BG; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(lbl, ox, ly); ctx.restore();
       });
     }
@@ -1950,11 +1554,10 @@ function _autoSelectTopSignal(force) {
         ctx.beginPath(); ctx.arc(tx2, fy0, rad, 0, 6.283); ctx.fillStyle = it.color; ctx.fill();
         ctx.fillStyle = BG; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(txt, tx2, fy0 + 1); ctx.restore();
       }
-      TC.hov.push({ x: tx2, y: fy0, r: 12, o: { sig: tn.sig, idx: tn.idx, kind: tn.kind, need: tn.need, ref: tn.ref, dec: 2 } });
     });
 
     tcDrawTrades(ctx, xOf, yOf, ptop, pbot, W);
-        ctx.fillStyle = BG; ctx.fillRect(W - PADR, 0, PADR, H); ctx.fillRect(0, pbot, W, H - pbot);
+    ctx.fillStyle = BG; ctx.fillRect(W - PADR, 0, PADR, H); ctx.fillRect(0, pbot, W, H - pbot);
     ctx.save(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(132,142,156,0.32)"; ctx.strokeRect(0.5, 0.5, W - PADR - 1, pbot - 0.5); ctx.restore();
     ctx.font = "10px " + MONO; ctx.fillStyle = DIM; ctx.textAlign = "left"; ctx.textBaseline = "middle";
     var lastY = it.last >= 0 ? yOf(ap[it.last]) : -999;
@@ -1969,128 +1572,93 @@ function _autoSelectTopSignal(force) {
       if (tm < 0 || tm > 86400) continue;
       var tx3 = xOf(tm); if (tx3 > PADL + 28 && tx3 < W - PADR - 28) ctx.fillText(tcFmt(tm, tstep < 60), tx3, pbot + 12);
     }
-
-    ctx.textAlign = "left"; ctx.font = "bold 11px " + MONO; ctx.fillStyle = TXT;
-    
-    if (live && nextIt) {
-      var ns = nextIt.sig; ctx.fillStyle = "#FFFFFF";
-      
-    }
-    var tx4 = 8;
-    ["REV", "MOM"].forEach(k2 => {
-      var tt = tally[k2], td = tt.w + tt.l;
-      [[" " + k2 + " ", TXT], ["✓" + tt.w + " ", CY], ["✗" + tt.l + " ", AM], [(td ? Math.round(tt.w / td * 100) + "%" : "--") + "   ", TXT]].forEach(s => {
-        tx4 += ctx.measureText(s[0]).width;
-      });
-    });
   }
 
   function tcSigPick(pair) {
-        pair = pair || DV_SYM;
-        var clk = window._tcClicked(), r = null, o = null, pr = globalRevs.filter(function (z) { return z.pair === pair; }), pm = globalMoms.filter(function (z) { return z.pair === pair; });
-        try { r = _wsBuild(pr, "lvl")[0] || null; o = _wsBuild(pm, "lvl")[0] || null; } catch (e) {}
-        if (clk && clk.pair === pair) { if (clk.type === "REV") r = clk; else o = clk; }
-        return { rev: r, mom: o };
+    pair = pair || DV_SYM;
+    var clk = window._tcClicked(), r = null, o = null, pr = globalRevs.filter(function (z) { return z.pair === pair; }), pm = globalMoms.filter(function (z) { return z.pair === pair; });
+    try { r = _wsBuild(pr, "lvl")[0] || null; o = _wsBuild(pm, "lvl")[0] || null; } catch (e) {}
+    if (clk && clk.pair === pair) { if (clk.type === "REV") r = clk; else o = clk; }
+    return { rev: r, mom: o };
+  }
+
+  function tcDrawTrades(ctx, xOf, yOf, top, bot, W) {
+    var L = window.dvTrades, card = document.getElementById("tradeCard");
+    var nowS = Date.now() / 1000, ap = allPairData[DV_SYM].prices, rows = [];
+    var li = tcLastReal(ap, Math.min(Math.floor(nowS) - currentStartTsUtc, ap.length - 1)), cur = li >= 0 ? ap[li] : null;
+    (_ssShift !== 0 ? [] : (L || []).filter(function (z) { return (z.pair || DV_SYM) === DV_SYM; })).forEach(function (tr) {
+      var ex = tr.exp || (tr.t0 + tr.dur), up = tr.dir === "BUY", ei = tr.t0 - currentStartTsUtc, en = tr.entry, ri;
+      if (tr.status !== "open" && nowS - ex > 300) return;
+      if (!en && ei >= 0 && ei < ap.length) { ri = tcLastReal(ap, ei); if (ri >= 0) en = ap[ri]; }
+      if (tr.status === "open" && nowS > ex + 3 && en) {
+        var xi = ex - currentStartTsUtc, rx = (xi >= 0 && xi < ap.length) ? tcLastReal(ap, xi) : -1;
+        if (rx >= 0) { var won = up ? ap[rx] > en : ap[rx] < en; tr.status = won ? "won" : "lost"; tr.pnl = won ? tr.payout - tr.amt : -tr.amt; }
       }
-  
-    function tcSigStrip(m) {
-      var el = document.getElementById("sigStrip");
-          var sp = tcSigPick();
-          var spr = allPairData[DV_SYM].prices, spre = window._preArr(DV_SYM), sphi = Math.min(Math.floor(Date.now() / 1000) - currentStartTsUtc, spr.length - 1);
-          while (sphi > 0 && spr[sphi] === -1) sphi--;
-      if (!el) return;
-      var h = "";
-      [sp.rev, sp.mom].forEach(function(x) {
+      var pnl = tr.pnl;
+      if (pnl === null && en && cur !== null) pnl = (up ? cur > en : cur < en) ? tr.payout - tr.amt : -tr.amt;
+      var rem = Math.max(0, Math.ceil(ex - nowS));
+      rows.push({ up: up, amt: tr.amt, en: en, pnl: pnl, ei: ei, ex: ex, st: tr.status, ct: tr.status === "open" ? (((rem / 60) | 0) + ":" + ("0" + rem % 60).slice(-2)) : (tr.status === "won" ? "WIN" : "LOSS") });
+    });
+    var ch = "", _dc = _pxDec(DV_SYM);
+    rows.slice(-3).reverse().forEach(function (r) {
+      ch += '<div class="tcRow"><b style="color:' + (r.up ? "#00FF00" : "#FF0000") + '">' + (r.up ? "▲ BUY" : "▼ SELL") + '</b><span>' + r.amt.toFixed(2) + '</span><span>ENT ' + (r.en ? r.en.toFixed(_dc) : "--") + '</span><span>NOW ' + (cur !== null ? cur.toFixed(_dc) : "--") + '</span><b style="color:' + (r.pnl === null ? "#FFFFFF" : (r.pnl >= 0 ? "#00FF00" : "#FF0000")) + '">' + (r.pnl === null ? "--" : (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2)) + '</b><span>' + r.ct + '</span></div>';
+    });
+    if (card && card._h !== ch) { card._h = ch; card.innerHTML = ch; }
+    rows.forEach(function (r, k) {
+      var xs = xOf(r.ei), xe = xOf(r.ex - currentStartTsUtc);
+      if (xe < PADL || xs > W - PADR) return;
+      var col = r.st === "won" ? "#0ECB81" : (r.st === "lost" ? "#F6465D" : "#EAECEF");
+      var x0 = Math.max(PADL, xs), x1 = Math.min(W - PADR, xe);
+      ctx.save(); ctx.beginPath(); ctx.rect(PADL, top, W - PADL - PADR, bot - top); ctx.clip();
+      ctx.globalAlpha = 0.08; ctx.fillStyle = col; ctx.fillRect(x0, top, Math.max(0, x1 - x0), bot - top); ctx.globalAlpha = 1;
+      ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(Math.round(xs) + 0.5, top); ctx.lineTo(Math.round(xs) + 0.5, bot); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(Math.round(xe) + 0.5, top); ctx.lineTo(Math.round(xe) + 0.5, bot); ctx.stroke();
+      if (yOf && r.en) {
+        var ey = yOf(r.en);
+        ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(x0, ey); ctx.lineTo(x1, ey); ctx.stroke(); ctx.setLineDash([]);
+        ctx.beginPath(); ctx.arc(xs, ey, 4, 0, 6.283); ctx.fillStyle = col; ctx.fill();
+      }
+      ctx.font = "bold 10px " + MONO; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      var t1 = (r.up ? "▲ BUY " : "▼ SELL ") + r.amt.toFixed(2) + (r.pnl !== null ? "  " + (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2) : "");
+      var w1 = ctx.measureText(t1).width + 12, x2 = Math.max(PADL + 2, Math.min(W - PADR - w1 - 2, xs)), y1 = top + 8 + (k % 6) * 20;
+      ctx.fillStyle = col; bxRR(ctx, x2, y1, w1, 16, 4); ctx.fill();
+      ctx.fillStyle = "#000000"; ctx.fillText(t1, x2 + 6, y1 + 8.5);
+      var w2 = ctx.measureText(r.ct).width + 12, x3 = Math.max(PADL + 2, Math.min(W - PADR - w2 - 2, xe - w2 / 2)), y2 = bot - 22;
+      ctx.fillStyle = col; bxRR(ctx, x3, y2, w2, 16, 4); ctx.fill();
+      ctx.fillStyle = "#000000"; ctx.fillText(r.ct, x3 + 6, y2 + 8.5);
+      ctx.restore();
+    });
+  }
+
+  var tpLastFire = {};
+  function tpAutoTick() {
+    if (!dv.auto || !window.dvTrade || _ssShift !== 0) return;
+    var amt = parseFloat(document.getElementById("tpAmt").value) || 0;
+    if (amt <= 0) return;
+    var nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc;
+    if (nowSec < 0 || nowSec >= 86400) return;
+    activePairs.forEach(function (pair) {
+      var pd = allPairData[pair], ap = pd && pd.prices;
+      if (!ap || !ap.length || !_isWithinMappedWindow(pair) || (_pairRes[pair] && _pairRes[pair].cached)) return;
+      var lim = Math.min(nowSec, ap.length - 1, 86399), last = tcLastReal(ap, lim), sp = tcSigPick(pair);
+      [sp.rev, sp.mom].forEach(function (x) {
         if (!x) return;
-        h += '<div class="sgBox"><table><tr class="' + (x.col === "R" ? "row-red" : "row-green") + '">' +
-                '<td style="width:28%;text-align:left;padding-left:8px;">' + getPairDisplayName(x.pair) + (window._pyMap[x.pair] || "") + '<span style="display:block;font-size:8px;line-height:9px;">' + holdText(rpOne(x, x.type, spr, spre, sphi, spr.length)) + '</span></td>' +
-                '<td style="width:10%;text-align:center;">C' + x.c + '</td>' +
-                '<td style="width:10%;text-align:center;">R' + x.r + '</td>' +
-                '<td style="width:19%;text-align:center;">X' + x.s1 + '-X' + x.s2 + '</td>' +
-                '<td style="width:10%;text-align:center;">' + x.c1 + '</td>' +
-                '<td style="width:10%;text-align:center;">' + x.c2 + '</td>' +
-                '<td style="width:13%;text-align:center;">' + x.pct + '%</td></tr></table></div>';
+        var pl = tcPlan(x, ap, lim, 86400, last);
+        if (pl.kind !== "FIRED" || nowSec - pl.idx > 3) return;
+        var key = pair + "|" + x.type + "|" + x.c + "|" + x.r + "|" + x.s1 + "|" + x.col + "|" + pl.idx;
+        if (tpLastFire[key]) return;
+        tpLastFire[key] = 1;
+        var up = x.type === "REV" ? x.col === "R" : x.col === "G";
+        window.dvTrade(up ? "BUY" : "SELL", amt, x.c, pair);
       });
-      if (el._h !== h) { el._h = h; el.innerHTML = h; }
-    }
-  
-    function tcDrawTrades(ctx, xOf, yOf, top, bot, W) {
-        var L = window.dvTrades, card = document.getElementById("tradeCard");
-        var nowS = Date.now() / 1000, ap = allPairData[DV_SYM].prices, rows = [];
-        var li = tcLastReal(ap, Math.min(Math.floor(nowS) - currentStartTsUtc, ap.length - 1)), cur = li >= 0 ? ap[li] : null;
-        (_ssShift !== 0 ? [] : (L || []).filter(function (z) { return (z.pair || DV_SYM) === DV_SYM; })).forEach(function(tr) {
-          var ex = tr.exp || (tr.t0 + tr.dur), up = tr.dir === "BUY", ei = tr.t0 - currentStartTsUtc, en = tr.entry, ri;
-          if (tr.status !== "open" && nowS - ex > 300) return;
-          if (!en && ei >= 0 && ei < ap.length) { ri = tcLastReal(ap, ei); if (ri >= 0) en = ap[ri]; }
-          if (tr.status === "open" && nowS > ex + 3 && en) {
-            var xi = ex - currentStartTsUtc, rx = (xi >= 0 && xi < ap.length) ? tcLastReal(ap, xi) : -1;
-            if (rx >= 0) { var won = up ? ap[rx] > en : ap[rx] < en; tr.status = won ? "won" : "lost"; tr.pnl = won ? tr.payout - tr.amt : -tr.amt; }
-          }
-          var pnl = tr.pnl;
-          if (pnl === null && en && cur !== null) pnl = (up ? cur > en : cur < en) ? tr.payout - tr.amt : -tr.amt;
-          var rem = Math.max(0, Math.ceil(ex - nowS));
-          rows.push({ up: up, amt: tr.amt, en: en, pnl: pnl, ei: ei, ex: ex, st: tr.status, ct: tr.status === "open" ? (((rem / 60) | 0) + ":" + ("0" + rem % 60).slice(-2)) : (tr.status === "won" ? "WIN" : "LOSS") });
-        });
-        var ch = "", _dc = _pxDec(DV_SYM);
-                rows.slice(-3).reverse().forEach(function(r) {
-                  ch += '<div class="tcRow"><b style="color:' + (r.up ? "#00FF00" : "#FF0000") + '">' + (r.up ? "▲ BUY" : "▼ SELL") + '</b><span>' + r.amt.toFixed(2) + '</span><span>ENT ' + (r.en ? r.en.toFixed(_dc) : "--") + '</span><span>NOW ' + (cur !== null ? cur.toFixed(_dc) : "--") + '</span><b style="color:' + (r.pnl === null ? "#FFFFFF" : (r.pnl >= 0 ? "#00FF00" : "#FF0000")) + '">' + (r.pnl === null ? "--" : (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2)) + '</b><span>' + r.ct + '</span></div>';
-        });
-        if (card && card._h !== ch) { card._h = ch; card.innerHTML = ch; }
-        rows.forEach(function(r, k) {
-          var xs = xOf(r.ei), xe = xOf(r.ex - currentStartTsUtc);
-          if (xe < PADL || xs > W - PADR) return;
-          var col = r.st === "won" ? "#0ECB81" : (r.st === "lost" ? "#F6465D" : "#EAECEF");
-          var x0 = Math.max(PADL, xs), x1 = Math.min(W - PADR, xe);
-          ctx.save(); ctx.beginPath(); ctx.rect(PADL, top, W - PADL - PADR, bot - top); ctx.clip();
-          ctx.globalAlpha = 0.08; ctx.fillStyle = col; ctx.fillRect(x0, top, Math.max(0, x1 - x0), bot - top); ctx.globalAlpha = 1;
-          ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
-          ctx.beginPath(); ctx.moveTo(Math.round(xs) + 0.5, top); ctx.lineTo(Math.round(xs) + 0.5, bot); ctx.stroke();
-          ctx.setLineDash([]);
-          ctx.beginPath(); ctx.moveTo(Math.round(xe) + 0.5, top); ctx.lineTo(Math.round(xe) + 0.5, bot); ctx.stroke();
-          if (yOf && r.en) {
-            var ey = yOf(r.en);
-            ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(x0, ey); ctx.lineTo(x1, ey); ctx.stroke(); ctx.setLineDash([]);
-            ctx.beginPath(); ctx.arc(xs, ey, 4, 0, 6.283); ctx.fillStyle = col; ctx.fill();
-          }
-          ctx.font = "bold 10px " + MONO; ctx.textAlign = "left"; ctx.textBaseline = "middle";
-          var t1 = (r.up ? "▲ BUY " : "▼ SELL ") + r.amt.toFixed(2) + (r.pnl !== null ? "  " + (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2) : "");
-          var w1 = ctx.measureText(t1).width + 12, x2 = Math.max(PADL + 2, Math.min(W - PADR - w1 - 2, xs)), y1 = top + 8 + (k % 6) * 20;
-          ctx.fillStyle = col; bxRR(ctx, x2, y1, w1, 16, 4); ctx.fill();
-          ctx.fillStyle = "#000000"; ctx.fillText(t1, x2 + 6, y1 + 8.5);
-          var w2 = ctx.measureText(r.ct).width + 12, x3 = Math.max(PADL + 2, Math.min(W - PADR - w2 - 2, xe - w2 / 2)), y2 = bot - 22;
-          ctx.fillStyle = col; bxRR(ctx, x3, y2, w2, 16, 4); ctx.fill();
-          ctx.fillStyle = "#000000"; ctx.fillText(r.ct, x3 + 6, y2 + 8.5);
-          ctx.restore();
-        });
-      }
-    
-      var tpLastFire = {};
-            function tpAutoTick() {
-              if (!dv.auto || !window.dvTrade || _ssShift !== 0) return;
-              var amt = parseFloat(document.getElementById("tpAmt").value) || 0;
-              if (amt <= 0) return;
-              var nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc;
-              if (nowSec < 0 || nowSec >= 86400) return;
-              activePairs.forEach(function(pair) {
-                var pd = allPairData[pair], ap = pd && pd.prices;
-                if (!ap || !ap.length || !_isWithinMappedWindow(pair) || (_pairRes[pair] && _pairRes[pair].cached)) return;
-                var lim = Math.min(nowSec, ap.length - 1, 86399), last = tcLastReal(ap, lim), sp = tcSigPick(pair);
-                [sp.rev, sp.mom].forEach(function(x) {
-                  if (!x) return;
-                  var pl = tcPlan(x, ap, lim, 86400, last);
-                  if (pl.kind !== "FIRED" || nowSec - pl.idx > 3) return;
-                  var key = pair + "|" + x.type + "|" + x.c + "|" + x.r + "|" + x.s1 + "|" + x.col + "|" + pl.idx;
-                  if (tpLastFire[key]) return;
-                  tpLastFire[key] = 1;
-                  var up = x.type === "REV" ? x.col === "R" : x.col === "G";
-                  window.dvTrade(up ? "BUY" : "SELL", amt, x.c, pair);
-                });
-              });
-            }
-            setInterval(tpAutoTick, 500);
-    
-      function tcDraw() { if (!TC._rq) TC._rq = requestAnimationFrame(() => { TC._rq = 0; tcDrawNow(); }); }
-  window.tcRedraw = window.tcOnTableRendered = tcDraw;
+    });
+  }
+  setInterval(tpAutoTick, 500);
+
+  function tcDraw() { if (!TC._rq) TC._rq = requestAnimationFrame(() => { TC._rq = 0; tcDrawNow(); }); }
+  window.tcRedraw = tcDraw;
   setInterval(tcDraw, 500);
   window.addEventListener("resize", tcDraw);
 
@@ -2106,7 +1674,7 @@ function _autoSelectTopSignal(force) {
     tcDraw();
   }
   document.getElementById("tcCandleBtn").onclick = toggleCandleMode;
-  document.getElementById("tcSigModeBtn").onclick = function() {
+  document.getElementById("tcSigModeBtn").onclick = function () {
     TC.sigMode = TC.sigMode === "MIX" ? "REV" : (TC.sigMode === "REV" ? "MOM" : "MIX");
     this.textContent = TC.sigMode === "MIX" ? "REV/MOM" : TC.sigMode;
     tcDraw();
@@ -2147,42 +1715,14 @@ function _autoSelectTopSignal(force) {
   }, { passive: false });
 })();
 
-var tpBalance = 0;
-window.setTradeBal = function(v) {
-  tpBalance = +v || 0;
-  var e = document.getElementById("tpBal");
-  if (e) e.textContent = tpBalance.toFixed(2);
-};
-function tpTrade(dir) {
-  var a = parseFloat(document.getElementById("tpAmt").value) || 0;
-  if (a <= 0) return;
-  if (window.onTradePill) window.onTradePill(dir, a);
-}
-document.getElementById("tpBuy").onclick = function() { tpTrade("BUY"); };
-document.getElementById("tpSell").onclick = function() { tpTrade("SELL"); };
-
 var DV_APP = "33VdMoKptaW40mOpanwBg", DV_TOK = "pat_4b2171c2b96c25dd073fe246d5111b37325fb67a07b50aa887c384b7c181175f";
 var dv = { mode: "demo", ws: null, ready: false, bal: { demo: null, real: null }, cur: { demo: "USD", real: "USD" }, acc: {}, rid: 10, pend: {}, auto: false };
-
-function dvCfg() {
-  return { app: DV_APP, tok: DV_TOK, demo: dv.acc.demo || "", real: dv.acc.real || "" };
-}
-
-function dvAsk() {
-  var c = dvCfg(), a = prompt("Deriv App ID", c.app || ""); if (a === null) return null;
-  var t = prompt("Deriv PAT token", c.tok || ""); if (t === null) return null;
-  var d = prompt("DEMO account ID", c.demo || ""); if (d === null) return null;
-  var r = prompt("REAL account ID (optional)", c.real || ""); if (r === null) return null;
-  c = { app: a.trim(), tok: t.trim(), demo: d.trim(), real: r.trim() };
-  try { localStorage.setItem("dvCfg", JSON.stringify(c)); } catch (e) {}
-  return c;
-}
 
 function tpBalShow() {
   var e = document.getElementById("tpBal"); if (!e) return;
   var v = dv.bal[dv.mode];
   e.textContent = (v === null ? "0.00" : v.toFixed(2));
-    e.style.color = "#FFFFFF";
+  e.style.color = "#FFFFFF";
 }
 
 function tpFlash(ok, msg) {
@@ -2191,15 +1731,15 @@ function tpFlash(ok, msg) {
   p.title = msg || "";
   if (msg) console.log("[TRADE] " + msg);
   clearTimeout(tpFlash._t);
-  tpFlash._t = setTimeout(function() { p.style.borderColor = ""; }, 1200);
+  tpFlash._t = setTimeout(function () { p.style.borderColor = ""; }, 1200);
 }
 
 function dvSend(obj) {
-  return new Promise(function(res, rej) {
+  return new Promise(function (res, rej) {
     if (!dv.ready || !dv.ws) { rej(new Error("not connected")); return; }
     var id = ++dv.rid; obj.req_id = id;
-    var t = setTimeout(function() { delete dv.pend[id]; rej(new Error("timeout")); }, 15000);
-    dv.pend[id] = function(d) {
+    var t = setTimeout(function () { delete dv.pend[id]; rej(new Error("timeout")); }, 15000);
+    dv.pend[id] = function (d) {
       clearTimeout(t); delete dv.pend[id];
       if (d.error) rej(new Error(d.error.message || "error")); else res(d);
     };
@@ -2211,7 +1751,7 @@ async function dvLoadAccts() {
   try {
     var r = await fetch("https://api.derivws.com/trading/v1/options/accounts", { headers: { "Authorization": "Bearer " + DV_TOK, "Deriv-App-ID": DV_APP } });
     var j = await r.json(), L = j && j.data ? (Array.isArray(j.data) ? j.data : [j.data]) : [];
-    L.forEach(function(a) {
+    L.forEach(function (a) {
       if (!a || a.status === "inactive") return;
       var t = a.account_type === "real" ? "real" : "demo";
       if (dv.acc[t]) return;
@@ -2223,31 +1763,29 @@ async function dvLoadAccts() {
 }
 
 async function dvConnect(mode) {
-  var c = dvCfg();
   if (!dv.acc[mode]) await dvLoadAccts();
-    c = dvCfg();
-    if (!c[mode]) { tpFlash(false, "no " + mode + " account found"); return false; }
+  if (!dv.acc[mode]) { tpFlash(false, "no " + mode + " account found"); return false; }
   if (mode !== dv.mode) { dv.auto = false; var ab = document.getElementById("tpAuto"); if (ab) ab.classList.remove("on"); }
   var old = dv.ws; dv.ws = null; dv.ready = false; dv.mode = mode; tpBalShow();
   if (old) { try { old.onclose = null; old.close(); } catch (e) {} }
   try {
-    var r = await fetch("https://api.derivws.com/trading/v1/options/accounts/" + encodeURIComponent(c[mode]) + "/otp", { method: "POST", headers: { "Authorization": "Bearer " + c.tok, "Deriv-App-ID": c.app } });
+    var r = await fetch("https://api.derivws.com/trading/v1/options/accounts/" + encodeURIComponent(dv.acc[mode]) + "/otp", { method: "POST", headers: { "Authorization": "Bearer " + DV_TOK, "Deriv-App-ID": DV_APP } });
     var j = await r.json();
     if (!j || !j.data || !j.data.url) throw new Error("OTP rejected");
     var ws = new WebSocket(j.data.url);
     dv.ws = ws;
-    ws.onmessage = function(ev) {
+    ws.onmessage = function (ev) {
       var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
       if (d.msg_type === "balance" && d.balance) { dv.bal[mode] = +d.balance.balance; dv.cur[mode] = d.balance.currency || "USD"; if (dv.mode === mode) tpBalShow(); }
       if (d.proposal_open_contract && window.dvOnPoc) window.dvOnPoc(d.proposal_open_contract);
-            if (d.req_id && dv.pend[d.req_id]) dv.pend[d.req_id](d);
+      if (d.req_id && dv.pend[d.req_id]) dv.pend[d.req_id](d);
     };
-    ws.onclose = function() {
+    ws.onclose = function () {
       if (dv.ws !== ws) return;
       dv.ready = false;
-      setTimeout(function() { if (dv.ws === ws) dvConnect(dv.mode); }, 5000);
+      setTimeout(function () { if (dv.ws === ws) dvConnect(dv.mode); }, 5000);
     };
-    await new Promise(function(res, rej) { ws.onopen = res; ws.onerror = function() { rej(new Error("socket error")); }; });
+    await new Promise(function (res, rej) { ws.onopen = res; ws.onerror = function () { rej(new Error("socket error")); }; });
     if (dv.ws !== ws) return false;
     dv.ready = true;
     ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
@@ -2262,7 +1800,7 @@ async function dvTrade(dir, amt, dur, pair) {
     var pr = await dvSend({ proposal: 1, amount: amt, basis: "stake", contract_type: dir === "BUY" ? "CALL" : "PUT", currency: dv.cur[dv.mode] || "USD", duration: dur, duration_unit: "s", underlying_symbol: pair || DV_SYM });
     var by = await dvSend({ buy: pr.proposal.id, price: +pr.proposal.ask_price || amt });
     if (by.buy && window.dvAddTrade) window.dvAddTrade(by.buy, pr.proposal, dir, amt, dur, pair || DV_SYM);
-        tpFlash(true, dir + " " + amt + " " + dur + "s #" + (by.buy ? by.buy.contract_id : ""));
+    tpFlash(true, dir + " " + amt + " " + dur + "s #" + (by.buy ? by.buy.contract_id : ""));
     return true;
   } catch (e) { tpFlash(false, dir + " failed: " + e.message); return false; }
 }
@@ -2273,10 +1811,10 @@ function dvManual(dir) {
   if (a <= 0) return;
   dvTrade(dir, a, Math.round(CYCLE) || 300);
 }
-document.getElementById("tpBuy").onclick = function() { dvManual("BUY"); };
-document.getElementById("tpSell").onclick = function() { dvManual("SELL"); };
-document.getElementById("tpBal").onclick = function() { dvConnect(dv.mode === "demo" ? "real" : "demo"); };
-document.getElementById("tpAuto").onclick = function() {
+document.getElementById("tpBuy").onclick = function () { dvManual("BUY"); };
+document.getElementById("tpSell").onclick = function () { dvManual("SELL"); };
+document.getElementById("tpBal").onclick = function () { dvConnect(dv.mode === "demo" ? "real" : "demo"); };
+document.getElementById("tpAuto").onclick = function () {
   if (!dv.auto && dv.mode === "real" && !confirm("AUTO will place REAL money trades. Enable?")) return;
   dv.auto = !dv.auto;
   this.classList.toggle("on", dv.auto);
@@ -2284,15 +1822,12 @@ document.getElementById("tpAuto").onclick = function() {
 };
 dvConnect("demo");
 
-window._pyHtml = "";
-window._pyMap = {};
 var _pyCyc = 0;
 function pyStore(pair, txt, tip) {
   var h = '<span class="pyP" title="' + String(tip || "").replace(/"/g, "'") + '">' + txt + '</span>';
   if (window._pyMap[pair] === h) return false;
   window._pyMap[pair] = h; return true;
 }
-
 function pyFetch() {
   var dur = Math.round(CYCLE) || 300, ws, t, done = false, pl = activePairs.slice(), got = {}, nGot = 0, chg = false;
   function fin() {
@@ -2304,8 +1839,8 @@ function pyFetch() {
   }
   try { ws = new WebSocket(DERIV_WS_URL); } catch (e) { fin(); return; }
   t = setTimeout(fin, 10000);
-  ws.onopen = function() { for (var i = 0; i < pl.length; i++) ws.send(JSON.stringify({ proposal: 1, amount: 1, basis: "stake", contract_type: "CALL", currency: "USD", duration: dur, duration_unit: "s", underlying_symbol: pl[i], req_id: i + 1 })); };
-  ws.onmessage = function(ev) {
+  ws.onopen = function () { for (var i = 0; i < pl.length; i++) ws.send(JSON.stringify({ proposal: 1, amount: 1, basis: "stake", contract_type: "CALL", currency: "USD", duration: dur, duration_unit: "s", underlying_symbol: pl[i], req_id: i + 1 })); };
+  ws.onmessage = function (ev) {
     var d, k, ap, po, ok;
     try { d = JSON.parse(ev.data); } catch (e) { return; }
     k = d.req_id ? pl[d.req_id - 1] : null;
@@ -2319,34 +1854,17 @@ function pyFetch() {
   };
   ws.onerror = fin; ws.onclose = fin;
 }
-
-function pyFetchOld() {
-  var dur = Math.round(CYCLE) || 300, ws, done = false;
-  try { ws = new WebSocket(DERIV_WS_URL); } catch (e) { return; }
-  var t = setTimeout(function() { if (!done) { done = true; try { ws.close(); } catch (e) {} } }, 10000);
-  ws.onopen = function() { ws.send(JSON.stringify({ proposal: 1, amount: 1, basis: "stake", contract_type: "CALL", currency: "USD", duration: dur, duration_unit: "s", underlying_symbol: "frxXAUUSD" })); };
-  ws.onmessage = function(ev) {
-    if (done) return;
-    var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
-    done = true; clearTimeout(t); try { ws.close(); } catch (e) {}
-    if (d.proposal && +d.proposal.ask_price > 0) {
-      var h = '<span class="pyP">' + Math.round((d.proposal.payout / d.proposal.ask_price - 1) * 100) + '%</span>';
-      if (h !== window._pyHtml) { window._pyHtml = h; renderFilteredTable(); }
-    } else console.log("[PAYOUT] " + (d.error ? d.error.message : "no proposal"));
-  };
-  ws.onerror = function() { if (!done) { done = true; clearTimeout(t); } };
-}
-setInterval(function() { if (_pyCyc !== CYCLE) { _pyCyc = CYCLE; pyFetch(); } }, 2000);
+setInterval(function () { if (_pyCyc !== CYCLE) { _pyCyc = CYCLE; pyFetch(); } }, 2000);
 setInterval(pyFetch, 30000);
 
 window.dvTrades = [];
-window.dvAddTrade = function(b, p, dir, amt, dur, pair) {
+window.dvAddTrade = function (b, p, dir, amt, dur, pair) {
   var tr = { pair: pair || DV_SYM, id: String(b.contract_id), dir: dir, amt: +b.buy_price || amt, dur: dur, t0: +b.start_time || +b.purchase_time || Math.floor(Date.now() / 1000), payout: +b.payout || +(p && p.payout) || 0, entry: null, pnl: null, status: "open" };
   window.dvTrades.push(tr);
   if (window.dvTrades.length > 20) window.dvTrades.shift();
   try { if (dv.ws && dv.ready) dv.ws.send(JSON.stringify({ proposal_open_contract: 1, contract_id: b.contract_id, subscribe: 1 })); } catch (e) {}
 };
-window.dvOnPoc = function(p) {
+window.dvOnPoc = function (p) {
   var L = window.dvTrades;
   for (var i = 0; i < L.length; i++) {
     if (L[i].id !== String(p.contract_id)) continue;
@@ -2370,60 +1888,57 @@ function _scanPairNow(p) {
 }
 function _loadRest(ctx) {
   var rest = ALL_PAIRS.filter(function (p) { return activePairs.indexOf(p) < 0; });
-    var q = rest.filter(function (p) { return /^1HZ/.test(p); }).concat(
-          rest.filter(function (p) { return _gmPairs("MTL").indexOf(p) >= 0; }),
-      rest.filter(function (p) { return /^frx/.test(p) && _gmPairs("MTL").indexOf(p) < 0; })
-    );
+  var q = rest.filter(function (p) { return /^1HZ/.test(p); }).concat(
+    rest.filter(function (p) { return _gmPairs("MTL").indexOf(p) >= 0; }),
+    rest.filter(function (p) { return /^frx/.test(p) && _gmPairs("MTL").indexOf(p) < 0; })
+  );
   rest.forEach(function (p) {
     activePairs.push(p);
     allPairData[p] = { times: new Int32Array(0), prices: new Float64Array(0) };
   });
-  _pairUi(); _gmUi();
-      window._loadQ = q;
-      var run = async function () {
+  _gmUi();
+  window._loadQ = q;
+  var run = async function () {
     var p, g, j;
     while (q.length) {
       p = q.shift();
       if (ctx.startTsUtc !== currentStartTsUtc) return;
       _bootPairState[p] = "wait";
-      try { g = await fetchDerivGrid(p, ctx.dateStr, ctx.startTsUtc, ctx.startTsUtc + ctx.duration); } catch (e) { continue; }
+      try { g = await fetchDerivGrid(p, ctx.startTsUtc, ctx.startTsUtc + ctx.duration); } catch (e) { continue; }
       if (ctx.startTsUtc !== currentStartTsUtc || activePairs.indexOf(p) < 0) return;
       allPairData[p] = g;
       for (j = g.prices.length - 1; j > 0 && g.prices[j] === -1; j--);
       window._lmx[p] = j > 0 ? j : 0;
       _bootPairState[p] = "done";
-            _scanPairNow(p);
-            _gmUi();
-          }
-        };
-        run(); run(); run(); run(); run();
+      _scanPairNow(p);
+      _gmUi();
+    }
+  };
+  for (var w = 0; w < 5; w++) run();
 }
-window.onload = async function() {
+window.onload = async function () {
   _gmCur = 0;
   activePairs = _gmPairs("CRY");
-    DV_SYM = activePair = activePairs[0];
-      _pairUi(); _gmUi();
+  DV_SYM = activePairs[0];
+  _gmUi();
   var ctx = getTradingContext();
-  currentStartTsUtc = ctx.startTsUtc; currentDuration = ctx.duration;
-  bootLog("AOFS LOCAL BOOT — " + ctx.dateStr + " (05:30-05:30 IST)", "#00E676");
-    _cacheClean(ctx.startTsUtc);
+  currentStartTsUtc = ctx.startTsUtc;
+  bootLog("AOFS LOCAL BOOT — " + ctx.dateStr + " (05:30-05:30 IST)");
+  _cacheClean(ctx.startTsUtc);
   await _loadPairs(ctx);
-    window._bootHide = function () { var o = document.getElementById("bootOverlay"); if (o) o.style.display = "none"; };
   document.getElementById("syncStatusText").textContent = ctx.isLive ? "🟢 LIVE SYNCED" : "🔵 MARKET CLOSED";
-    window._autoSelectAfterScan = true;
-    processVisualMatrix();
-    dispatchMultiCycleScan();
-    _loadRest(ctx);
-        await new Promise(function (res) {
-          var t0 = Date.now(), iv = setInterval(function () {
-            var all = ALL_PAIRS.every(function (p) { return _bootPairState[p] === "done"; });
-            if (all || Date.now() - t0 > 90000 || ctx.startTsUtc !== currentStartTsUtc) { clearInterval(iv); res(); }
-          }, 300);
-        });
-        window._bootHide();
-  };
+  window._autoSelectAfterScan = true;
+  processVisualMatrix();
+  dispatchMultiCycleScan();
+  _loadRest(ctx);
+  await new Promise(function (res) {
+    var t0 = Date.now(), iv = setInterval(function () {
+      var all = ALL_PAIRS.every(function (p) { return _bootPairState[p] === "done"; });
+      if (all || Date.now() - t0 > 90000 || ctx.startTsUtc !== currentStartTsUtc) { clearInterval(iv); res(); }
+    }, 300);
+  });
+  var o = document.getElementById("bootOverlay"); if (o) o.style.display = "none";
+};
 </script>
 </body>
 </html>
-
-```
