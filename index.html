@@ -218,6 +218,39 @@ tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{background:var(-
 #pairPanel input{accent-color:#FCD535;width:14px;height:14px;}
 #pairPanel button{height:26px;padding:0 14px;background:#141A22;border:1px solid #2F3845;border-radius:7px;color:#EAECEF;font:700 10px 'JetBrains Mono',monospace;cursor:pointer;}
 #pairPanel button#pairOk{background:#FCD535;border-color:#FCD535;color:#0B0E11;}
+#tradePill{flex:1 1 0!important;width:100%!important;min-width:0!important;flex-wrap:nowrap!important;justify-content:stretch!important;gap:6px!important;}
+#tradePill::after{display:none!important;}
+#tradePill>*{box-sizing:border-box!important;flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important;height:26px!important;padding:0 2px!important;margin:0!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:clip!important;text-align:center!important;text-align-last:center!important;order:20;}
+#tradePill #scanMin{order:30!important;}
+#tradePill #scanMax{order:31!important;}
+#tradePill #scanMin{order:1;}
+#tradePill #scanMax{order:2;}
+#tradePill #ssSize{order:3;}
+#tradePill #tpAmt{order:4;}
+#tradePill #tpBuy{order:5;}
+#tradePill #tpSell{order:6;}
+#tradePill #tpAuto{order:7;}
+#tradePill #tpBal{order:8;}
+#tradePill #scanIntv{order:9;}
+#tradePill #btToggle{order:10;}
+#tradePill #modeBtn{order:11;}
+#tradePill #btDate{order:12;}
+#tradePill #scanMin{order:1;}
+#tradePill #scanMax{order:2;}
+#tradePill #ssSize{order:3;width:72px;}
+#tradePill #scanIntv{order:4;}
+#tradePill #tpAmt{order:5;}
+#tradePill #tpBuy{order:6;}
+#tradePill #tpSell{order:7;}
+#tradePill #tpAuto{order:8;}
+#tradePill #tpBal{order:9;}
+#wall-finder-pane #rangePill #tradePill #btToggle,#wall-finder-pane #rangePill #tradePill #modeBtn{width:72px;min-width:72px;padding:0;}
+#tradePill #btToggle{order:10;}
+#tradePill #modeBtn{order:11;}
+#tradePill #btDate{order:12;}
+#tradePill::after{content:"";order:13;flex:0 0 150px;height:26px;visibility:hidden;}
+#tradePill:has(#btDate:not([style*="none"]))::after{flex-basis:26px;}
+@media(max-width:1100px){#tradePill::after{display:none;}}
 </style>
 </head>
 <body>
