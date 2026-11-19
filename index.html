@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <title>WALLSPECTRUM LOCAL — MULTIPAIR</title>
 <style>
-:root{color-scheme:dark;--pf-bg:#000432;--pf-bg2:#000432;--pf-ctl:#B8C4DE;--pf-line:#2B3A8F;--pf-line2:#3C4DB0;--pf-text:#000432;--pf-soft:#000432;--pf-mute:#000432;--pf-fill:#B8C4DE;--pf-up:#0B9E6E;--pf-dn:#D0364F;--pf-gold:#FCD535;--pf-up-rgb:11,158,110;--pf-dn-rgb:208,54,79;}
+:root{color-scheme:dark;--pf-bg:#000432;--pf-bg2:#000432;--pf-ctl:#C98A2B;--pf-line:#2B3A8F;--pf-line2:#3C4DB0;--pf-text:#000432;--pf-soft:#000432;--pf-mute:#000432;--pf-fill:#C98A2B;--pf-up:#0B9E6E;--pf-dn:#D0364F;--pf-gold:#FCD535;--pf-up-rgb:11,158,110;--pf-dn-rgb:208,54,79;}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;background:#000432;color:var(--pf-text);font-family:'Roboto Mono',monospace;overflow:hidden;user-select:none;-webkit-user-select:none;}
 #main-container{height:100%;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) clamp(175px,30vh,290px);gap:4px;padding:4px;overflow:hidden;position:relative;background:#000432;}
@@ -82,7 +82,7 @@ td:first-child span[data-hold-t]{display:block;margin-top:2px;color:#000432;font
 #tradePill #tpBuy{background:var(--pf-up);color:#000432;}
 #tradePill #tpSell{background:var(--pf-dn);color:#000432;}
 #bootOverlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;background:#000432;}
-#bootOverlay>div:first-child{font-size:12px;font-weight:600;letter-spacing:.2em;color:#000432;background:var(--pf-fill);padding:6px 12px;border-radius:6px;}
+#bootOverlay>div:first-child{width:min(540px,94vw);text-align:center;font-size:12px;font-weight:600;letter-spacing:.2em;color:#000432;background:var(--pf-fill);padding:6px 12px;border-radius:10px;}
 #bootLogBox{width:min(540px,94vw);height:150px;padding:10px;overflow-y:auto;background:var(--pf-fill);border:1px solid var(--pf-line2);border-radius:10px;color:#000432;font-size:10px;line-height:1.5;}
 #bootLogBox *{color:#000432!important;}
 @media(max-width:600px){
@@ -1490,7 +1490,7 @@ function _autoSelectTopSignal(force) {
       var px = Math.round((x0 + bxG / 2) * dpr) / dpr, bw = Math.max(1, Math.round((x1 - bxG / 2) * dpr) / dpr - px), py = Math.round((rkTop + gRow * gh + bxG / 2) * dpr) / dpr;
       var bh = Math.max(2, Math.round((rkTop + (gRow + 1) * gh - bxG / 2) * dpr) / dpr - py);
       var bxCol = bxCells ? ((!hcCell || j === cj) ? "#000000" : (hcCell.col === 1 ? GREEN : RED)) : ((!c || j === cj) ? "#000000" : (c[3] >= c[0] ? GREEN : RED)), bxRad = Math.min(4, bh * 0.22), bxLw = 1;
-      if (bxCol === "#000000") { ctx.fillStyle = "#B8C4DE"; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill(); }
+      if (bxCol === "#000000") { ctx.fillStyle = "#C98A2B"; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill(); }
       else if (bw < 7 || bh < 7) { ctx.fillStyle = bxCol; ctx.fillRect(px, py, bw, bh); }
       else {
         ctx.fillStyle = bxCol; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill();
@@ -1540,11 +1540,11 @@ function _autoSelectTopSignal(force) {
       TC.cv.style.width = W + "px"; TC.cv.style.height = H + "px";
     }
     var ctx = TC.ctx; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var BG = "#000432", DIM = "#848E9C", CY = "#0B9E6E", AM = "#D0364F";
-    ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
+    var BG = "#000432", DIM = "#000432", CY = "#000432", AM = "#000432";
+    ctx.fillStyle = TC.boxMode ? BG : "#C98A2B"; ctx.fillRect(0, 0, W, H);
     ctx.lineWidth = 1; ctx.setLineDash([]);
     var ap = allPairData[DV_SYM] ? allPairData[DV_SYM].prices : null;
-    if (!ap || !ap.length) { var _wt = getPairDisplayName(DV_SYM) + " — WAITING FOR DATA..."; ctx.font = "bold 12px " + MONO; ctx.fillStyle = "#B8C4DE"; ctx.fillRect(6, 8, ctx.measureText(_wt).width + 12, 22); ctx.fillStyle = BG; ctx.fillText(_wt, 12, 24); return; }
+    if (!ap || !ap.length) { var _wt = getPairDisplayName(DV_SYM) + " — WAITING FOR DATA..."; ctx.font = "bold 12px " + MONO; ctx.fillStyle = "#C98A2B"; ctx.fillRect(6, 8, ctx.measureText(_wt).width + 12, 22); ctx.fillStyle = BG; ctx.fillText(_wt, 12, 24); return; }
     TC.allMap = tcCollectAll();
     if (TC.boxMode) { tcDrawBoxes(ctx, W, H, dpr, DV_SYM, BG); return; }
     var nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc, live = _isWithinMappedWindow() && nowSec >= 0 && nowSec < 86400;
@@ -1560,7 +1560,7 @@ function _autoSelectTopSignal(force) {
     }
     if (TC.follow) TC.left = nowIdx - plotW * spp * 0.4; else tcClamp(plotW);
     var left = TC.left, right = left + plotW * spp, i0 = Math.max(0, Math.floor(left)), st = Math.max(1, Math.floor(spp / 2));
-    var it = { len: ap.length, last: apLast, color: PAIR_COLOR, lo: Infinity, hi: -Infinity, i1: Math.min(ap.length - 1, 86400, Math.ceil(right)) };
+    var it = { len: ap.length, last: apLast, color: "#000432", lo: Infinity, hi: -Infinity, i1: Math.min(ap.length - 1, 86400, Math.ceil(right)) };
     for (var i = i0; i <= it.i1; i += st) { var pv = ap[i]; if (pv !== -1) { if (pv < it.lo) it.lo = pv; if (pv > it.hi) it.hi = pv; } }
     if (!(it.hi > it.lo)) { var v0 = it.last >= 0 ? ap[it.last] : 2000; it.lo = v0 - 1; it.hi = v0 + 1; }
     var pad0 = (it.hi - it.lo) * 0.06; it.lo -= pad0; it.hi += pad0;
@@ -1629,12 +1629,12 @@ function _autoSelectTopSignal(force) {
         if (idx < i0 || idx > it.i1 || ap[idx] === -1) return;
         var ox = xOf(idx), oy = yOf(ap[idx]), sel = n === currentInstanceIndex;
         if (sel) {
-          ctx.save(); ctx.strokeStyle = "#FFFFFF"; ctx.setLineDash([4, 4]);
+          ctx.save(); ctx.strokeStyle = "#000432"; ctx.setLineDash([4, 4]);
           ctx.beginPath(); ctx.moveTo(ox, ptop); ctx.lineTo(ox, pbot); ctx.stroke(); ctx.restore();
         }
         var lbl = (ocUp ? "BUY" : "SELL") + (inst.isFalse ? " F" + (inst.falseSeq || 1) : "");
         ctx.save(); ctx.font = "bold 10px " + MONO; var tw = ctx.measureText(lbl).width + 10, ly = oy > ptop + 26 ? oy - 16 : oy + 16;
-        ctx.fillStyle = ocUp ? CY : AM; bxRR(ctx, ox - tw / 2, ly - 7, tw, 14, 7); ctx.fill();
+        ctx.fillStyle = "#000432";
         ctx.fillStyle = BG; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(lbl, ox, ly); ctx.restore();
       });
     }
@@ -1648,26 +1648,26 @@ function _autoSelectTopSignal(force) {
       if (tn.kind === "FUT") {
         var sec = (tn.idx - nowSec) - ((Date.now() % 1000) / 1000), txt = sec > 0 ? (sec >= 100 ? tcFmtIn(Math.ceil(sec)) : sec.toFixed(1) + "s") : "NOW";
         ctx.save(); ctx.font = "bold 14px " + MONO; var rad = Math.max(16, ctx.measureText(txt).width / 2 + 6);
-        ctx.beginPath(); ctx.arc(tx2, fy0, rad, 0, 6.283); ctx.fillStyle = it.color; ctx.fill();
+        ctx.fillStyle = "#000432";
         ctx.fillStyle = BG; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(txt, tx2, fy0 + 1); ctx.restore();
       }
     });
 
     tcDrawTrades(ctx, xOf, yOf, ptop, pbot, W);
-    ctx.fillStyle = BG; ctx.fillRect(W - PADR, 0, PADR, H); ctx.fillRect(0, pbot, W, H - pbot);
+    ctx.fillStyle = "#C98A2B"; ctx.fillRect(W - PADR, 0, PADR, H); ctx.fillRect(0, pbot, W, H - pbot);
     ctx.save(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.lineWidth = 1; ctx.restore();
     ctx.font = "10px " + MONO; ctx.fillStyle = DIM; ctx.textAlign = "left"; ctx.textBaseline = "middle";
     var lastY = it.last >= 0 ? yOf(ap[it.last]) : -999;
-    pxTicks.forEach(tk => { if (tk.y > ptop + 12 && tk.y < pbot - 12 && Math.abs(tk.y - lastY) > 12) { var _tl = tk.v.toFixed(_pxDec(DV_SYM)), _tw = ctx.measureText(_tl).width + 8; ctx.fillStyle = "#B8C4DE"; ctx.fillRect(W - PADR + 2, tk.y - 7, _tw, 14); ctx.fillStyle = BG; ctx.fillText(_tl, W - PADR + 6, tk.y); } });
+    pxTicks.forEach(tk => { if (tk.y > ptop + 12 && tk.y < pbot - 12 && Math.abs(tk.y - lastY) > 12) { var _tl = tk.v.toFixed(_pxDec(DV_SYM)), _tw = ctx.measureText(_tl).width + 8; ctx.fillStyle = "#C98A2B"; ctx.fillRect(W - PADR + 2, tk.y - 7, _tw, 14); ctx.fillStyle = BG; ctx.fillText(_tl, W - PADR + 6, tk.y); } });
     if (it.last >= 0) {
       var ly2 = Math.max(ptop + 9, Math.min(pbot - 9, lastY));
-      ctx.fillStyle = it.color; ctx.fillRect(W - PADR + 2, ly2 - 9, PADR - 4, 18);
+      ctx.fillStyle = "#C98A2B"; ctx.fillRect(W - PADR + 2, ly2 - 9, PADR - 4, 18);
       ctx.fillStyle = BG; ctx.font = "bold 10px " + MONO; ctx.textAlign = "center"; ctx.fillText(ap[it.last].toFixed(_pxDec(DV_SYM)), W - PADR / 2, ly2 + 0.5);
     }
     ctx.fillStyle = DIM; ctx.font = "10px " + MONO; ctx.textAlign = "center";
     for (var tm = firstT; tm <= right; tm += tstep) {
       if (tm < 0 || tm > 86400) continue;
-      var tx3 = xOf(tm); if (tx3 > PADL + 28 && tx3 < W - PADR - 28) { var _ts = tcFmt(tm, tstep < 60), _tsw = ctx.measureText(_ts).width + 8; ctx.fillStyle = "#B8C4DE"; ctx.fillRect(tx3 - _tsw / 2, pbot + 4, _tsw, 16); ctx.fillStyle = BG; ctx.fillText(_ts, tx3, pbot + 12); }
+      var tx3 = xOf(tm); if (tx3 > PADL + 28 && tx3 < W - PADR - 28) { var _ts = tcFmt(tm, tstep < 60), _tsw = ctx.measureText(_ts).width + 8; ctx.fillStyle = "#C98A2B"; ctx.fillRect(tx3 - _tsw / 2, pbot + 4, _tsw, 16); ctx.fillStyle = BG; ctx.fillText(_ts, tx3, pbot + 12); }
     }
   }
 
