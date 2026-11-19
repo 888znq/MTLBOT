@@ -426,7 +426,14 @@ function _gmUi() {
   var L = _gmPairs(_gmList[_gmCur]), d = L.filter(function (p) { return _bootPairState[p] === "done"; }).length;
   b.textContent = _gmList[_gmCur] + (d < L.length ? " " + d + "/" + L.length : "");
 }
-function _gmVis(p) { return _gmPairs(_gmList[_gmCur]).indexOf(p) >= 0; }
+var _gmVC;
+function _gmVis(p) {
+  var m = _gmList[_gmCur], s;
+  if (!_gmVC) _gmVC = {};
+  s = _gmVC[m];
+  if (!s) { s = _gmVC[m] = {}; _gmPairs(m).forEach(function (q) { s[q] = 1; }); }
+  return s[p] === 1;
+}
 function _gmNext() {
   _gmCur = (_gmCur + 1) % _gmList.length;
   _gmUi();
