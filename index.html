@@ -9,7 +9,7 @@
 <title>WALLSPECTRUM LOCAL — MULTIPAIR</title>
 <style>
 :root{color-scheme:dark;--bw:3px;--sp:3px;--ac:#C0C0C0;--ln:var(--ac);--pf-bg:#000000;--pf-bg2:#000000;--pf-ctl:#000000;--pf-line:var(--ac);--pf-line2:var(--ac);--pf-text:var(--ac);--pf-soft:var(--ac);--pf-mute:var(--ac);--pf-fill:#000000;--pf-up:#00FF00;--pf-dn:#FF0000;--pf-gold:var(--ac);--pf-up-rgb:0,255,0;--pf-dn-rgb:255,0,0;}
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:#000000;color:var(--pf-text);font-family:'Roboto Mono',monospace;overflow:hidden;user-select:none;-webkit-user-select:none;}
 #main-container{height:100%;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) clamp(175px,30vh,290px);gap:0;padding:0;overflow:hidden;position:relative;background:#000000;}
 body.tc-solo #main-container{grid-template-rows:1fr 0px;gap:0;}
@@ -25,7 +25,7 @@ body.tc-solo #wall-finder-pane{display:none!important;}
 .tcRow{display:flex;align-items:center;gap:10px;padding:4px 12px;border-radius:8px;background:var(--pf-fill);border:1px solid var(--pf-line2);color:var(--pf-text);font-weight:600;white-space:nowrap;}
 .tcRow b[style*="00FF00" i]{background:var(--pf-up);color:#000000!important;padding:1px 6px;border-radius:4px;}
 .tcRow b[style*="FF0000" i]{background:var(--pf-dn);color:#000000!important;padding:1px 6px;border-radius:4px;}
-.tcRow b[style*="FFFFFF" i]{color:var(--pf-mute)!important;}
+.tcRow b[style*="C0C0C0" i]{color:var(--pf-mute)!important;}
 #wall-finder-pane{grid-column:1;grid-row:2;padding:0;display:flex;flex-direction:column;overflow:hidden;z-index:10;}
 .tables-split{display:flex;flex:1;min-height:0;overflow:hidden;gap:0;}
 .table-col{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;background:var(--pf-bg2);border:var(--bw) solid var(--ln);border-top:0;border-radius:0;padding:0 var(--sp);}
@@ -43,9 +43,9 @@ tr.row-red>td{background:var(--pf-dn);}
 tr.row-green>td:first-child,tr.row-red>td:first-child{border-radius:0;color:#000000;font-weight:700;}
 tr.row-green>td:last-child,tr.row-red>td:last-child{border-radius:0;color:#000000;font-weight:800;}
 tr.highlight-gem>td:nth-child(4){color:#000000;font-weight:700;}
-tr.highlight-gem:hover>td{filter:brightness(1.15);}
+tr.highlight-gem:hover>td{filter:none;}
 tr.highlight-gem[style*="box-shadow"]{box-shadow:none!important;filter:none!important;}
-tr.highlight-gem[style*="box-shadow"]>td{filter:brightness(1.35);}
+tr.highlight-gem[style*="box-shadow"]>td{filter:none;}
 tr.highlight-gem[style*="box-shadow"]>td:first-child{border-left:5px solid var(--ac)!important;}
 tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4){position:relative;color:transparent!important;}
 tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#000000;font-size:10px;font-weight:800;letter-spacing:.06em;}
@@ -71,6 +71,7 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #tradePill #scanMax{order:31;}
 #tradePill input,#tradePill select,#tradePill button{background:var(--ac);border:1px solid var(--ac);border-radius:0;color:#000000;font:700 10px 'Roboto Mono',monospace;letter-spacing:.04em;outline:none;}
 #tradePill input{-webkit-user-select:text;user-select:text;-moz-appearance:textfield;}
+#tradePill input::selection{background:#000000;color:#C0C0C0;}
 #tradePill input::-webkit-outer-spin-button,#tradePill input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 #tradePill select{cursor:pointer;-webkit-appearance:none;appearance:none;}
 #tradePill select option{background:var(--ac);color:#000000;}
@@ -88,6 +89,8 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #bootOverlay>div:first-child{width:min(540px,94vw);text-align:center;font-size:12px;font-weight:600;letter-spacing:.2em;color:#000000;background:var(--ac);border:1px solid var(--ac);padding:6px 12px;border-radius:10px;}
 #bootLogBox{width:min(540px,94vw);height:150px;padding:10px;overflow-y:auto;background:var(--ac);border:1px solid var(--ac);border-radius:10px;color:#000000;font-size:10px;line-height:1.5;}
 #bootLogBox *{color:#000000!important;}
+#bootLogBox{scrollbar-width:none;}
+#bootLogBox::-webkit-scrollbar{display:none;}
 @media(max-width:600px){
   #main-container{padding:0;gap:0;}
     #tcWrap{inset:var(--sp);}
@@ -360,7 +363,7 @@ var timesArray = new Int32Array(0), pricesArray = new Float64Array(0), matrixDat
 var globalRevs = [], globalMoms = [], scanPending = 0, _scanStartedAt = 0;
 var lastClickedSigId = "", clickCycleIndex = -1, currentInstances = [], currentInstanceIndex = -1;
 var _scanCountdownSec = 60, _scanCountdownTimer = null, _bootPairState = {};
-var PAIR_COLOR = "#FFFFFF";
+var PAIR_COLOR = "#C0C0C0";
 window._lmx = {};
 window._pyMap = {};
 
@@ -414,7 +417,7 @@ function _clearSel() { lastClickedSigId = ""; clickCycleIndex = -1; currentInsta
 function getPairDisplayName(p) { var m = /^(frx|cry)([A-Z]{3})([A-Z]{3})$/.exec(String(p)); return m ? m[2] + "/" + m[3] : String(p); }
 var _poCache = {}, _poApplied = "";
 window._AC = "#C0C0C0";
-var _poPal = ["#FF7A1A", "#3BDDF2", "#EC4DF5", "#B8F34A", "#6B87FF", "#FF6EA6", "#F4F7FA", "#AB6EFF", "#1E88F0", "#B5C0CC", "#E4AEFF", "#5FE9E0", "#FF53C9", "#FFA94D", "#8570FF", "#12B5D1", "#FFB5D0", "#3F5FE6", "#EBD3A4", "#8A3FE8", "#A8F0FA", "#F7ABFB", "#FFC9A8", "#4DAAFF", "#A92EDC", "#8497AB", "#FFADE3", "#6450F0", "#7FC8C8", "#B4C3FF", "#D3B8FF", "#CC24D6", "#A6D2FF", "#C9C3E6", "#C957FF", "#E01FA8", "#C0B5FF"];
+var _poPal = [];
 function _pairOrange(p) {
   return "#C0C0C0";
   p = String(p || "");
@@ -659,7 +662,7 @@ function bootLog(msg) {
   var b = document.getElementById("bootLogLines");
   if (!b) return;
   var d = document.createElement("div");
-  d.style.color = "#FFFFFF";
+    d.style.color = "#000000";
   d.textContent = "[" + new Date().toLocaleTimeString("en-GB", { hour12: false }) + "] " + msg;
   b.appendChild(d);
   b.parentElement.scrollTop = b.parentElement.scrollHeight;
@@ -786,7 +789,7 @@ function bootProg(key, txt) {
   if (!b) return;
   var id = "bp_" + key, d = document.getElementById(id);
   if (txt === null) { if (d) d.remove(); return; }
-  if (!d) { d = document.createElement("div"); d.id = id; d.style.color = "#FFFFFF"; b.appendChild(d); }
+  if (!d) { d = document.createElement("div"); d.id = id; d.style.color = "#000000"; b.appendChild(d); }
   d.textContent = txt;
   b.parentElement.scrollTop = b.parentElement.scrollHeight;
 }
@@ -1042,11 +1045,11 @@ function _scanUi() {
   var a = document.getElementById("scanMin"), b = document.getElementById("scanMax");
   if (scanPending) {
     var s = Math.floor((Date.now() - _scanStartedAt) / 1000), pg = window._scanProg >= 0 ? window._scanProg : 0, txt = "SCAN " + pg + "% · " + s + "s" + (window._scanPair ? " · " + getPairDisplayName(window._scanPair) : "");
-    if (e2) { e2.textContent = txt; e2.style.fontSize = "22px"; e2.style.color = "#FFFFFF"; e2.style.opacity = ".9"; e2.style.whiteSpace = "nowrap"; }
+    if (e2) { e2.textContent = txt; e2.style.fontSize = "22px"; e2.style.color = "#C0C0C0"; e2.style.opacity = ".9"; e2.style.whiteSpace = "nowrap"; }
     if (e1) e1.textContent = txt;
         _siTimer("SCAN " + pg + "%");
-    if (a) a.style.borderColor = "#FFFFFF";
-    if (b) b.style.borderColor = "#FFFFFF";
+    if (a) a.style.borderColor = "#000000";
+        if (b) b.style.borderColor = "#000000";
   } else {
     if (e2) { e2.style.fontSize = ""; e2.style.color = ""; e2.style.opacity = ""; e2.style.whiteSpace = ""; e2.textContent = String(_scanCountdownSec); } _siTimer(_scanCountdownSec + "s");
     if (e1) e1.textContent = _scanCountdownSec + "s";
@@ -1583,7 +1586,7 @@ function _autoSelectTopSignal(force) {
     var ap = allPairData[DV_SYM] ? allPairData[DV_SYM].prices : null;
     if (!ap || !ap.length) { var _wt = getPairDisplayName(DV_SYM) + " — WAITING FOR DATA..."; ctx.font = "bold 12px " + MONO; ctx.fillStyle = PO; ctx.fillText(_wt, 12, 24); return; }
     TC.allMap = tcCollectAll();
-    if (TC.boxMode) { tcDrawBoxes(ctx, W, H, dpr, DV_SYM, "#FFFFFF"); return; }
+    if (TC.boxMode) { tcDrawBoxes(ctx, W, H, dpr, DV_SYM, "#000000"); return; }
     var nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc, live = _isWithinMappedWindow() && nowSec >= 0 && nowSec < 86400;
     var apLast = tcLastReal(ap, Math.min(live ? nowSec : 86400, ap.length - 1)), nowIdx = live ? nowSec : Math.max(0, apLast);
     var plotW = W - PADL - PADR, ptop = PADT, pbot = H - PADB, spp = TC.spp;
@@ -1609,12 +1612,12 @@ function _autoSelectTopSignal(force) {
     for (var gn = Math.ceil(it.lo / pxStep); gn <= Math.floor(it.hi / pxStep); gn++) {
       var gv = gn * pxStep, gy = Math.round(yOf(gv)) + 0.5;
       pxTicks.push({ v: gv, y: gy });
-      ctx.save(); ctx.strokeStyle = it.color; ctx.globalAlpha = 0.22; ctx.beginPath(); ctx.moveTo(PADL, gy); ctx.lineTo(W - PADR, gy); ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.strokeStyle = it.color; ctx.globalAlpha = 1; ctx.setLineDash([1, 5]); ctx.beginPath(); ctx.moveTo(PADL, gy); ctx.lineTo(W - PADR, gy); ctx.stroke(); ctx.restore();
     }
     var steps = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 14400], tstep = 14400;
     for (var k = 0; k < steps.length; k++) if (steps[k] / spp >= 78) { tstep = steps[k]; break; }
     var off = tcOffset(), firstT = Math.ceil((left + off) / tstep) * tstep - off;
-    ctx.save(); ctx.strokeStyle = it.color; ctx.globalAlpha = 0.2;
+    ctx.save(); ctx.strokeStyle = it.color; ctx.globalAlpha = 1; ctx.setLineDash([1, 5]);
     for (var t = firstT; t <= right; t += tstep) {
       if (t < 0 || t > 86400) continue;
       var tx = xOf(t); if (tx >= PADL && tx <= W - PADR) { ctx.beginPath(); ctx.moveTo(Math.round(tx) + 0.5, ptop); ctx.lineTo(Math.round(tx) + 0.5, pbot); ctx.stroke(); }
@@ -1683,7 +1686,6 @@ function _autoSelectTopSignal(force) {
         ctx.save(); ctx.font = "bold 10px " + MONO; var tw = ctx.measureText(lbl).width + 10, bHi = ap[idx], bLo = ap[idx], bKe = Math.min(idx + CYCLE, it.last >= 0 ? it.last : idx, it.len - 1);
                 for (var bk = idx; bk <= bKe; bk++) { var bv = ap[bk]; if (bv !== -1) { if (bv < bLo) bLo = bv; if (bv > bHi) bHi = bv; } }
                 var ly = ocUp ? yOf(bLo) + 14 : yOf(bHi) - 14; if (ly > pbot - 8) ly = yOf(bHi) - 14; else if (ly < ptop + 8) ly = yOf(bLo) + 14;
-        ctx.fillStyle = "#000432";
         ctx.fillStyle = PO; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(lbl, ox, ly); ctx.restore();
       });
     }
@@ -1697,7 +1699,6 @@ function _autoSelectTopSignal(force) {
       if (tn.kind === "FUT") {
         var sec = (tn.idx - nowSec) - ((Date.now() % 1000) / 1000), txt = sec > 0 ? (sec >= 100 ? tcFmtIn(Math.ceil(sec)) : sec.toFixed(1) + "s") : "NOW";
         ctx.save(); ctx.font = "bold 14px " + MONO; var rad = Math.max(16, ctx.measureText(txt).width / 2 + 6);
-        ctx.fillStyle = "#000432";
         ctx.fillStyle = PO; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(txt, tx2, fy0 + 1); ctx.restore();
       }
     });
@@ -1748,7 +1749,7 @@ function _autoSelectTopSignal(force) {
     });
     var ch = "", _dc = _pxDec(DV_SYM);
     rows.slice(-3).reverse().forEach(function (r) {
-      ch += '<div class="tcRow"><b style="color:' + (r.up ? "#00FF00" : "#FF0000") + '">' + (r.up ? "▲ BUY" : "▼ SELL") + '</b><span>' + r.amt.toFixed(2) + '</span><span>ENT ' + (r.en ? r.en.toFixed(_dc) : "--") + '</span><span>NOW ' + (cur !== null ? cur.toFixed(_dc) : "--") + '</span><b style="color:' + (r.pnl === null ? "#FFFFFF" : (r.pnl >= 0 ? "#00FF00" : "#FF0000")) + '">' + (r.pnl === null ? "--" : (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2)) + '</b><span>' + r.ct + '</span></div>';
+      ch += '<div class="tcRow"><b style="color:' + (r.up ? "#00FF00" : "#FF0000") + '">' + (r.up ? "▲ BUY" : "▼ SELL") + '</b><span>' + r.amt.toFixed(2) + '</span><span>ENT ' + (r.en ? r.en.toFixed(_dc) : "--") + '</span><span>NOW ' + (cur !== null ? cur.toFixed(_dc) : "--") + '</span><b style="color:' + (r.pnl === null ? "#C0C0C0" : (r.pnl >= 0 ? "#00FF00" : "#FF0000")) + '">' + (r.pnl === null ? "--" : (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2)) + '</b><span>' + r.ct + '</span></div>';
     });
     if (card && card._h !== ch) { card._h = ch; card.innerHTML = ch; }
     rows.forEach(function (r, k) {
@@ -1757,7 +1758,7 @@ function _autoSelectTopSignal(force) {
       var col = r.st === "won" ? "#00FF00" : (r.st === "lost" ? "#FF0000" : "#000000");
       var x0 = Math.max(PADL, xs), x1 = Math.min(W - PADR, xe);
       ctx.save(); ctx.beginPath(); ctx.rect(PADL, top, W - PADL - PADR, bot - top); ctx.clip();
-      ctx.globalAlpha = 0.08; ctx.fillStyle = col; ctx.fillRect(x0, top, Math.max(0, x1 - x0), bot - top); ctx.globalAlpha = 1;
+      ctx.globalAlpha = 1;
       ctx.strokeStyle = window._AC; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
       ctx.beginPath(); ctx.moveTo(Math.round(xs) + 0.5, top); ctx.lineTo(Math.round(xs) + 0.5, bot); ctx.stroke();
       ctx.setLineDash([]);
