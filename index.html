@@ -1692,8 +1692,9 @@ function _wsBuild(list) {
 window._wsLvlSync = function () {
   var b = document.getElementById("lvlToggleBtn"), v = window._wsLvl();
   if (b) b.textContent = v ? "LVL X" + v : "LVL ALL";
-  renderFilteredTable();
-};
+    _clearSel();
+    if (!_autoSelectTopSignal()) renderFilteredTable();
+  };
 window._wsLvlToggle = function () {
   var s = document.getElementById("levelFilterSelect");
   if (!s) return;
@@ -1942,9 +1943,9 @@ function selectSignal(pair, c, r, s1, s2, colColor, type) {
 }
 
 function _autoSelectTopSignal(force) {
-  var list = _wsBuild(globalRevs.filter(z => z.pair === DV_SYM));
-  if (list.length) {
-    var t = list[0]; window._ssPickSess = t.sess || 0;
+  var list = _wsBuild(globalRevs.filter(z => _gmVis(z.pair)));
+    if (list.length) {
+      var t = list[0]; window._ssPickSess = t.sess || 0;
     if (force === true) window._ssMatSess = -1;
     selectSignal(t.pair, t.c, t.r, t.s1, t.s2, t.col, t.type);
     return true;
@@ -2003,7 +2004,15 @@ function _autoSelectTopSignal(force) {
 
   function tcCollectAll() {
     var m = { rev: null, mom: null };
-        var pick = (L, k) => { m[k] = _wsBuild(L.filter(x => x.pair === DV_SYM))[0] || null; };
+        var pick = (L, k) => {
+                  var ck = k + "|" + DV_SYM + "|" + window._wsLvl() + "|" + _psCur().join(","), c = TC.pkC || (TC.pkC = {}), g, i, v = null;
+                  if (c[k] && c[k].L === L && c[k].n === L.length && c[k].key === ck) { m[k] = c[k].v; return; }
+                  g = _wsBuild(L.filter(x => _gmVis(x.pair)));
+                  for (i = 0; i < g.length; i++) if (g[i].pair === DV_SYM) { v = g[i]; break; }
+                  if (!v) v = _wsBuild(L.filter(x => x.pair === DV_SYM))[0] || null;
+                  c[k] = { L: L, n: L.length, key: ck, v: v };
+                  m[k] = v;
+                };
     if (TC.sigMode !== "MOM") pick(globalRevs, "rev");
     if (TC.sigMode !== "REV") pick(globalMoms, "mom");
     var clk = window._tcClicked();
