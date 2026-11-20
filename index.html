@@ -14,7 +14,10 @@ html,body{height:100%;background:#000432;color:var(--pf-text);font-family:'Robot
 #main-container{height:100%;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) clamp(175px,30vh,290px);gap:0;padding:0;overflow:hidden;position:relative;background:#000432;}
 body.tc-solo #main-container{grid-template-rows:1fr 0px;gap:0;}
 body.tc-solo #wall-finder-pane{display:none!important;}
-#tcBar,.ctrl-row,.table-hdr{display:none;}
+#tcBar,.table-hdr{display:none;}
+.ctrl-row{flex:0 0 auto;display:flex;align-items:stretch;height:28px;padding:var(--sp);background:var(--pf-bg2);border:var(--bw) solid var(--ln);border-bottom:0;}
+.ctrl-row>*{display:none!important;}
+.ctrl-row>#lvlToggleBtn{display:block!important;flex:1 1 0;min-width:0;height:100%;background:var(--ac);border:none;border-radius:0;color:#000000;font:700 11px 'Roboto Mono',monospace;letter-spacing:.1em;cursor:pointer;outline:none;}
 #canvas-viewport,#wall-finder-pane{background:var(--pf-bg);border:0;border-radius:0;}
 #canvas-viewport{border:var(--bw) solid var(--ln);}
 #canvas-viewport{grid-column:1;grid-row:1;position:relative;overflow:hidden;touch-action:none;}
@@ -165,14 +168,14 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
     <div class="ctrl-row">
       <span>XAU/USD · 05:30-05:30 IST</span>
       <input type="number" id="minPctInput" value="10" min="0" max="100" title="Min %" onchange="renderFilteredTable()">
-      <select id="levelFilterSelect" onchange="renderFilteredTable()">
+      <select id="levelFilterSelect" onchange="window._wsLvlSync()">
         <option value="0" selected>ALL LVL</option>
         <option value="1">X1-X2</option><option value="2">X2-X3</option><option value="3">X3-X4</option>
         <option value="4">X4-X5</option><option value="5">X5-X6</option><option value="6">X6-X7</option>
         <option value="7">X7-X8</option><option value="8">X8-X9</option><option value="9">X9-X10</option>
       </select>
       <button type="button" id="r0OnlyBtn" onclick="toggleR0Only()">R0</button>
-      <button type="button" onclick="window._wsLvlToggle()">SORT ▲▼</button>
+      <button type="button" id="lvlToggleBtn" onclick="window._wsLvlToggle()">LVL ALL</button>
       <span id="syncStatusText">BOOTING...</span>
       <span id="scanTimerDisplay">60s</span>
     </div>
@@ -404,12 +407,12 @@ self.onmessage = function (e) {
           const s = sStr | 0; if (s < 1) continue;
           const c1 = cum[s], c2 = cum[s + 1] || 0, pctRev = c1 > 0 ? 100 - Math.round((c2 / c1) * 100) : 0, pctMom = c1 > 0 ? Math.round((c2 / c1) * 100) : 0;
           revs.push({ pair, c, r, s1: s, s2: s + 1, c1, c2, pct: pctRev, col: colColor, type: 'REV' });
-          if (c1 > 1) moms.push({ pair, c, r, s1: s, s2: s + 1, c1, c2, pct: pctMom, col: colColor, type: 'MOM' });
+          moms.push({ pair, c, r, s1: s, s2: s + 1, c1, c2, pct: pctMom, col: colColor, type: 'MOM' });
         }
       }
     }
   }
-  const pk = gid !== undefined ? primeEngine(prices, sEnd, minC, maxC, baseTs, preArr) : null;
+  const pk = null;
   self.postMessage({ pair, bestRevs: revs, bestMoms: moms, gid, pk });
 };
 </script>
@@ -1507,11 +1510,6 @@ function handleWorkerMessage(e) {
   window._scanProg = -1;
   var { pair, bestRevs, bestMoms, pk } = e.data;
   var _rv = bestRevs.slice(), _mm = bestMoms.slice();
-  if (pk) {
-    var ps = primeSelect(pk.kings || [], pair, _rv, _mm);
-    ps.rev.forEach(x => _rv.push(x));
-    ps.mom.forEach(x => _mm.push(x));
-  }
   var _sg = _ln.cur || 0, _jb = _ln.job;
   _rv.forEach(x => { x.sess = _sg; });
   _mm.forEach(x => { x.sess = _sg; });
@@ -1666,39 +1664,46 @@ function dispatchMultiCycleScan() {
     if (!_scanNext()) { scanPending = 0; window._rngWait = 0; renderFilteredTable(); }
 }
 
-function _wsBuild(list, c2n, lvl, nui) {
-  var dir = _wsLvlDir === -1 ? -1 : 1;
-  var mp = (!nui && document.getElementById("minPctInput")) ? (parseFloat(document.getElementById("minPctInput").value) || 0) : 0;
-  var lf = (!nui && document.getElementById("levelFilterSelect")) ? (parseInt(document.getElementById("levelFilterSelect").value, 10) || 0) : 0;
-  if (!r0OnlyMode) {
-    var psrc = list.filter(px => px && px._isPrimeWinner && (lf === 0 || +px.s1 === lf) && (lvl === undefined || +px.s1 === +lvl) && (px.s1 || 0) >= 1 && (px.c1 || 0) >= 1);
-    psrc.sort((a, b) => (dir === 1 ? a.s1 - b.s1 : b.s1 - a.s1) || (b.pct - a.pct) || (b.c1 - a.c1) || (a.c - b.c) || (a.r - b.r));
-    var pb = {}, pout = [];
-    psrc.forEach(px => {
-      var pk = (px.pair || "") + "|" + (px.sess || 0) + "|" + px.s1, po = pb[pk];
-      if (!po) { pb[pk] = px; return; }
-      var xd = String(px.primeReason || "").indexOf("EARLY_DURABLE_PRIME") === 0 ? 1 : 0;
-      var od = String(po.primeReason || "").indexOf("EARLY_DURABLE_PRIME") === 0 ? 1 : 0;
-      if (xd !== od) { if (xd > od) pb[pk] = px; return; }
-      if (px.pct > po.pct || (px.pct === po.pct && px.c1 > po.c1)) pb[pk] = px;
-    });
-    psrc.forEach(px => { if (pb[(px.pair || "") + "|" + (px.sess || 0) + "|" + px.s1] === px) pout.push(px); });
-    return pout;
+function _wsC2(x) { return x.type === "MOM" ? (x.c1 || 0) - (x.c2 || 0) : (x.c2 || 0); }
+function _wsCmp(a, b) { return ((b.c1 || 0) - (a.c1 || 0)) || ((+b.pct || 0) - (+a.pct || 0)) || (_wsC2(a) - _wsC2(b)) || (a.c - b.c) || (a.r - b.r) || (a.s1 - b.s1); }
+function _wsBuild(list) {
+  var top = [], lf = window._wsLvl(), i, j, x, tmp, src = list, bk = null, k;
+    if (list.length) {
+        bk = {};
+      for (i = 0; i < list.length; i++) {
+        x = list[i];
+        if (!x || x._isPrimeWinner || (lf && +x.s1 !== lf)) continue;
+        k = x.pair + "|" + x.c;
+        if (!bk[k] || _wsCmp(x, bk[k]) < 0) bk[k] = x;
+      }
+      src = Object.keys(bk).map(function (q) { return bk[q]; });
+    }
+    for (i = 0; i < src.length; i++) {
+      x = src[i];
+      if (!x || x._isPrimeWinner || (lf && +x.s1 !== lf)) continue;
+    if (top.length === 10) { if (_wsCmp(x, top[9]) >= 0) continue; top[9] = x; j = 9; }
+    else { top.push(x); j = top.length - 1; }
+    while (j > 0 && _wsCmp(top[j], top[j - 1]) < 0) { tmp = top[j]; top[j] = top[j - 1]; top[j - 1] = tmp; j--; }
   }
-  var _fl = list.filter(z => z && !z._isPrimeWinner && z.r === 0 && (mp <= 0 || z.pct >= mp) && (lf === 0 || +z.s1 === lf) && (lvl === undefined || +z.s1 === +lvl)), _gs = {}, raw = [];
-  _fl.forEach(z => { (_gs[z.sess || 0] || (_gs[z.sess || 0] = [])).push(z); });
-  for (var _gk in _gs) raw = raw.concat(_wsPipeDedupe(_gs[_gk]));
-  var b = {}, out = [];
-  raw.forEach(x => { var kx = (x.pair || "") + "|" + (x.sess || 0) + "|" + x.s1, o = b[kx]; if (!o || x.pct > o.pct || (x.pct === o.pct && x.c1 > o.c1)) b[kx] = x; });
-  for (var k in b) out.push(b[k]);
-  return out.sort((a, c) => (dir === 1 ? a.s1 - c.s1 : c.s1 - a.s1) || (c.pct - a.pct) || (c.c1 - a.c1) || (a.c - c.c) || (a.r - c.r));
-}
-window._wsLvlToggle = function () { _wsLvlDir = _wsLvlDir === -1 ? 1 : -1; renderFilteredTable(); };
-function toggleR0Only() {
-  r0OnlyMode = !r0OnlyMode;
-  var b = document.getElementById("r0OnlyBtn");
-  if (b) b.classList.toggle("on", r0OnlyMode);
+  top.sort(function (a, b) { return ((+b.pct || 0) - (+a.pct || 0)) || _wsCmp(a, b); });
+    return top;
+  }
+  window._wsLvl = function () { var s = document.getElementById("levelFilterSelect"); return s ? (parseInt(s.value, 10) || 0) : 0; };
+window._wsLvlSync = function () {
+  var b = document.getElementById("lvlToggleBtn"), v = window._wsLvl();
+  if (b) b.textContent = v ? "LVL X" + v : "LVL ALL";
   renderFilteredTable();
+};
+window._wsLvlToggle = function () {
+  var s = document.getElementById("levelFilterSelect");
+  if (!s) return;
+  s.value = String(((parseInt(s.value, 10) || 0) + 1) % 10);
+  window._wsLvlSync();
+};
+function toggleR0Only() {
+  r0OnlyMode = false;
+  var b = document.getElementById("r0OnlyBtn");
+  if (b) b.classList.remove("on");
 }
 
 function _champScore(x) {
@@ -1799,7 +1804,7 @@ function renderFilteredTable() {
 }
 function _renderTableNow() {
   _rftT = 0;
-  var rev = _bestPerLevel(_wsBuild(globalRevs.filter(function (x) { return _gmVis(x.pair); }), "lvl")), mom = _bestPerLevel(_wsBuild(globalMoms.filter(function (x) { return _gmVis(x.pair); }), "lvl"));
+  var rev = _wsBuild(globalRevs.filter(function (x) { return _gmVis(x.pair); })), mom = _wsBuild(globalMoms.filter(function (x) { return _gmVis(x.pair); }));
   var _gl = ALL_PAIRS.filter(function (p) { return _gmVis(p); }), _gp = _gl.filter(function (p) { return !_pairRes[p]; }).length;
   var _ld = '<tr><td colspan="7" style="text-align:center;background:var(--pf-fill);padding:16px;">LOADING PAIRS ' + (_gl.length - _gp) + '/' + _gl.length + ' ...</td></tr>';
   var _wt = window._rngWait && _gp > 0 && Date.now() - window._rngWait < 90000;
@@ -1937,8 +1942,7 @@ function selectSignal(pair, c, r, s1, s2, colColor, type) {
 }
 
 function _autoSelectTopSignal(force) {
-  var all = _wsBuild(globalRevs.slice(), "lvl", undefined, true), list = all.filter(z => z.pair === DV_SYM && +z.s1 === 1);
-  if (!list.length) list = all.filter(z => z.pair === DV_SYM);
+  var list = _wsBuild(globalRevs.filter(z => z.pair === DV_SYM));
   if (list.length) {
     var t = list[0]; window._ssPickSess = t.sess || 0;
     if (force === true) window._ssMatSess = -1;
@@ -1998,13 +2002,8 @@ function _autoSelectTopSignal(force) {
   };
 
   function tcCollectAll() {
-    var mp = parseFloat(document.getElementById("minPctInput").value) || 10, lv = parseInt(document.getElementById("levelFilterSelect").value, 10) || 0;
     var m = { rev: null, mom: null };
-    var pick = (L, k) => L.forEach(x => {
-      if (x.pair === DV_SYM && x.pct >= mp && (lv === 0 || x.s1 === lv) && (!r0OnlyMode || x.r === 0)) {
-        if (!m[k] || _champScore(x) > _champScore(m[k])) m[k] = x;
-      }
-    });
+        var pick = (L, k) => { m[k] = _wsBuild(L.filter(x => x.pair === DV_SYM))[0] || null; };
     if (TC.sigMode !== "MOM") pick(globalRevs, "rev");
     if (TC.sigMode !== "REV") pick(globalMoms, "mom");
     var clk = window._tcClicked();
