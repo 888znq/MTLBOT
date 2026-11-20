@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <title>WALLSPECTRUM LOCAL — MULTIPAIR</title>
 <style>
-:root{color-scheme:dark;--bw:2px;--sp:2px;--ac:#C0C0C0;--ln:var(--ac);--pf-bg:#000432;--pf-bg2:#000432;--pf-ctl:#000432;--pf-line:var(--ac);--pf-line2:var(--ac);--pf-text:var(--ac);--pf-soft:var(--ac);--pf-mute:var(--ac);--pf-fill:#000432;--pf-up:#00FF00;--pf-dn:#FF0000;--pf-gold:var(--ac);--pf-up-rgb:0,255,0;--pf-dn-rgb:255,0,0;}
+:root{color-scheme:dark;--bw:2px;--sp:2px;--ac:#C0C0C0;--ln:var(--ac);--pf-bg:#000432;--pf-bg2:#000432;--pf-ctl:#000432;--pf-line:var(--ac);--pf-line2:var(--ac);--pf-text:var(--ac);--pf-soft:var(--ac);--pf-mute:var(--ac);--pf-fill:#000432;--pf-up:#00B85A;--pf-dn:#DC2640;--pf-gold:var(--ac);--pf-up-rgb:0,184,90;--pf-dn-rgb:220,38,64;}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:#000432;color:var(--pf-text);font-family:'Roboto Mono',monospace;overflow:hidden;user-select:none;-webkit-user-select:none;}
 #main-container{height:100%;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) clamp(175px,30vh,290px);gap:0;padding:0;overflow:hidden;position:relative;background:#000432;}
@@ -23,8 +23,8 @@ body.tc-solo #wall-finder-pane{display:none!important;}
 #scanChartTimer{display:none!important;position:fixed;right:10px;top:8px;z-index:20;display:flex;align-items:center;justify-content:center;padding:6px 12px;font-family:'Roboto Mono',monospace;font-size:12px!important;font-weight:700;line-height:1;letter-spacing:.14em;color:var(--pf-soft);opacity:.95;background:var(--pf-fill);border:1px solid var(--pf-line2);border-radius:999px;pointer-events:none;}
 #tradeCard{position:absolute;left:14px;top:12px;z-index:8;display:flex;flex-direction:column;gap:4px;pointer-events:none;font:700 10px 'Roboto Mono',monospace;}
 .tcRow{display:flex;align-items:center;gap:10px;padding:4px 12px;border-radius:8px;background:var(--pf-fill);border:1px solid var(--pf-line2);color:var(--pf-text);font-weight:600;white-space:nowrap;}
-.tcRow b[style*="00FF00" i]{background:var(--pf-up);color:#000000!important;padding:1px 6px;border-radius:4px;}
-.tcRow b[style*="FF0000" i]{background:var(--pf-dn);color:#000000!important;padding:1px 6px;border-radius:4px;}
+.tcRow b[style*="00B85A" i]{background:var(--pf-up);color:#000000!important;padding:1px 6px;border-radius:4px;}
+.tcRow b[style*="DC2640" i]{background:var(--pf-dn);color:#000000!important;padding:1px 6px;border-radius:4px;}
 .tcRow b[style*="C0C0C0" i]{color:var(--pf-mute)!important;}
 #wall-finder-pane{grid-column:1;grid-row:2;padding:0;display:flex;flex-direction:column;overflow:hidden;z-index:10;}
 .tables-split{display:flex;flex:1;min-height:0;overflow:hidden;gap:0;}
@@ -1445,7 +1445,7 @@ function _autoSelectTopSignal(force) {
   }
 
   function tcDrawBoxes(ctx, W, H, dpr, pair, BG) {
-    var B = Math.max(1, Math.round(CYCLE) || 300), GREEN = "#00FF00", RED = "#FF0000", PF_UP = "0,255,0", PF_DN = "255,0,0", pr = allPairData[pair].prices, sEnd = 86400;
+    var B = Math.max(1, Math.round(CYCLE) || 300), GREEN = "#00B85A", RED = "#DC2640", PF_UP = "0,184,90", PF_DN = "220,38,64", pr = allPairData[pair].prices, sEnd = 86400;
     var nowF = Date.now() / 1000 - currentStartTsUtc, live = _isWithinMappedWindow() && nowF >= 0 && nowF < sEnd;
     var li = tcLastReal(pr, Math.min(live ? Math.floor(nowF) : sEnd, pr.length - 1)), lp = li >= 0 ? pr[li] : 0;
     var bxMap = {}, bxCells = null;
@@ -1749,13 +1749,13 @@ function _autoSelectTopSignal(force) {
     });
     var ch = "", _dc = _pxDec(DV_SYM);
     rows.slice(-3).reverse().forEach(function (r) {
-      ch += '<div class="tcRow"><b style="color:' + (r.up ? "#00FF00" : "#FF0000") + '">' + (r.up ? "▲ BUY" : "▼ SELL") + '</b><span>' + r.amt.toFixed(2) + '</span><span>ENT ' + (r.en ? r.en.toFixed(_dc) : "--") + '</span><span>NOW ' + (cur !== null ? cur.toFixed(_dc) : "--") + '</span><b style="color:' + (r.pnl === null ? "#C0C0C0" : (r.pnl >= 0 ? "#00FF00" : "#FF0000")) + '">' + (r.pnl === null ? "--" : (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2)) + '</b><span>' + r.ct + '</span></div>';
+      ch += '<div class="tcRow"><b style="color:' + (r.up ? "#00B85A" : "#DC2640") + '">' + (r.up ? "▲ BUY" : "▼ SELL") + '</b><span>' + r.amt.toFixed(2) + '</span><span>ENT ' + (r.en ? r.en.toFixed(_dc) : "--") + '</span><span>NOW ' + (cur !== null ? cur.toFixed(_dc) : "--") + '</span><b style="color:' + (r.pnl === null ? "#C0C0C0" : (r.pnl >= 0 ? "#00B85A" : "#DC2640")) + '">' + (r.pnl === null ? "--" : (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2)) + '</b><span>' + r.ct + '</span></div>';
     });
     if (card && card._h !== ch) { card._h = ch; card.innerHTML = ch; }
     rows.forEach(function (r, k) {
       var xs = xOf(r.ei), xe = xOf(r.ex - currentStartTsUtc);
       if (xe < PADL || xs > W - PADR) return;
-      var col = r.st === "won" ? "#00FF00" : (r.st === "lost" ? "#FF0000" : "#000432");
+      var col = r.st === "won" ? "#00B85A" : (r.st === "lost" ? "#DC2640" : "#000432");
       var x0 = Math.max(PADL, xs), x1 = Math.min(W - PADR, xe);
       ctx.save(); ctx.beginPath(); ctx.rect(PADL, top, W - PADL - PADR, bot - top); ctx.clip();
       ctx.globalAlpha = 1;
@@ -1917,7 +1917,7 @@ function tpBalShow() {
 
 function tpFlash(ok, msg) {
   var p = document.getElementById("tradePill"); if (!p) return;
-  p.style.background = ok ? "#00FF00" : "#FF0000";
+  p.style.background = ok ? "#00B85A" : "#DC2640";
   p.title = msg || "";
   if (msg) console.log("[TRADE] " + msg);
   clearTimeout(tpFlash._t);
