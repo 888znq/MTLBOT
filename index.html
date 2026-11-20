@@ -85,21 +85,40 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #tradePill #tpBuy,#tradePill #tpSell{border:none;font-weight:800;letter-spacing:.1em;}
 #tradePill #tpBuy{background:var(--pf-up);color:#000000;}
 #tradePill #tpSell{background:var(--pf-dn);color:#000000;}
-#pairSelPanel{display:none;position:fixed;z-index:9000;padding:var(--sp);background:#000432;border:var(--bw) solid var(--ac);overflow:hidden;font:700 11px 'Roboto Mono',monospace;}
-#pairSelPanel .psBody{display:flex;gap:var(--sp);max-height:calc(var(--ps-mh,340px) - 8px);}
-#pairSelPanel .psLeft{flex:1 1 0;min-width:0;max-height:calc(var(--ps-mh,340px) - 8px);display:flex;flex-direction:column;gap:var(--sp);overflow:hidden;}
-#pairSelPanel .psHead{flex:0 0 auto;display:flex;align-items:center;gap:var(--sp);}
-#pairSelPanel .psTitle{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ac);font-size:10px;letter-spacing:.04em;padding-left:2px;}
-#pairSelPanel .psGrid{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:var(--sp);align-content:start;}
+@keyframes psIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+#pairSelPanel{display:none;position:fixed;z-index:9000;padding:0;background:#000432;border:var(--bw) solid var(--ac);box-shadow:0 12px 32px rgba(0,0,0,.65);overflow:hidden;font:700 11px 'Roboto Mono',monospace;}
+#pairSelPanel.open{animation:psIn .12s ease-out;}
+#pairSelPanel .psBody{display:flex;max-height:calc(var(--ps-mh,350px) - 4px);}
+#pairSelPanel .psLeft{flex:1 1 0;min-width:0;max-height:calc(var(--ps-mh,350px) - 4px);display:flex;flex-direction:column;padding:6px;gap:6px;overflow:hidden;}
+#pairSelPanel .psHead{flex:0 0 auto;display:flex;align-items:center;gap:4px;padding-bottom:4px;border-bottom:1px solid rgba(192,192,192,.22);}
+#pairSelPanel .psTitle{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ac);font-size:10px;letter-spacing:.06em;opacity:.85;}
+#pairSelPanel .psGrid{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:3px;align-content:start;}
 #pairSelPanel .psGrid::-webkit-scrollbar,#pairSelPanel .psCats::-webkit-scrollbar{display:none;}
-#pairSelPanel .psCats{flex:0 0 clamp(136px,38%,172px);max-height:calc(var(--ps-mh,340px) - 8px);display:flex;flex-direction:column;gap:var(--sp);padding-left:var(--sp);border-left:1px solid var(--ac);overflow-y:auto;scrollbar-width:none;}
-#pairSelPanel .psCatRow{display:flex;gap:var(--sp);width:100%;flex:0 0 auto;}
-#pairSelPanel button{height:28px;padding:0 4px;background:#000432;border:1px solid var(--ac);border-radius:0;color:var(--ac);font:700 11px 'Roboto Mono',monospace;letter-spacing:.04em;cursor:pointer;outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#pairSelPanel button.on,#pairSelPanel .psAdd{background:var(--ac);color:#000000;}
-#pairSelPanel .psMini{flex:0 0 auto;height:22px;padding:0 6px;font-size:10px;}
-#pairSelPanel .psCatBtn{flex:1 1 0;min-width:0;text-align:left;padding:0 6px;}
-#pairSelPanel .psAct{flex:0 0 26px;padding:0;text-align:center;}
-#pairSelPanel .psAdd{width:100%;flex:0 0 auto;}
+#pairSelPanel .psCats{flex:0 0 clamp(128px,37%,168px);max-height:calc(var(--ps-mh,350px) - 4px);display:flex;flex-direction:column;gap:2px;padding:6px 6px 6px 0;border-left:1px solid rgba(192,192,192,.25);background:rgba(192,192,192,.03);overflow-y:auto;scrollbar-width:none;}
+#pairSelPanel .psCatRow{display:flex;align-items:center;width:100%;height:30px;flex:0 0 auto;border-left:3px solid transparent;color:var(--ac);transition:background .1s,color .1s,border-color .1s;}
+#pairSelPanel .psCatRow:hover{background:rgba(192,192,192,.1);}
+#pairSelPanel .psCatRow.on{background:var(--ac);color:#000000;border-left-color:#ffffff;}
+#pairSelPanel .psCatRow.psInRow{background:#000432;color:var(--ac);border:1px solid var(--ac);border-left:3px solid var(--ac);padding:0 2px;}
+#pairSelPanel button{background:transparent;border:none;border-radius:0;color:inherit;font:700 11px 'Roboto Mono',monospace;letter-spacing:.04em;cursor:pointer;outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .1s,color .1s,border-color .1s;}
+#pairSelPanel .psItem{height:28px;padding:0 4px;background:rgba(192,192,192,.04);border:1px solid rgba(192,192,192,.25);color:var(--ac);}
+#pairSelPanel .psItem:hover{border-color:var(--ac);background:rgba(192,192,192,.14);}
+#pairSelPanel .psItem.on{background:var(--ac);border-color:var(--ac);color:#000000;}
+#pairSelPanel .psMini{flex:0 0 auto;height:20px;padding:0 6px;font-size:9px;letter-spacing:.06em;border:1px solid rgba(192,192,192,.35);color:var(--ac);}
+#pairSelPanel .psMini:hover{border-color:var(--ac);background:rgba(192,192,192,.15);}
+#pairSelPanel .psMini.on{background:var(--ac);border-color:var(--ac);color:#000000;}
+#pairSelPanel .psCatBtn{flex:1 1 0;min-width:0;height:100%;text-align:left;padding:0 6px;}
+#pairSelPanel .psCnt{flex:0 0 auto;padding:0 6px;font-size:9px;opacity:.55;pointer-events:none;}
+#pairSelPanel .psRowActs{display:none;align-items:center;gap:1px;padding-right:3px;flex:0 0 auto;}
+#pairSelPanel .psCatRow.on .psRowActs,#pairSelPanel .psCatRow:hover .psRowActs,#pairSelPanel .psCatRow.del .psRowActs{display:flex;}
+#pairSelPanel .psCatRow.on .psCnt,#pairSelPanel .psCatRow:hover .psCnt,#pairSelPanel .psCatRow.del .psCnt{display:none;}
+#pairSelPanel .psAct{width:22px;height:22px;padding:0;font-size:12px;line-height:22px;text-align:center;opacity:.72;}
+#pairSelPanel .psAct:hover{opacity:1;background:rgba(192,192,192,.2);}
+#pairSelPanel .psCatRow.on .psAct:hover{background:rgba(0,4,50,.18);}
+#pairSelPanel .psAct.psDel{width:auto;padding:0 6px;background:var(--pf-dn);color:#000000;font-size:9px;font-weight:800;opacity:1;}
+#pairSelPanel .psIn{flex:1 1 0;min-width:0;height:100%;padding:0 4px;background:transparent;border:none;color:var(--ac);font:700 11px 'Roboto Mono',monospace;outline:none;-webkit-user-select:text;user-select:text;}
+#pairSelPanel .psInOk{flex:0 0 24px;height:24px;background:var(--pf-up);color:#000000;font-size:12px;line-height:24px;text-align:center;}
+#pairSelPanel .psAdd{flex:0 0 auto;margin:4px 0 0 6px;height:26px;border:1px dashed rgba(192,192,192,.45);color:var(--ac);font-size:10px;letter-spacing:.08em;}
+#pairSelPanel .psAdd:hover{border-style:solid;background:var(--ac);color:#000000;}
 #bootOverlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;background:#000432;}
 #bootOverlay>div:first-child{width:min(540px,94vw);text-align:center;font-size:11px;font-weight:600;letter-spacing:.2em;color:#000000;background:var(--ac);border:1px solid var(--ac);padding:6px 12px;border-radius:10px;}
 #bootLogBox{width:min(540px,94vw);height:150px;padding:10px;overflow-y:auto;background:var(--ac);border:1px solid var(--ac);border-radius:10px;color:#000000;font-size:10px;line-height:1.5;}
@@ -525,30 +544,85 @@ function _psList() {
   if (!l.length) { _psSel = { cryBTCUSD: 1 }; l = f(); }
   return l;
 }
-var _psCat = -1, _psBlank = 0;
-function _psRender() {
-  var el = document.getElementById("pairSelPanel"), list, title, onCnt, h, i, g;
-  if (!el) return;
-  if (_psCat >= _psGroups.length) _psCat = -1;
-  list = (_psCat >= 0 && _psGroups[_psCat]) ? _psGroups[_psCat].p : ALL_PAIRS;
-  title = (_psCat >= 0 && _psGroups[_psCat]) ? _psGroups[_psCat].n : "ALL";
-  onCnt = _psBlank ? 0 : list.filter(function (q) { return _psSel[q] === 1; }).length;
-  h = '<div class="psBody"><div class="psLeft"><div class="psHead"><span class="psTitle">' + _psEsc(title) + ' (' + onCnt + '/' + list.length + ')</span><button type="button" class="psMini" data-g="CATALL">ALL</button><button type="button" class="psMini" data-g="CLR">CLR</button></div><div class="psGrid">';
-  for (i = 0; i < list.length; i++) {
-    h += '<button type="button" class="psItem' + (!_psBlank && _psSel[list[i]] === 1 ? ' on' : '') + '" data-p="' + list[i] + '">' + _psShort(list[i]) + '</button>';
+var _psCat = -1, _psBlank = 0, _psEditPairs = 0, _psInline = null, _psDelIdx = -1, _psDelTm = 0;
+function _psCommitIn(save, noRender) {
+  var el = document.getElementById("pairSelPanel"), inp = el ? el.querySelector(".psIn") : null, s, cur;
+  if (!_psInline) return false;
+  s = inp ? inp.value.trim().slice(0, 14) : "";
+  if (save && s) {
+    if (_psInline.mode === "add") {
+      cur = _psBlank ? [] : _psCur();
+      if (!cur.length) cur = [ALL_PAIRS.indexOf(DV_SYM) >= 0 ? DV_SYM : ALL_PAIRS[0]];
+      _psGroups.push({ n: s, p: cur });
+      _psCat = _psGroups.length - 1;
+      _psBlank = 0;
+      _psEditPairs = 0;
+    } else if (_psInline.mode === "ren" && _psGroups[_psInline.idx]) {
+      _psGroups[_psInline.idx].n = s;
+    }
   }
-  h += '</div></div><div class="psCats"><div class="psCatRow"><button type="button" class="psCatBtn' + (_psCat === -1 ? ' on' : '') + '" data-cat="-1">ALL</button></div>';
+  _psInline = null;
+  if (!noRender) { _psRender(); _gmUi(); }
+  else if (save && s) _gmUi();
+  return true;
+}
+function _psRender() {
+  var el = document.getElementById("pairSelPanel"), gEl, cEl, gTop = 0, cTop = 0, isCat, list, title, onCnt, h, i, g, isOn, isDel, inp;
+  if (!el) return;
+  gEl = el.querySelector(".psGrid");
+  cEl = el.querySelector(".psCats");
+  if (gEl) gTop = gEl.scrollTop;
+  if (cEl) cTop = cEl.scrollTop;
+  if (_psCat >= _psGroups.length) { _psCat = -1; _psEditPairs = 0; }
+  isCat = _psCat >= 0 && _psGroups[_psCat];
+  list = (isCat && !_psEditPairs) ? _psGroups[_psCat].p : ALL_PAIRS;
+  title = isCat ? (_psEditPairs ? _psGroups[_psCat].n + " · PICK" : _psGroups[_psCat].n) : "ALL PAIRS";
+  onCnt = (_psEditPairs && isCat) ? _psGroups[_psCat].p.length : (_psBlank ? 0 : list.filter(function (q) { return _psSel[q] === 1; }).length);
+  h = '<div class="psBody"><div class="psLeft"><div class="psHead"><span class="psTitle">' + _psEsc(title) + ' (' + onCnt + '/' + list.length + ')</span>';
+  if (isCat) {
+    h += '<button type="button" class="psMini' + (_psEditPairs ? ' on' : '') + '" data-g="EDITP">' + (_psEditPairs ? 'DONE' : 'PAIRS') + '</button>';
+    if (!_psEditPairs) h += '<button type="button" class="psMini" data-g="CATALL">ALL</button>';
+  } else {
+    h += '<button type="button" class="psMini" data-g="CATALL">ALL</button><button type="button" class="psMini' + (_psBlank ? ' on' : '') + '" data-g="CLR">CLR</button>';
+  }
+  h += '</div><div class="psGrid">';
+  for (i = 0; i < list.length; i++) {
+    isOn = (_psEditPairs && isCat) ? (_psGroups[_psCat].p.indexOf(list[i]) >= 0) : (!_psBlank && _psSel[list[i]] === 1);
+    h += '<button type="button" class="psItem' + (isOn ? ' on' : '') + '" data-p="' + list[i] + '">' + _psShort(list[i]) + '</button>';
+  }
+  h += '</div></div><div class="psCats"><div class="psCatRow' + (_psCat === -1 ? ' on' : '') + '"><button type="button" class="psCatBtn" data-cat="-1">ALL</button><span class="psCnt">' + ALL_PAIRS.length + '</span></div>';
   for (i = 0; i < _psGroups.length; i++) {
     g = _psGroups[i];
-    h += '<div class="psCatRow"><button type="button" class="psCatBtn' + (_psCat === i ? ' on' : '') + '" data-cat="' + i + '">' + _psEsc(g.n) + '</button><button type="button" class="psAct" data-r="' + i + '" title="Rename">&#9998;</button><button type="button" class="psAct" data-d="' + i + '" title="Delete">&times;</button></div>';
+    if (_psInline && _psInline.mode === "ren" && _psInline.idx === i) {
+      h += '<div class="psCatRow on psInRow"><input type="text" class="psIn" maxlength="14" value="' + _psEsc(g.n) + '" placeholder="Name"><button type="button" class="psInOk" data-inok="1">&#10003;</button></div>';
+    } else {
+      isDel = _psDelIdx === i;
+      h += '<div class="psCatRow' + (_psCat === i ? ' on' : '') + (isDel ? ' del' : '') + '"><button type="button" class="psCatBtn" data-cat="' + i + '">' + _psEsc(g.n) + '</button><span class="psCnt">' + g.p.length + '</span><span class="psRowActs">';
+      if (isDel) h += '<button type="button" class="psAct psDel" data-d="' + i + '" title="Confirm delete">DEL?</button>';
+      else h += '<button type="button" class="psAct" data-r="' + i + '" title="Rename">&#9998;</button><button type="button" class="psAct" data-d="' + i + '" title="Delete">&times;</button>';
+      h += '</span></div>';
+    }
   }
-  h += '<button type="button" class="psAdd" data-g="SAVE">+ ADD</button></div></div>';
+  if (_psInline && _psInline.mode === "add") {
+    h += '<div class="psCatRow on psInRow"><input type="text" class="psIn" maxlength="14" value="" placeholder="New cat..."><button type="button" class="psInOk" data-inok="1">&#10003;</button></div>';
+  } else {
+    h += '<button type="button" class="psAdd" data-g="SAVE">+ NEW</button>';
+  }
+  h += '</div></div>';
   el.innerHTML = h;
+  gEl = el.querySelector(".psGrid");
+  cEl = el.querySelector(".psCats");
+  if (gEl) gEl.scrollTop = gTop;
+  if (cEl) cEl.scrollTop = cTop;
+  if (_psInline) {
+    inp = el.querySelector(".psIn");
+    if (inp) { inp.focus(); inp.select(); }
+  }
 }
 function _psPlace() {
   var el = document.getElementById("pairSelPanel"), b = document.getElementById("modeBtn");
   if (!el || !b) return;
-  var r = b.getBoundingClientRect(), w = Math.min(440, window.innerWidth - 8), mh = Math.max(140, Math.min(360, r.top - 12));
+  var r = b.getBoundingClientRect(), w = Math.min(460, window.innerWidth - 8), mh = Math.max(150, Math.min(360, r.top - 12));
   el.style.width = w + "px";
   el.style.left = Math.max(4, Math.min(r.left, window.innerWidth - w - 4)) + "px";
   el.style.bottom = (window.innerHeight - r.top + 4) + "px";
@@ -556,11 +630,33 @@ function _psPlace() {
   el.style.setProperty("--ps-mh", mh + "px");
 }
 function _psClick(e) {
-  var t = e.target && e.target.closest ? e.target.closest("button") : null, n = {}, k, g, list;
+  var t, n = {}, k, g, list, idx;
+  if (e.target && e.target.closest && e.target.closest(".psIn")) return;
+  t = e.target && e.target.closest ? e.target.closest("button") : null;
   if (!t) return;
+  if (t.getAttribute("data-inok")) { _psCommitIn(true); return; }
+  if (_psInline) _psCommitIn(true, true);
   if (_psGrpClick(t)) return;
+  if (_psDelIdx >= 0) { _psDelIdx = -1; clearTimeout(_psDelTm); }
   k = t.getAttribute("data-p");
   if (k) {
+    if (_psEditPairs && _psCat >= 0 && _psGroups[_psCat]) {
+      list = _psGroups[_psCat].p.slice();
+      idx = list.indexOf(k);
+      if (idx >= 0) {
+        if (list.length <= 1) return;
+        list.splice(idx, 1);
+      } else {
+        list.push(k);
+        list.sort(function (a, b) { return ALL_PAIRS.indexOf(a) - ALL_PAIRS.indexOf(b); });
+      }
+      _psGroups[_psCat].p = list;
+      _psSel = {};
+      list.forEach(function (q) { _psSel[q] = 1; });
+      _psRender();
+      _psApply();
+      return;
+    }
     if (_psBlank) {
       _psBlank = 0;
       n[k] = 1;
@@ -575,6 +671,12 @@ function _psClick(e) {
     return;
   }
   g = t.getAttribute("data-g");
+  if (g === "EDITP") {
+    _psEditPairs = _psEditPairs ? 0 : 1;
+    _psBlank = 0;
+    _psRender();
+    return;
+  }
   if (g === "CLR") {
     _psBlank = 1;
     _psRender();
@@ -590,16 +692,56 @@ function _psClick(e) {
     _psApply();
   }
 }
+function _psDblClick(e) {
+  var t = e.target && e.target.closest ? e.target.closest("button") : null, k, cat;
+  if (!t) return;
+  k = t.getAttribute("data-p");
+  if (k && !_psEditPairs) {
+    _psBlank = 0;
+    _psSel = {};
+    _psSel[k] = 1;
+    _psRender();
+    _psApply();
+    return;
+  }
+  cat = t.getAttribute("data-cat");
+  if (cat !== null && +cat >= 0 && _psGroups[+cat]) {
+    _psDelIdx = -1;
+    clearTimeout(_psDelTm);
+    _psInline = { mode: "ren", idx: +cat };
+    _psRender();
+  }
+}
+function _psKey(e) {
+  if (!e.target || !e.target.classList || !e.target.classList.contains("psIn")) return;
+  if (e.key === "Enter") { e.preventDefault(); _psCommitIn(true); }
+  else if (e.key === "Escape") { e.preventDefault(); _psCommitIn(false); }
+}
 function _psToggle() {
   var el = document.getElementById("pairSelPanel"), i;
   if (!el) {
     el = document.createElement("div");
     el.id = "pairSelPanel";
     el.addEventListener("click", _psClick);
+    el.addEventListener("dblclick", _psDblClick);
+    el.addEventListener("keydown", _psKey);
     document.body.appendChild(el);
   }
-  if (el.style.display === "block") { el.style.display = "none"; _psBlank = 0; return; }
+  if (el.style.display === "block") {
+    _psCommitIn(true, true);
+    el.style.display = "none";
+    el.classList.remove("open");
+    _psBlank = 0;
+    _psEditPairs = 0;
+    _psDelIdx = -1;
+    clearTimeout(_psDelTm);
+    return;
+  }
   _psBlank = 0;
+  _psEditPairs = 0;
+  _psInline = null;
+  _psDelIdx = -1;
+  clearTimeout(_psDelTm);
   if (_psCat >= _psGroups.length) _psCat = -1;
   if (_psCat < 0) {
     for (i = 0; i < _psGroups.length; i++) {
@@ -608,15 +750,31 @@ function _psToggle() {
   }
   _psRender();
   el.style.display = "block";
+  el.classList.add("open");
   _psPlace();
 }
 document.addEventListener("pointerdown", function (e) {
   var el = document.getElementById("pairSelPanel");
   if (!el || el.style.display !== "block") return;
   if (el.contains(e.target) || e.target.id === "modeBtn") return;
+  _psCommitIn(true, true);
   el.style.display = "none";
+  el.classList.remove("open");
   _psBlank = 0;
+  _psEditPairs = 0;
+  _psDelIdx = -1;
+  clearTimeout(_psDelTm);
 }, true);
+document.addEventListener("keydown", function (e) {
+  var el = document.getElementById("pairSelPanel");
+  if (e.key !== "Escape" || !el || el.style.display !== "block" || _psInline) return;
+  el.style.display = "none";
+  el.classList.remove("open");
+  _psBlank = 0;
+  _psEditPairs = 0;
+  _psDelIdx = -1;
+  clearTimeout(_psDelTm);
+});
 window.addEventListener("resize", function () {
   var el = document.getElementById("pairSelPanel");
   if (el && el.style.display === "block") _psPlace();
@@ -625,58 +783,66 @@ function _psEsc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {
 function _psCur() { return ALL_PAIRS.filter(function (q) { return _psSel[q] === 1; }); }
 function _psSame(a) { var c = _psCur(); return c.length === a.length && a.every(function (q) { return _psSel[q] === 1; }); }
 function _psGrpClick(t) {
-  var cat = t.getAttribute("data-cat"), r = t.getAttribute("data-r"), d = t.getAttribute("data-d"), g = t.getAttribute("data-g"), idx, s, cur;
+  var cat = t.getAttribute("data-cat"), r = t.getAttribute("data-r"), d = t.getAttribute("data-d"), g = t.getAttribute("data-g"), idx;
   if (cat !== null) {
     idx = +cat;
+    _psDelIdx = -1;
+    clearTimeout(_psDelTm);
+    _psEditPairs = 0;
     _psBlank = 0;
     if (idx === -1) {
-      _psCat = -1;
-      _psSel = {};
-      ALL_PAIRS.forEach(function (q) { _psSel[q] = 1; });
-    } else {
-      if (!_psGroups[idx]) return true;
-      _psCat = idx;
-      _psSel = {};
-      _psGroups[idx].p.forEach(function (q) { _psSel[q] = 1; });
+      if (_psCat === -1 && _psCur().length < ALL_PAIRS.length) {
+        _psSel = {};
+        ALL_PAIRS.forEach(function (q) { _psSel[q] = 1; });
+        _psRender();
+        _psApply();
+      } else {
+        _psCat = -1;
+        _psRender();
+      }
+      return true;
     }
+    if (!_psGroups[idx]) return true;
+    _psCat = idx;
+    _psSel = {};
+    _psGroups[idx].p.forEach(function (q) { _psSel[q] = 1; });
     _psRender();
     _psApply();
     return true;
   }
   if (g === "SAVE") {
-    if (_psBlank) return true;
-    cur = _psCur();
-    if (!cur.length) return true;
-    s = window.prompt("Category name", "");
-    s = s ? s.trim().slice(0, 14) : "";
-    if (s) {
-      _psGroups.push({ n: s, p: cur });
-      _psCat = _psGroups.length - 1;
-      _psRender();
-      _gmUi();
-    }
+    _psDelIdx = -1;
+    clearTimeout(_psDelTm);
+    _psEditPairs = 0;
+    _psInline = { mode: "add" };
+    _psRender();
     return true;
   }
   if (r !== null) {
     idx = +r;
     if (!_psGroups[idx]) return true;
-    s = window.prompt("Rename category", _psGroups[idx].n);
-    s = s ? s.trim().slice(0, 14) : "";
-    if (s) {
-      _psGroups[idx].n = s;
-      _psRender();
-      _gmUi();
-    }
+    _psDelIdx = -1;
+    clearTimeout(_psDelTm);
+    _psInline = { mode: "ren", idx: idx };
+    _psRender();
     return true;
   }
   if (d !== null) {
     idx = +d;
-    if (_psGroups[idx] && window.confirm("Delete category " + _psGroups[idx].n + "?")) {
+    if (!_psGroups[idx]) return true;
+    if (_psDelIdx === idx) {
+      _psDelIdx = -1;
+      clearTimeout(_psDelTm);
       _psGroups.splice(idx, 1);
-      if (_psCat === idx) _psCat = -1;
+      if (_psCat === idx) { _psCat = -1; _psEditPairs = 0; }
       else if (_psCat > idx) _psCat--;
       _psRender();
       _gmUi();
+    } else {
+      _psDelIdx = idx;
+      clearTimeout(_psDelTm);
+      _psDelTm = setTimeout(function () { _psDelIdx = -1; _psRender(); }, 2800);
+      _psRender();
     }
     return true;
   }
