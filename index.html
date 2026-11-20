@@ -323,7 +323,7 @@ function primeEngine(prices, n, minC, maxC, baseTs, preArr) {
         if (j !== undefined && alive(qR[j], qK[j], qS[j])) {
           cur[t][s] = { r: qR[j], k: qK[j], s: qS[j] };
           L = leaders[t][s] || (leaders[t][s] = {}); lk = qR[j] * 2 + qK[j];
-          if (!L[lk]) L[lk] = { r: qR[j], k: qK[j], ts: ts, c1: qC1[j], c2: qC2[j], pct: pctOf(j, t === 1) };
+          if (!L[lk]) L[lk] = { r: qR[j], k: qK[j], ts: ts, c1: qC1[j], c2: qC2[j], pct: pctOf(j, t === 1), ic1: qC1[j], ic2: qC2[j], ipct: pctOf(j, t === 1), cs: rowStreak[qR[j]] };
         } else cur[t][s] = null;
       }
     }
@@ -354,7 +354,7 @@ function primeEngine(prices, n, minC, maxC, baseTs, preArr) {
     for (var t = 0; t < 2; t++) {
       for (var s in leaders[t]) {
         var L = leaders[t][s];
-        for (var lk in L) { var rc = L[lk]; kings.push([t, c, rc.r, rc.k, +s, rc.ts, rc.c1, rc.c2, rc.pct]); }
+        for (var lk in L) { var rc = L[lk]; kings.push([t, c, rc.r, rc.k, +s, rc.ts, rc.c1, rc.c2, rc.pct, rc.ic1, rc.ic2, rc.ipct, rc.cs]); }
       }
     }
   }
@@ -1110,7 +1110,7 @@ async function _cacheClean(day) {
 }
 function _resSig() {
   var a = parseInt(document.getElementById("scanMin").value, 10) || 300, b = parseInt(document.getElementById("scanMax").value, 10) || 300;
-  return Math.min(a, b) + "," + Math.max(a, b) + "," + _ssMin + "," + _ssSel + "," + _ssShift;
+  return "cx1," + Math.min(a, b) + "," + Math.max(a, b) + "," + _ssMin + "," + _ssSel + "," + _ssShift;
 }
 function _resSave(pair) {
   if (_ssShift !== 0 || Date.now() - (_resSavedAt[pair] || 0) < 120000) return;
@@ -1477,13 +1477,19 @@ function primeSelect(kings, pair, rawRevs, rawMoms) {
       var s = keys[i3], pool = byL[s] || [], pickK = null, reason = "";
       if (!pool.length) { pickK = fbL[s]; if (!pickK) continue; reason = "FALLBACK_BEST"; }
       else {
-        var maxC1 = 0; for (var j = 0; j < pool.length; j++) if (pool[j][6] > maxC1) maxC1 = pool[j][6];
+        var maxC1 = 0; for (var j = 0; j < pool.length; j++) if (pool[j][9] > maxC1) maxC1 = pool[j][9];
         var minS = maxC1 >= 6 ? 4 : 1;
-        var dur = pool.filter(z => z[8] >= 75 && z[6] >= minS).sort((a, b) => (a[5] - b[5]) || (b[8] - a[8]) || (b[6] - a[6]) || (a[1] - b[1]) || (a[2] - b[2]) || (a[3] - b[3]));
+        var dur = pool.filter(z => z[11] >= 75 && z[9] >= minS).sort((a, b) => (a[5] - b[5]) || (b[11] - a[11]) || (b[9] - a[9]) || (a[1] - b[1]) || (a[2] - b[2]) || (a[3] - b[3]));
         if (dur.length) { pickK = dur[0]; reason = "EARLY_DURABLE_PRIME"; }
-        else { pickK = pool.slice().sort((a, b) => (b[8] - a[8]) || (a[5] - b[5]) || (b[6] - a[6]) || (a[1] - b[1]) || (a[2] - b[2]) || (a[3] - b[3]))[0]; reason = "ADAPTIVE_BEST_PRIME"; }
+        else { pickK = pool.slice().sort((a, b) => (b[11] - a[11]) || (a[5] - b[5]) || (b[9] - a[9]) || (a[1] - b[1]) || (a[2] - b[2]) || (a[3] - b[3]))[0]; reason = "ADAPTIVE_BEST_PRIME"; }
       }
-      var ent = { pair, c: pickK[1], r: pickK[2], s1: s, s2: s + 1, c1: pickK[6], c2: pickK[7], pct: pickK[8], col: pickK[3] ? "R" : "G", type: t ? "MOM" : "REV", _isPrimeWinner: true, primeReason: reason };
+      var fw1 = pickK[6], fw2 = pickK[7], fwp = pickK[8];
+            if (reason !== "FALLBACK_BEST") {
+              fw1 = Math.max(0, pickK[6] - pickK[9]) + 1;
+              fw2 = Math.min(fw1, Math.max(0, pickK[7] - pickK[10]) + (pickK[12] >= s + 1 ? 1 : 0));
+              fwp = t ? Math.round(fw2 / fw1 * 100) : 100 - Math.round(fw2 / fw1 * 100);
+            }
+            var ent = { pair, c: pickK[1], r: pickK[2], s1: s, s2: s + 1, c1: fw1, c2: fw2, pct: fwp, col: pickK[3] ? "R" : "G", type: t ? "MOM" : "REV", _isPrimeWinner: true, primeReason: reason, ic1: pickK[9], ic2: pickK[10], ipct: pickK[11] };
       if (t) res.mom.push(ent); else res.rev.push(ent);
     }
   }
