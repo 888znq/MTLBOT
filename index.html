@@ -8,10 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <title>WALLSPECTRUM LOCAL — MULTIPAIR</title>
 <style>
-:root{color-scheme:dark;--bw:2px;--sp:2px;--ac:#C0C0C0;--ln:var(--ac);--pf-bg:#000000;--pf-bg2:#000000;--pf-ctl:#000000;--pf-line:var(--ac);--pf-line2:var(--ac);--pf-text:var(--ac);--pf-soft:var(--ac);--pf-mute:var(--ac);--pf-fill:#000000;--pf-up:#00FF00;--pf-dn:#FF0000;--pf-gold:var(--ac);--pf-up-rgb:0,255,0;--pf-dn-rgb:255,0,0;}
+:root{color-scheme:dark;--bw:2px;--sp:2px;--ac:#C0C0C0;--ln:var(--ac);--pf-bg:#000432;--pf-bg2:#000432;--pf-ctl:#000432;--pf-line:var(--ac);--pf-line2:var(--ac);--pf-text:var(--ac);--pf-soft:var(--ac);--pf-mute:var(--ac);--pf-fill:#000432;--pf-up:#00FF00;--pf-dn:#FF0000;--pf-gold:var(--ac);--pf-up-rgb:0,255,0;--pf-dn-rgb:255,0,0;}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;background:#000000;color:var(--pf-text);font-family:'Roboto Mono',monospace;overflow:hidden;user-select:none;-webkit-user-select:none;}
-#main-container{height:100%;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) clamp(175px,30vh,290px);gap:0;padding:0;overflow:hidden;position:relative;background:#000000;}
+html,body{height:100%;background:#000432;color:var(--pf-text);font-family:'Roboto Mono',monospace;overflow:hidden;user-select:none;-webkit-user-select:none;}
+#main-container{height:100%;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) clamp(175px,30vh,290px);gap:0;padding:0;overflow:hidden;position:relative;background:#000432;}
 body.tc-solo #main-container{grid-template-rows:1fr 0px;gap:0;}
 body.tc-solo #wall-finder-pane{display:none!important;}
 #tcBar,.ctrl-row,.table-hdr{display:none;}
@@ -71,7 +71,7 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #tradePill #scanMax{order:31;}
 #tradePill input,#tradePill select,#tradePill button{background:var(--ac);border:1px solid var(--ac);border-radius:0;color:#000000;font:700 10px 'Roboto Mono',monospace;letter-spacing:.04em;outline:none;}
 #tradePill input{-webkit-user-select:text;user-select:text;-moz-appearance:textfield;}
-#tradePill input::selection{background:#000000;color:#C0C0C0;}
+#tradePill input::selection{background:#000432;color:#C0C0C0;}
 #tradePill input::-webkit-outer-spin-button,#tradePill input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 #tradePill select{cursor:pointer;-webkit-appearance:none;appearance:none;}
 #tradePill select option{background:var(--ac);color:#000000;}
@@ -81,11 +81,11 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #tradePill #modeBtn{color:#000000;letter-spacing:.08em;}
 #tradePill input:hover,#tradePill select:hover,#tradePill #tpBal:hover,#tradePill #tpAuto:hover,#tradePill #btToggle:hover,#tradePill #modeBtn:hover{border-color:var(--ac);}
 #tradePill input:focus,#tradePill select:focus{border-color:var(--ac);}
-#tradePill #tpAuto.on{background:#000000;border-color:var(--ac);box-shadow:inset 0 0 0 2px var(--ac);color:var(--ac);}
+#tradePill #tpAuto.on{background:#000432;border-color:var(--ac);box-shadow:inset 0 0 0 2px var(--ac);color:var(--ac);}
 #tradePill #tpBuy,#tradePill #tpSell{border:none;font-weight:800;letter-spacing:.1em;}
 #tradePill #tpBuy{background:var(--pf-up);color:#000000;}
 #tradePill #tpSell{background:var(--pf-dn);color:#000000;}
-#bootOverlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;background:#000000;}
+#bootOverlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;background:#000432;}
 #bootOverlay>div:first-child{width:min(540px,94vw);text-align:center;font-size:12px;font-weight:600;letter-spacing:.2em;color:#000000;background:var(--ac);border:1px solid var(--ac);padding:6px 12px;border-radius:10px;}
 #bootLogBox{width:min(540px,94vw);height:150px;padding:10px;overflow-y:auto;background:var(--ac);border:1px solid var(--ac);border-radius:10px;color:#000000;font-size:10px;line-height:1.5;}
 #bootLogBox *{color:#000000!important;}
@@ -1048,8 +1048,8 @@ function _scanUi() {
     if (e2) { e2.textContent = txt; e2.style.fontSize = "22px"; e2.style.color = "#C0C0C0"; e2.style.opacity = ".9"; e2.style.whiteSpace = "nowrap"; }
     if (e1) e1.textContent = txt;
         _siTimer("SCAN " + pg + "%");
-    if (a) a.style.borderColor = "#000000";
-        if (b) b.style.borderColor = "#000000";
+    if (a) a.style.borderColor = "#000432";
+            if (b) b.style.borderColor = "#000432";
   } else {
     if (e2) { e2.style.fontSize = ""; e2.style.color = ""; e2.style.opacity = ""; e2.style.whiteSpace = ""; e2.textContent = String(_scanCountdownSec); } _siTimer(_scanCountdownSec + "s");
     if (e1) e1.textContent = _scanCountdownSec + "s";
@@ -1542,8 +1542,8 @@ function _autoSelectTopSignal(force) {
         ctx.setLineDash([]);
         var rm = bxCells ? Math.max(0, Math.ceil((j * B + bxR0) - nowF)) : Math.max(0, Math.ceil(B - nowF % B));
         if (bw >= 18 && bh >= 12) {
-          ctx.font = "bold " + Math.max(8, Math.min(bw, bh) * 0.28) + "px " + MONO; ctx.fillStyle = "#000000"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-          ctx.fillText(((rm / 60) | 0) + ":" + ("0" + rm % 60).slice(-2), px + bw / 2, py + bh / 2);
+          ctx.font = "bold " + Math.max(7, Math.min(bh * 0.5, 18)) + "px " + MONO; ctx.fillStyle = "#000000"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+          ctx.fillText(((rm / 60) | 0) + ":" + ("0" + rm % 60).slice(-2), px + bw / 2, py + bh * 0.52);
         }
       }
       var isFut = !!(bxO && !bxO.sig && !hcCell && bxO.fut), txt = hcCell ? ("X" + hcCell.s) : (isFut ? ("X" + bxO.fut.s1) : "");
@@ -1580,13 +1580,13 @@ function _autoSelectTopSignal(force) {
       TC.cv.style.width = W + "px"; TC.cv.style.height = H + "px";
     }
     var ctx = TC.ctx; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var BG = "#000000", DIM = window._AC, CY = window._AC, AM = window._AC, PO = _pairOrangeApply(DV_SYM);
+    var BG = "#000432", DIM = window._AC, CY = window._AC, AM = window._AC, PO = _pairOrangeApply(DV_SYM);
     ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
     ctx.lineWidth = 1; ctx.setLineDash([]);
     var ap = allPairData[DV_SYM] ? allPairData[DV_SYM].prices : null;
     if (!ap || !ap.length) { var _wt = getPairDisplayName(DV_SYM) + " — WAITING FOR DATA..."; ctx.font = "bold 12px " + MONO; ctx.fillStyle = PO; ctx.fillText(_wt, 12, 24); return; }
     TC.allMap = tcCollectAll();
-    if (TC.boxMode) { tcDrawBoxes(ctx, W, H, dpr, DV_SYM, "#000000"); return; }
+    if (TC.boxMode) { tcDrawBoxes(ctx, W, H, dpr, DV_SYM, "#000432"); return; }
     var nowSec = Math.floor(Date.now() / 1000) - currentStartTsUtc, live = _isWithinMappedWindow() && nowSec >= 0 && nowSec < 86400;
     var apLast = tcLastReal(ap, Math.min(live ? nowSec : 86400, ap.length - 1)), nowIdx = live ? nowSec : Math.max(0, apLast);
     var plotW = W - PADL - PADR, ptop = PADT, pbot = H - PADB, spp = TC.spp;
@@ -1755,7 +1755,7 @@ function _autoSelectTopSignal(force) {
     rows.forEach(function (r, k) {
       var xs = xOf(r.ei), xe = xOf(r.ex - currentStartTsUtc);
       if (xe < PADL || xs > W - PADR) return;
-      var col = r.st === "won" ? "#00FF00" : (r.st === "lost" ? "#FF0000" : "#000000");
+      var col = r.st === "won" ? "#00FF00" : (r.st === "lost" ? "#FF0000" : "#000432");
       var x0 = Math.max(PADL, xs), x1 = Math.min(W - PADR, xe);
       ctx.save(); ctx.beginPath(); ctx.rect(PADL, top, W - PADL - PADR, bot - top); ctx.clip();
       ctx.globalAlpha = 1;
@@ -1772,10 +1772,10 @@ function _autoSelectTopSignal(force) {
       var t1 = (r.up ? "▲ BUY " : "▼ SELL ") + r.amt.toFixed(2) + (r.pnl !== null ? "  " + (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2) : "");
       var w1 = ctx.measureText(t1).width + 12, x2 = Math.max(PADL + 2, Math.min(W - PADR - w1 - 2, xs)), y1 = top + 8 + (k % 6) * 20;
       ctx.fillStyle = col; bxRR(ctx, x2, y1, w1, 16, 4); ctx.fill();
-      ctx.fillStyle = col === "#000000" ? window._AC : "#000000"; ctx.fillText(t1, x2 + 6, y1 + 8.5);
+      ctx.fillStyle = col === "#000432" ? window._AC : "#000000"; ctx.fillText(t1, x2 + 6, y1 + 8.5);
       var w2 = ctx.measureText(r.ct).width + 12, x3 = Math.max(PADL + 2, Math.min(W - PADR - w2 - 2, xe - w2 / 2)), y2 = bot - 22;
       ctx.fillStyle = col; bxRR(ctx, x3, y2, w2, 16, 4); ctx.fill();
-      ctx.fillStyle = col === "#000000" ? window._AC : "#000000"; ctx.fillText(r.ct, x3 + 6, y2 + 8.5);
+      ctx.fillStyle = col === "#000432" ? window._AC : "#000000"; ctx.fillText(r.ct, x3 + 6, y2 + 8.5);
       ctx.restore();
     });
   }
