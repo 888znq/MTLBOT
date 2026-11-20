@@ -60,7 +60,7 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #rangePill{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0;margin-top:0;padding:var(--sp);background:var(--pf-bg2);border:var(--bw) solid var(--ln);border-top:0;border-radius:0;font:700 11px 'Roboto Mono',monospace;white-space:nowrap;}
 #tradePill{display:flex;flex:1 1 0;flex-wrap:nowrap;align-items:center;justify-content:stretch;gap:var(--sp);width:100%;min-width:0;font:700 11px 'Roboto Mono',monospace;white-space:nowrap;}
 #tradePill>*{order:20;flex:1 1 0;min-width:0;height:26px;padding:0 2px;overflow:hidden;white-space:nowrap;text-overflow:clip;text-align:center;text-align-last:center;}
-#tradePill #ssSize{order:3;}
+#tradePill #ssSize{order:8;}
 #tradePill #scanIntv{order:4;}
 #tradePill #tpAmt{order:5;}
 #tradePill #tpBuy{order:6;}
@@ -195,9 +195,9 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
         <button type="button" id="tpBuy">BUY</button>
         <button type="button" id="tpSell">SELL</button>
         <button type="button" id="tpAuto">AUTO</button>
+                <button type="button" id="ssSize" title="Session size"></button>
         <input type="number" id="scanMin" value="300" min="1" max="3600" title="Cycle min" onchange="applyCycleRange()">
         <input type="number" id="scanMax" value="300" min="1" max="3600" title="Cycle max" onchange="applyCycleRange()">
-        <select id="ssSize"></select>
         <input type="text" inputmode="numeric" id="scanIntv" value="60" title="Scan interval (seconds)" onchange="setScanInterval(this.value)">
         <button type="button" id="tpBal">D 0.00</button>
         <button type="button" id="btToggle" title="Toggle live / backtest">LIVE</button>
@@ -927,14 +927,17 @@ function _ssDefSel() {
   var ix = _ssShift === 0 ? Math.floor((now % 86400) / ss) : 0;
   return Math.max(1, Math.min(n, ix + 1));
 }
+function _ssList() {
+  var cm = _ssCmax(), l = [], q;
+  for (q = 1; q < 1440; q++) if (1440 % q === 0 && q % 60 === 0 && q * 60 > cm) l.push(q);
+  l.push(0);
+  return l;
+}
 function _ssUi() {
   var z = document.getElementById("ssSize");
   if (!z) return;
-  var cm = _ssCmax(), h = '', q, n;
-    for (q = 1; q < 1440; q++) if (1440 % q === 0 && q % 60 === 0 && q * 60 > cm) h += '<option value="' + q + '">' + _ssFmt(q) + '</option>';
-    h += '<option value="0">24h</option>';
-    z.innerHTML = h;
-  z.value = String(_ssMin);
+  var n;
+  z.textContent = _ssMin > 0 ? _ssFmt(_ssMin) : "24h";
   n = _ssMin > 0 ? Math.round(1440 / _ssMin) : 1;
   if (_ssSel > n) _ssSel = 0;
 }
@@ -987,7 +990,7 @@ async function _ssReload() {
 }
 (function () {
   var z = document.getElementById("ssSize");
-  z.addEventListener("change", function () { _ssMin = parseInt(z.value, 10) || 0; _ssSel = _ssDefSel(); _ssUi(); _ssApply(); });
+  z.addEventListener("click", function () { var l = _ssList(), i = l.indexOf(_ssMin); _ssMin = l[(i + 1) % l.length]; _ssSel = _ssDefSel(); _ssUi(); _ssApply(); });
   var bt = document.getElementById("btToggle"), bd = document.getElementById("btDate");
   var btDay = function (sh) { var n = Math.floor(Date.now() / 1000); return new Date((n - (n % 86400) + sh * 86400) * 1000).toISOString().slice(0, 10); };
   window._btDateStr = function () { return btDay(_ssShift); };
