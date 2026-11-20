@@ -1110,7 +1110,7 @@ async function _cacheClean(day) {
 }
 function _resSig() {
   var a = parseInt(document.getElementById("scanMin").value, 10) || 300, b = parseInt(document.getElementById("scanMax").value, 10) || 300;
-  return "cx1," + Math.min(a, b) + "," + Math.max(a, b) + "," + _ssMin + "," + _ssSel + "," + _ssShift;
+  return "cx2," + Math.min(a, b) + "," + Math.max(a, b) + "," + _ssMin + "," + _ssSel + "," + _ssShift;
 }
 function _resSave(pair) {
   if (_ssShift !== 0 || Date.now() - (_resSavedAt[pair] || 0) < 120000) return;
@@ -1458,6 +1458,10 @@ function _wsPipeDedupe(list) {
   return out.sort((a, b) => (a.c - b.c) || (a.s1 - b.s1) || (c2k(a) - c2k(b)) || ((b.c1 || 0) - (a.c1 || 0)) || (b.pct - a.pct) || (a.r - b.r));
 }
 
+function _kingFw(k, s, t) {
+  var f1 = Math.max(0, k[6] - k[9]) + 1, f2 = Math.min(f1, Math.max(0, k[7] - k[10]) + (k[12] >= s + 1 ? 1 : 0));
+  return { c1: f1, c2: f2, pct: t ? Math.round(f2 / f1 * 100) : 100 - Math.round(f2 / f1 * 100) };
+}
 function primeSelect(kings, pair, rawRevs, rawMoms) {
   var res = { rev: [], mom: [] }, srcs = [rawRevs || [], rawMoms || []];
   for (var t = 0; t < 2; t++) {
@@ -1477,11 +1481,11 @@ function primeSelect(kings, pair, rawRevs, rawMoms) {
       var s = keys[i3], pool = byL[s] || [], pickK = null, reason = "";
       if (!pool.length) { pickK = fbL[s]; if (!pickK) continue; reason = "FALLBACK_BEST"; }
       else {
-        var maxC1 = 0; for (var j = 0; j < pool.length; j++) if (pool[j][9] > maxC1) maxC1 = pool[j][9];
-        var minS = maxC1 >= 6 ? 4 : 1;
-        var dur = pool.filter(z => z[11] >= 75 && z[9] >= minS).sort((a, b) => (a[5] - b[5]) || (b[11] - a[11]) || (b[9] - a[9]) || (a[1] - b[1]) || (a[2] - b[2]) || (a[3] - b[3]));
-        if (dur.length) { pickK = dur[0]; reason = "EARLY_DURABLE_PRIME"; }
-        else { pickK = pool.slice().sort((a, b) => (b[11] - a[11]) || (a[5] - b[5]) || (b[9] - a[9]) || (a[1] - b[1]) || (a[2] - b[2]) || (a[3] - b[3]))[0]; reason = "ADAPTIVE_BEST_PRIME"; }
+        var kf = pool.map(z => { var q = _kingFw(z, s, t); return { z: z, sc: _champScore({ c1: q.c1, pct: q.pct }) }; });
+                var cmp = (a, b) => (b.sc - a.sc) || (a.z[5] - b.z[5]) || (a.z[1] - b.z[1]) || (a.z[2] - b.z[2]) || (a.z[3] - b.z[3]);
+                var dur = kf.filter(o => o.z[11] >= 75).sort(cmp);
+                if (dur.length) { pickK = dur[0].z; reason = "EARLY_DURABLE_PRIME"; }
+                else { pickK = kf.sort(cmp)[0].z; reason = "ADAPTIVE_BEST_PRIME"; }
       }
       var fw1 = pickK[6], fw2 = pickK[7], fwp = pickK[8];
             if (reason !== "FALLBACK_BEST") {
@@ -1528,7 +1532,8 @@ function handleWorkerMessage(e) {
   _scanMerge();
   delete window._lanes[e.data.gid];
     if (_scanNext()) { renderFilteredTable(); return; }
-  scanPending = 0;
+      scanPending = 0;
+      window._rngWait = 0;
   processVisualMatrix();
   renderFilteredTable();
   if (window._autoSelectAfterScan) { window._autoSelectAfterScan = false; setTimeout(_autoSelectTopSignal, 100); }
@@ -1652,13 +1657,13 @@ function dispatchMultiCycleScan() {
   var maxC = parseInt(document.getElementById("scanMax").value, 10) || 300;
   if (minC > maxC) { var t = minC; minC = maxC; maxC = t; }
   if (scanPending && !window._scanRestart && Date.now() - _scanStartedAt < 120000 * pl.length) return;
-  if (window._scanRestart) { window._scanRestart = false; _spawnScanWorker(); _pairRes = {}; }
+  if (window._scanRestart) { window._scanRestart = false; _spawnScanWorker(); _pairRes = {}; window._rngWait = Date.now(); }
     else if (scanPending) _spawnScanWorker();
   scanPending = 1; _scanStartedAt = Date.now();
   window._scanMin = minC; window._scanMax = maxC; window._ssJob = null;
   pl.sort(function (a, b) { return (_gmVis(b) ? 1 : 0) - (_gmVis(a) ? 1 : 0); });
   _scanQ = pl.slice();
-  if (!_scanNext()) scanPending = 0;
+    if (!_scanNext()) { scanPending = 0; window._rngWait = 0; renderFilteredTable(); }
 }
 
 function _wsBuild(list, c2n, lvl, nui) {
@@ -1797,8 +1802,9 @@ function _renderTableNow() {
   var rev = _bestPerLevel(_wsBuild(globalRevs.filter(function (x) { return _gmVis(x.pair); }), "lvl")), mom = _bestPerLevel(_wsBuild(globalMoms.filter(function (x) { return _gmVis(x.pair); }), "lvl"));
   var _gl = ALL_PAIRS.filter(function (p) { return _gmVis(p); }), _gp = _gl.filter(function (p) { return !_pairRes[p]; }).length;
   var _ld = '<tr><td colspan="7" style="text-align:center;background:var(--pf-fill);padding:16px;">LOADING PAIRS ' + (_gl.length - _gp) + '/' + _gl.length + ' ...</td></tr>';
-  document.getElementById("peaksTableBodyRev").innerHTML = (!rev.length && _gp) ? _ld : _buildScannerRowsHtml(rev);
-  document.getElementById("peaksTableBodyMom").innerHTML = (!mom.length && _gp) ? _ld : _buildScannerRowsHtml(mom);
+  var _wt = window._rngWait && _gp > 0 && Date.now() - window._rngWait < 90000;
+    document.getElementById("peaksTableBodyRev").innerHTML = ((!rev.length && _gp) || _wt) ? _ld : _buildScannerRowsHtml(rev);
+    document.getElementById("peaksTableBodyMom").innerHTML = ((!mom.length && _gp) || _wt) ? _ld : _buildScannerRowsHtml(mom);
   if (window.tcRedraw) window.tcRedraw();
 }
 
