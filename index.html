@@ -1755,28 +1755,41 @@ function _autoSelectTopSignal(force) {
     rows.forEach(function (r, k) {
       var xs = xOf(r.ei), xe = xOf(r.ex - currentStartTsUtc);
       if (xe < PADL || xs > W - PADR) return;
-      var col = r.st === "won" ? "#00B85A" : (r.st === "lost" ? "#DC2640" : "#000432");
-      var x0 = Math.max(PADL, xs), x1 = Math.min(W - PADR, xe);
-      ctx.save(); ctx.beginPath(); ctx.rect(PADL, top, W - PADL - PADR, bot - top); ctx.clip();
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = window._AC; ctx.lineWidth = 1; ctx.setLineDash([]);
-      ctx.beginPath(); ctx.moveTo(Math.round(xs) + 0.5, top); ctx.lineTo(Math.round(xs) + 0.5, bot); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.beginPath(); ctx.moveTo(Math.round(xe) + 0.5, top); ctx.lineTo(Math.round(xe) + 0.5, bot); ctx.stroke();
-      if (yOf && r.en) {
-        var ey = yOf(r.en);
-        ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x0, ey); ctx.lineTo(x1, ey); ctx.stroke(); ctx.setLineDash([]);
-        ctx.beginPath(); ctx.arc(xs, ey, 4, 0, 6.283); ctx.fillStyle = window._AC; ctx.fill();
-      }
-      ctx.font = "bold 10px " + MONO; ctx.textAlign = "left"; ctx.textBaseline = "middle";
-      var t1 = (r.up ? "▲ BUY " : "▼ SELL ") + r.amt.toFixed(2) + (r.pnl !== null ? "  " + (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2) : "");
-      var w1 = ctx.measureText(t1).width + 12, x2 = Math.max(PADL + 2, Math.min(W - PADR - w1 - 2, xs)), y1 = top + 8 + (k % 6) * 20;
-      ctx.fillStyle = col; bxRR(ctx, x2, y1, w1, 16, 4); ctx.fill();
-      ctx.fillStyle = col === "#000432" ? window._AC : "#000000"; ctx.fillText(t1, x2 + 6, y1 + 8.5);
-      var w2 = ctx.measureText(r.ct).width + 12, x3 = Math.max(PADL + 2, Math.min(W - PADR - w2 - 2, xe - w2 / 2)), y2 = bot - 22;
-      ctx.fillStyle = col; bxRR(ctx, x3, y2, w2, 16, 4); ctx.fill();
-      ctx.fillStyle = col === "#000432" ? window._AC : "#000000"; ctx.fillText(r.ct, x3 + 6, y2 + 8.5);
-      ctx.restore();
+      if (!yOf) return;
+            if (r.st !== "open" && Date.now() / 1000 - r.ex > 6) return;
+            var tbDone = r.st === "won" || r.st === "lost", tbWin = r.st === "won";
+            var tbCol = tbWin ? "#00B85A" : (r.st === "lost" ? "#DC2640" : window._AC);
+            var tbE = Math.max(0, Math.floor(r.ei)), tbX = Math.floor(r.ex - currentStartTsUtc);
+            var tbK = Math.min(tbX, li >= 0 ? li : tbE, ap.length - 1);
+            var tbR = tcLastReal(ap, Math.min(tbE, ap.length - 1));
+            var tbEn = r.en || (tbR >= 0 ? ap[tbR] : null);
+            var tbLo = tbEn !== null ? tbEn : Infinity, tbHi = tbEn !== null ? tbEn : -Infinity;
+            for (var tbF = tbE; tbF <= tbK; tbF++) { var tbV = ap[tbF]; if (tbV !== -1 && tbV !== undefined) { if (tbV < tbLo) tbLo = tbV; if (tbV > tbHi) tbHi = tbV; } }
+            if (!(tbHi >= tbLo)) return;
+            var tbX1 = Math.max(PADL, xs), tbX2 = Math.min(W - PADR, xe), tbY1 = Math.max(top, yOf(tbHi) - 2), tbY2 = Math.min(bot, yOf(tbLo) + 2);
+            var tbW = Math.max(2, tbX2 - tbX1), tbH = Math.max(8, tbY2 - tbY1), tbMx = (tbX1 + tbX2) / 2;
+            ctx.save(); ctx.beginPath(); ctx.rect(PADL, top, W - PADL - PADR, bot - top); ctx.clip();
+            ctx.setLineDash([]);
+            if (tbDone) { ctx.globalAlpha = 0.15; ctx.fillStyle = tbCol; ctx.fillRect(tbX1, tbY1, tbW, tbH); ctx.globalAlpha = 1; }
+            ctx.strokeStyle = tbCol; ctx.lineWidth = 1.6;
+            ctx.strokeRect(tbX1, tbY1, tbW, tbH);
+            if (tbEn !== null) {
+              var tbEy = yOf(tbEn);
+              ctx.beginPath(); ctx.moveTo(tbX1, tbEy); ctx.lineTo(tbX2, tbEy); ctx.stroke();
+              if (xs >= PADL) { ctx.beginPath(); ctx.arc(xs, tbEy, 4, 0, 6.283); ctx.fillStyle = tbCol; ctx.fill(); }
+            }
+            ctx.font = "bold 10px " + MONO; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            var tbTxt = (r.up ? "BUY " : "SELL ") + r.amt.toFixed(2) + (r.pnl !== null ? "  " + (r.pnl >= 0 ? "+" : "") + r.pnl.toFixed(2) : "") + "  " + r.ct;
+            var tbTw = ctx.measureText(tbTxt).width, tbLx = Math.max(PADL + tbTw / 2 + 2, Math.min(W - PADR - tbTw / 2 - 2, tbMx));
+            var tbLy = r.up ? tbY2 + 14 : tbY1 - 14;
+            if (tbLy > bot - 8) tbLy = tbY1 - 14; else if (tbLy < top + 8) tbLy = tbY2 + 14;
+            ctx.fillStyle = window._AC; ctx.fillText(tbTxt, tbLx, tbLy);
+            if (tbDone) {
+              var tbFs = _tcTkFs(), tbRr = Math.max(8, tbFs * 0.7) * 0.5 + 3, tbMy = tbY1 - tbRr - 2;
+              if (tbMy - tbRr < top) tbMy = tbY2 + tbRr + 2;
+              bxMark(ctx, tbMx, tbMy, tbWin, tbFs, tbCol, "#000432", window._AC);
+            }
+            ctx.restore();
     });
   }
 
