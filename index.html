@@ -85,17 +85,21 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #tradePill #tpBuy,#tradePill #tpSell{border:none;font-weight:800;letter-spacing:.1em;}
 #tradePill #tpBuy{background:var(--pf-up);color:#000000;}
 #tradePill #tpSell{background:var(--pf-dn);color:#000000;}
-#pairSelPanel{display:none;position:fixed;z-index:9000;padding:var(--sp);background:#000432;border:var(--bw) solid var(--ac);overflow-y:auto;scrollbar-width:none;font:700 11px 'Roboto Mono',monospace;}
-#pairSelPanel::-webkit-scrollbar{display:none;}
-#pairSelPanel .psTop,#pairSelPanel .psGrid{display:flex;flex-wrap:wrap;gap:var(--sp);}
-#pairSelPanel .psTop{margin-bottom:var(--sp);}
-#pairSelPanel button{flex:1 1 calc(25% - var(--sp));min-width:64px;height:30px;padding:0 4px;background:#000432;border:1px solid var(--ac);border-radius:0;color:var(--ac);font:700 11px 'Roboto Mono',monospace;letter-spacing:.04em;cursor:pointer;outline:none;}
-#pairSelPanel button.on,#pairSelPanel .psTop button{background:var(--ac);color:#000000;}
-#pairSelPanel .psGroups{display:flex;flex-wrap:wrap;gap:var(--sp);margin-bottom:var(--sp);}
-#pairSelPanel .psRow{display:flex;gap:var(--sp);width:100%;}
-#pairSelPanel .psRow .psName{flex:1 1 auto;}
-#pairSelPanel .psRow button[data-u],#pairSelPanel .psRow button[data-d]{flex:0 0 56px;min-width:0;}
-#pairSelPanel .psHint{width:100%;padding:2px 0;color:var(--ac);font-size:9px;letter-spacing:.04em;}
+#pairSelPanel{display:none;position:fixed;z-index:9000;padding:var(--sp);background:#000432;border:var(--bw) solid var(--ac);overflow:hidden;font:700 11px 'Roboto Mono',monospace;}
+#pairSelPanel .psBody{display:flex;gap:var(--sp);max-height:calc(var(--ps-mh,340px) - 8px);}
+#pairSelPanel .psLeft{flex:1 1 0;min-width:0;max-height:calc(var(--ps-mh,340px) - 8px);display:flex;flex-direction:column;gap:var(--sp);overflow:hidden;}
+#pairSelPanel .psHead{flex:0 0 auto;display:flex;align-items:center;gap:var(--sp);}
+#pairSelPanel .psTitle{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ac);font-size:10px;letter-spacing:.04em;padding-left:2px;}
+#pairSelPanel .psGrid{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:var(--sp);align-content:start;}
+#pairSelPanel .psGrid::-webkit-scrollbar,#pairSelPanel .psCats::-webkit-scrollbar{display:none;}
+#pairSelPanel .psCats{flex:0 0 clamp(136px,38%,172px);max-height:calc(var(--ps-mh,340px) - 8px);display:flex;flex-direction:column;gap:var(--sp);padding-left:var(--sp);border-left:1px solid var(--ac);overflow-y:auto;scrollbar-width:none;}
+#pairSelPanel .psCatRow{display:flex;gap:var(--sp);width:100%;flex:0 0 auto;}
+#pairSelPanel button{height:28px;padding:0 4px;background:#000432;border:1px solid var(--ac);border-radius:0;color:var(--ac);font:700 11px 'Roboto Mono',monospace;letter-spacing:.04em;cursor:pointer;outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#pairSelPanel button.on,#pairSelPanel .psAdd{background:var(--ac);color:#000000;}
+#pairSelPanel .psMini{flex:0 0 auto;height:22px;padding:0 6px;font-size:10px;}
+#pairSelPanel .psCatBtn{flex:1 1 0;min-width:0;text-align:left;padding:0 6px;}
+#pairSelPanel .psAct{flex:0 0 26px;padding:0;text-align:center;}
+#pairSelPanel .psAdd{width:100%;flex:0 0 auto;}
 #bootOverlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;background:#000432;}
 #bootOverlay>div:first-child{width:min(540px,94vw);text-align:center;font-size:11px;font-weight:600;letter-spacing:.2em;color:#000000;background:var(--ac);border:1px solid var(--ac);padding:6px 12px;border-radius:10px;}
 #bootLogBox{width:min(540px,94vw);height:150px;padding:10px;overflow-y:auto;background:var(--ac);border:1px solid var(--ac);border-radius:10px;color:#000000;font-size:10px;line-height:1.5;}
@@ -497,10 +501,17 @@ function _gmUi() {
   var b = document.getElementById("modeBtn");
   if (!b) return;
   var d = ALL_PAIRS.filter(function (p) { return _bootPairState[p] === "done"; }).length;
-    var sel = ALL_PAIRS.filter(function (p) { return _psSel[p] === 1; }), t;
-        t = sel.length === ALL_PAIRS.length ? "ALL" : sel.map(_psShort).join("+");
-        if (t.length > 9) t = sel.length + " PAIRS";
-        b.textContent = t + (d < ALL_PAIRS.length ? " " + d + "/" + ALL_PAIRS.length : "");
+  var sel = ALL_PAIRS.filter(function (p) { return _psSel[p] === 1; }), t = "", i;
+  if (_psGroups) {
+    for (i = 0; i < _psGroups.length; i++) {
+      if (_psGroups[i].p.length === sel.length && _psGroups[i].p.every(function (q) { return _psSel[q] === 1; })) { t = _psGroups[i].n; break; }
+    }
+  }
+  if (!t) {
+    t = sel.length === ALL_PAIRS.length ? "ALL" : sel.map(_psShort).join("+");
+    if (t.length > 9) t = sel.length + " PAIRS";
+  }
+  b.textContent = t + (d < ALL_PAIRS.length ? " " + d + "/" + ALL_PAIRS.length : "");
 }
 var _gmVC;
 var _psSel = { cryBTCUSD: 1 };
@@ -514,55 +525,87 @@ function _psList() {
   if (!l.length) { _psSel = { cryBTCUSD: 1 }; l = f(); }
   return l;
 }
+var _psCat = -1, _psBlank = 0;
 function _psRender() {
-  var el = document.getElementById("pairSelPanel"), h = '<div class="psTop"><button type="button" data-g="ALL">ALL</button><button type="button" data-g="DEF">BTC</button><button type="button" data-g="SAVE">SAVE</button><button type="button" data-g="EDIT">' + (_psEdit ? 'DONE' : 'EDIT') + '</button></div>' + _psGroupsHtml();
+  var el = document.getElementById("pairSelPanel"), list, title, onCnt, h, i, g;
   if (!el) return;
-  
-  h += '<div class="psGrid">';
-  ALL_PAIRS.forEach(function (p) { h += '<button type="button" class="psItem' + (_psSel[p] === 1 ? ' on' : '') + '" data-p="' + p + '">' + _psShort(p) + '</button>'; });
-  el.innerHTML = h + '</div>';
+  if (_psCat >= _psGroups.length) _psCat = -1;
+  list = (_psCat >= 0 && _psGroups[_psCat]) ? _psGroups[_psCat].p : ALL_PAIRS;
+  title = (_psCat >= 0 && _psGroups[_psCat]) ? _psGroups[_psCat].n : "ALL";
+  onCnt = _psBlank ? 0 : list.filter(function (q) { return _psSel[q] === 1; }).length;
+  h = '<div class="psBody"><div class="psLeft"><div class="psHead"><span class="psTitle">' + _psEsc(title) + ' (' + onCnt + '/' + list.length + ')</span><button type="button" class="psMini" data-g="CATALL">ALL</button><button type="button" class="psMini" data-g="CLR">CLR</button></div><div class="psGrid">';
+  for (i = 0; i < list.length; i++) {
+    h += '<button type="button" class="psItem' + (!_psBlank && _psSel[list[i]] === 1 ? ' on' : '') + '" data-p="' + list[i] + '">' + _psShort(list[i]) + '</button>';
+  }
+  h += '</div></div><div class="psCats"><div class="psCatRow"><button type="button" class="psCatBtn' + (_psCat === -1 ? ' on' : '') + '" data-cat="-1">ALL</button></div>';
+  for (i = 0; i < _psGroups.length; i++) {
+    g = _psGroups[i];
+    h += '<div class="psCatRow"><button type="button" class="psCatBtn' + (_psCat === i ? ' on' : '') + '" data-cat="' + i + '">' + _psEsc(g.n) + '</button><button type="button" class="psAct" data-r="' + i + '" title="Rename">&#9998;</button><button type="button" class="psAct" data-d="' + i + '" title="Delete">&times;</button></div>';
+  }
+  h += '<button type="button" class="psAdd" data-g="SAVE">+ ADD</button></div></div>';
+  el.innerHTML = h;
 }
 function _psPlace() {
   var el = document.getElementById("pairSelPanel"), b = document.getElementById("modeBtn");
   if (!el || !b) return;
-  var r = b.getBoundingClientRect(), w = Math.min(320, window.innerWidth - 8);
+  var r = b.getBoundingClientRect(), w = Math.min(440, window.innerWidth - 8), mh = Math.max(140, Math.min(360, r.top - 12));
   el.style.width = w + "px";
   el.style.left = Math.max(4, Math.min(r.left, window.innerWidth - w - 4)) + "px";
   el.style.bottom = (window.innerHeight - r.top + 4) + "px";
-  el.style.maxHeight = Math.max(120, r.top - 12) + "px";
+  el.style.maxHeight = mh + "px";
+  el.style.setProperty("--ps-mh", mh + "px");
 }
 function _psClick(e) {
-  var t = e.target && e.target.closest ? e.target.closest("button") : null, n = {}, k, g, l, all;
+  var t = e.target && e.target.closest ? e.target.closest("button") : null, n = {}, k, g, list;
   if (!t) return;
   if (_psGrpClick(t)) return;
-    for (k in _psSel) n[k] = 1;
-  if (t.getAttribute("data-p")) {
-    k = t.getAttribute("data-p");
-    if (n[k]) delete n[k]; else n[k] = 1;
-  } else {
-    g = t.getAttribute("data-g");
-    if (g === "ALL") ALL_PAIRS.forEach(function (q) { n[q] = 1; });
-    else if (g === "DEF") n = { cryBTCUSD: 1 };
-    else {
-      l = _gmPairs(g);
-      all = l.every(function (q) { return n[q] === 1; });
-      l.forEach(function (q) { if (all) delete n[q]; else n[q] = 1; });
+  k = t.getAttribute("data-p");
+  if (k) {
+    if (_psBlank) {
+      _psBlank = 0;
+      n[k] = 1;
+    } else {
+      for (g in _psSel) n[g] = 1;
+      if (n[k]) delete n[k]; else n[k] = 1;
     }
+    if (!Object.keys(n).length) return;
+    _psSel = n;
+    _psRender();
+    _psApply();
+    return;
   }
-  if (!Object.keys(n).length) return;
-  _psSel = n;
-  _psRender();
-  _psApply();
+  g = t.getAttribute("data-g");
+  if (g === "CLR") {
+    _psBlank = 1;
+    _psRender();
+    return;
+  }
+  if (g === "CATALL") {
+    _psBlank = 0;
+    list = (_psCat >= 0 && _psGroups[_psCat]) ? _psGroups[_psCat].p : ALL_PAIRS;
+    list.forEach(function (q) { n[q] = 1; });
+    if (!Object.keys(n).length) return;
+    _psSel = n;
+    _psRender();
+    _psApply();
+  }
 }
 function _psToggle() {
-  var el = document.getElementById("pairSelPanel");
+  var el = document.getElementById("pairSelPanel"), i;
   if (!el) {
     el = document.createElement("div");
     el.id = "pairSelPanel";
     el.addEventListener("click", _psClick);
     document.body.appendChild(el);
   }
-  if (el.style.display === "block") { el.style.display = "none"; return; }
+  if (el.style.display === "block") { el.style.display = "none"; _psBlank = 0; return; }
+  _psBlank = 0;
+  if (_psCat >= _psGroups.length) _psCat = -1;
+  if (_psCat < 0) {
+    for (i = 0; i < _psGroups.length; i++) {
+      if (_psSame(_psGroups[i].p)) { _psCat = i; break; }
+    }
+  }
   _psRender();
   el.style.display = "block";
   _psPlace();
@@ -572,60 +615,68 @@ document.addEventListener("pointerdown", function (e) {
   if (!el || el.style.display !== "block") return;
   if (el.contains(e.target) || e.target.id === "modeBtn") return;
   el.style.display = "none";
+  _psBlank = 0;
 }, true);
 window.addEventListener("resize", function () {
   var el = document.getElementById("pairSelPanel");
   if (el && el.style.display === "block") _psPlace();
 });
-var _psEdit = 0;
 function _psEsc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 function _psCur() { return ALL_PAIRS.filter(function (q) { return _psSel[q] === 1; }); }
 function _psSame(a) { var c = _psCur(); return c.length === a.length && a.every(function (q) { return _psSel[q] === 1; }); }
-function _psGroupsHtml() {
-  var h, i, g;
-  if (!_psGroups.length) return "";
-  h = '<div class="psGroups">';
-  for (i = 0; i < _psGroups.length; i++) {
-    g = _psGroups[i];
-    if (_psEdit) h += '<div class="psRow"><button type="button" class="psName" data-r="' + i + '">' + _psEsc(g.n) + '</button><button type="button" data-u="' + i + '">UPD</button><button type="button" data-d="' + i + '">DEL</button></div>';
-    else h += '<button type="button" class="psGrp' + (_psSame(g.p) ? ' on' : '') + '" data-n="' + i + '">' + _psEsc(g.n) + '</button>';
-  }
-  if (_psEdit) h += '<div class="psHint">TAP NAME = RENAME · UPD = SAVE CURRENT PAIRS · DEL = DELETE</div>';
-  return h + '</div>';
-}
 function _psGrpClick(t) {
-  var a = t.getAttribute("data-n"), r = t.getAttribute("data-r"), u = t.getAttribute("data-u"), d = t.getAttribute("data-d"), g = t.getAttribute("data-g"), s;
-  if (a !== null) {
-    if (!_psGroups[+a]) return true;
-    _psSel = {};
-    _psGroups[+a].p.forEach(function (q) { _psSel[q] = 1; });
+  var cat = t.getAttribute("data-cat"), r = t.getAttribute("data-r"), d = t.getAttribute("data-d"), g = t.getAttribute("data-g"), idx, s, cur;
+  if (cat !== null) {
+    idx = +cat;
+    _psBlank = 0;
+    if (idx === -1) {
+      _psCat = -1;
+      _psSel = {};
+      ALL_PAIRS.forEach(function (q) { _psSel[q] = 1; });
+    } else {
+      if (!_psGroups[idx]) return true;
+      _psCat = idx;
+      _psSel = {};
+      _psGroups[idx].p.forEach(function (q) { _psSel[q] = 1; });
+    }
     _psRender();
     _psApply();
     return true;
   }
   if (g === "SAVE") {
-    s = window.prompt("Group name", "");
+    if (_psBlank) return true;
+    cur = _psCur();
+    if (!cur.length) return true;
+    s = window.prompt("Category name", "");
     s = s ? s.trim().slice(0, 14) : "";
-    if (s) { _psGroups.push({ n: s, p: _psCur() }); _psRender(); }
+    if (s) {
+      _psGroups.push({ n: s, p: cur });
+      _psCat = _psGroups.length - 1;
+      _psRender();
+      _gmUi();
+    }
     return true;
   }
-  if (g === "EDIT") { _psEdit = _psEdit ? 0 : 1; _psRender(); return true; }
   if (r !== null) {
-    if (!_psGroups[+r]) return true;
-    s = window.prompt("Rename group", _psGroups[+r].n);
+    idx = +r;
+    if (!_psGroups[idx]) return true;
+    s = window.prompt("Rename category", _psGroups[idx].n);
     s = s ? s.trim().slice(0, 14) : "";
-    if (s) { _psGroups[+r].n = s; _psRender(); }
-    return true;
-  }
-  if (u !== null) {
-    if (_psGroups[+u]) { _psGroups[+u].p = _psCur(); _psRender(); }
+    if (s) {
+      _psGroups[idx].n = s;
+      _psRender();
+      _gmUi();
+    }
     return true;
   }
   if (d !== null) {
-    if (_psGroups[+d] && window.confirm("Delete group " + _psGroups[+d].n + "?")) {
-      _psGroups.splice(+d, 1);
-      if (!_psGroups.length) _psEdit = 0;
+    idx = +d;
+    if (_psGroups[idx] && window.confirm("Delete category " + _psGroups[idx].n + "?")) {
+      _psGroups.splice(idx, 1);
+      if (_psCat === idx) _psCat = -1;
+      else if (_psCat > idx) _psCat--;
       _psRender();
+      _gmUi();
     }
     return true;
   }
