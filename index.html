@@ -1288,7 +1288,67 @@ function _sigOutFind(pair, c, r, s1, s2, col, type) {
   return null;
 }
 
+var _brk = { last: "" };
+window._otWin = null;
+window._drvWin = null;
+
+function _brkClean(p) {
+  return String(p || "").replace(/^(frx|cry)/i, "");
+}
+
+function _brkCopyFb(txt) {
+  var ta = null;
+  try {
+    ta = document.createElement("textarea");
+    ta.value = txt;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0;";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+  } catch (e) {}
+  if (ta && ta.parentNode) ta.parentNode.removeChild(ta);
+}
+
+function _brkCopy(txt) {
+  try {
+    if (window.AndroidClipboard) { window.AndroidClipboard.write(txt); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).catch(function () { _brkCopyFb(txt); });
+      return;
+    }
+  } catch (e) {}
+  _brkCopyFb(txt);
+}
+
+function _brkPost(msg) {
+  var tg = [window._otWin, window._drvWin, window.opener, (window.parent !== window ? window.parent : null)], seen = [], i, w;
+  for (i = 0; i < tg.length; i++) {
+    w = tg[i];
+    if (!w || w === window || seen.indexOf(w) >= 0) continue;
+    try { if (w.closed) continue; } catch (e1) {}
+    seen.push(w);
+    try { w.postMessage(msg, "*"); } catch (e2) {}
+  }
+}
+
+function _brkSend(pair) {
+  var clean = _brkClean(pair);
+  if (!clean) return;
+  if (_brk.last !== clean) { _brk.last = clean; _brkCopy(clean); }
+  _brkPost({ trinityOS_pair: clean });
+}
+
+function launchBrokers() {
+  window._otWin = window.open("https://olymptrade.com/platform", "olymptrade");
+}
+
+function launchDerivTerminal() {
+  window._drvWin = window.open("https://888znq.github.io/TRM/", "derivterminal");
+}
+
 function manualSelectSignal(pair, c, r, s1, s2, col, type) {
+  try { _brkSend(pair); } catch (e) {}
   selectSignal(pair, c, r, s1, s2, col, type);
   if (window.tcRedraw) window.tcRedraw();
 }
