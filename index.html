@@ -69,6 +69,12 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #tradePill #tpBal{order:9;}
 #tradePill #btToggle{order:10;display:none!important;}
 #tradePill #modeBtn{order:11;}
+#tradePill #logBtn{order:13;}
+#tradePill #lvlBtn2{order:14;}
+#logPanel{display:none;position:fixed;z-index:9000;padding:6px 8px;background:#000432;border:var(--bw) solid var(--ac);box-shadow:0 12px 32px rgba(0,0,0,.65);overflow-y:auto;scrollbar-width:none;color:var(--ac);font:600 11px 'Roboto Mono',monospace;}
+#logPanel::-webkit-scrollbar{display:none;}
+#logPanel div{padding:3px 0;border-bottom:1px solid rgba(192,192,192,.2);white-space:pre-wrap;word-break:break-word;}
+#tradePill #catBtn{order:12;}
 #tradePill #btDate{order:12;color-scheme:dark;}
 #tradePill #scanMin{order:30;}
 #tradePill #scanMax{order:31;}
@@ -202,7 +208,10 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
         <button type="button" id="tpBal">D 0.00</button>
         <button type="button" id="btToggle" title="Toggle live / backtest">LIVE</button>
         <button type="button" id="modeBtn" title="Select pairs" onclick="_psToggle()">BTC+ETH</button>
-        <input type="date" id="btDate" style="display:none" title="Backtest date (session 05:30-05:30 IST)">
+                <button type="button" id="catBtn" title="Next category" style="display:none" onclick="_catNext()">CAT</button>
+        <button type="button" id="logBtn" title="Log" onclick="_logToggle()">LOG</button>
+                <button type="button" id="lvlBtn2" title="Level filter" onclick="window._wsLvlToggle()">LVL ALL</button>
+                <input type="date" id="btDate" style="display:none" title="Backtest date (session 05:30-05:30 IST)">
       </div>
     </div>
   </div>
@@ -520,6 +529,7 @@ function _gmPairs(m) {
   });
 }
 function _gmUi() {
+  _catUi();
   var b = document.getElementById("modeBtn");
   if (!b) return;
   var d = ALL_PAIRS.filter(function (p) { return _bootPairState[p] === "done"; }).length;
@@ -785,6 +795,31 @@ window.addEventListener("resize", function () {
 function _psEsc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 function _psCur() { return ALL_PAIRS.filter(function (q) { return _psSel[q] === 1; }); }
 function _psSame(a) { var c = _psCur(); return c.length === a.length && a.every(function (q) { return _psSel[q] === 1; }); }
+function _catIdx() {
+  var i;
+  if (_psCat >= 0 && _psGroups[_psCat] && _psSame(_psGroups[_psCat].p)) return _psCat;
+  for (i = 0; i < _psGroups.length; i++) if (_psSame(_psGroups[i].p)) return i;
+  return -1;
+}
+function _catUi() {
+  var b = document.getElementById("catBtn"), i;
+  if (!b) return;
+  i = _catIdx();
+  b.style.display = _psGroups.length ? "" : "none";
+  b.textContent = i >= 0 ? _psGroups[i].n : "CAT";
+}
+function _catNext() {
+  var n = _psGroups.length, i, k;
+  if (!n) return;
+  if (_psInline) _psCommitIn(true, true);
+  i = _catIdx();
+  k = i < 0 ? 0 : (i + 1) % n;
+  _psCat = k; _psBlank = 0; _psEditPairs = 0;
+  _psSel = {};
+  _psGroups[k].p.forEach(function (q) { _psSel[q] = 1; });
+  _psRender();
+  _psApply();
+}
 function _psGrpClick(t) {
   var cat = t.getAttribute("data-cat"), r = t.getAttribute("data-r"), d = t.getAttribute("data-d"), g = t.getAttribute("data-g"), idx;
   if (cat !== null) {
@@ -1049,7 +1084,38 @@ function _viewPair(pair) {
   renderFilteredTable();
   if (window.tcRedraw) window.tcRedraw();
 }
+var _logs = [];
+function _logAdd(msg) {
+  _logs.push(new Date().toLocaleTimeString("en-GB", { hour12: false }) + "  " + String(msg));
+  if (_logs.length > 300) _logs.shift();
+  var el = document.getElementById("logPanel");
+  if (el && el.style.display === "block") _logRender();
+}
+function _logRender() {
+  var el = document.getElementById("logPanel");
+  if (!el) return;
+  el.innerHTML = _logs.slice().reverse().map(function (s) { return "<div>" + _psEsc(s) + "</div>"; }).join("") || "<div>NO LOG YET</div>";
+}
+function _logToggle() {
+  var el = document.getElementById("logPanel"), b = document.getElementById("logBtn"), r, w, mh;
+  if (!el) { el = document.createElement("div"); el.id = "logPanel"; document.body.appendChild(el); }
+  if (el.style.display === "block") { el.style.display = "none"; return; }
+  _logRender();
+  el.style.display = "block";
+  r = b.getBoundingClientRect(); w = Math.min(560, window.innerWidth - 8); mh = Math.max(120, Math.min(360, r.top - 12));
+  el.style.width = w + "px";
+  el.style.left = Math.max(4, Math.min(r.left, window.innerWidth - w - 4)) + "px";
+  el.style.bottom = (window.innerHeight - r.top + 4) + "px";
+  el.style.maxHeight = mh + "px";
+}
+document.addEventListener("pointerdown", function (e) {
+  var el = document.getElementById("logPanel");
+  if (!el || el.style.display !== "block") return;
+  if (el.contains(e.target) || e.target.id === "logBtn") return;
+  el.style.display = "none";
+}, true);
 function bootLog(msg) {
+  _logAdd(msg);
   var b = document.getElementById("bootLogLines");
   if (!b) return;
   var d = document.createElement("div");
@@ -1693,8 +1759,9 @@ function _wsBuild(list) {
   }
   window._wsLvl = function () { var s = document.getElementById("levelFilterSelect"); return s ? (parseInt(s.value, 10) || 0) : 0; };
 window._wsLvlSync = function () {
-  var b = document.getElementById("lvlToggleBtn"), v = window._wsLvl();
-  if (b) b.textContent = v ? "LVL X" + v : "LVL ALL";
+  var b = document.getElementById("lvlToggleBtn"), b2 = document.getElementById("lvlBtn2"), v = window._wsLvl();
+    if (b) b.textContent = v ? "LVL X" + v : "LVL ALL";
+    if (b2) b2.textContent = v ? "LVL X" + v : "LVL ALL";
     _clearSel();
     if (!_autoSelectTopSignal()) renderFilteredTable();
   };
@@ -2149,7 +2216,15 @@ function _autoSelectTopSignal(force) {
         });
       }
     }
-    var gcols = (B >= 60 && B <= 3600 && 3600 % B === 0) ? 3600 / B : Math.max(1, Math.ceil(Math.sqrt(n * pw / ph))), grows = Math.ceil(n / gcols), gw = pw / gcols, gh = ph / grows, bxSp = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sp")) || 3;
+    var gcols = 1, gsc = 1e9, gal = (B >= 60 && B <= 3600 && 3600 % B === 0), gd, gs;
+        for (gd = 1; gd <= Math.min(n, 400); gd++) {
+          if (gal && (3600 / B) % gd) continue;
+          gs = Math.abs(Math.log((pw / gd) / (ph / Math.ceil(n / gd)) / 4)) + ((ph / Math.ceil(n / gd)) < 11 ? 10 : 0);
+          if (gs < gsc) { gsc = gs; gcols = gd; }
+        }
+        var grows = Math.ceil(n / gcols), gw = pw / gcols, gh = ph / grows, bxSp = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sp")) || 3;
+            ctx.font = "bold 100px " + MONO;
+            var gFs = Math.max(6, Math.min(18, Math.floor(gh * 0.72), Math.floor(gw * 0.36 * 100 / ctx.measureText("X10").width)));
     for (var j = 0; j < n; j++) {
       var hcCell = bxCells ? bxCells[j] : null, c = arr[j], hasDat = bxCells ? (!!hcCell || j === cj) : (!!c || j === cj), bxO = bxMap[j], bxIm = bxInstMap ? bxInstMap[j] : null;
       if (!hasDat && !bxO && !bxIm) continue;
@@ -2169,8 +2244,8 @@ function _autoSelectTopSignal(force) {
         ctx.save(); bxRR(ctx, px, py, bw, bh, bxRad); ctx.clip(); ctx.globalAlpha = 1; ctx.fillStyle = lvUp ? GREEN : RED; ctx.fillRect(px, py + bh * (1 - fr), bw, bh * fr); ctx.restore();
         ctx.setLineDash([]);
         var rm = bxCells ? Math.max(0, Math.ceil((j * B + bxR0) - nowF)) : Math.max(0, Math.ceil(B - nowF % B));
-        if (bw >= 18 && bh >= 12) {
-          ctx.font = "bold " + Math.max(7, Math.min(bh * 0.5, 18)) + "px " + MONO; ctx.fillStyle = "#000000"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        if (bw >= 18 && bh >= 8) {
+                  ctx.font = "bold " + gFs + "px " + MONO; ctx.fillStyle = "#000000"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
           ctx.fillText(((rm / 60) | 0) + ":" + ("0" + rm % 60).slice(-2), px + bw / 2, py + bh * 0.52);
         }
       }
@@ -2188,7 +2263,7 @@ function _autoSelectTopSignal(force) {
               fxS = (bxIm && !isSig && !isFut && bxIm.inst.isFalse) ? " F" + (bxIm.inst.falseSeq || 1) : "";
               dt = (up2 ? "BUY" : "SELL") + fxS; dtS = (up2 ? "B" : "S") + fxS;
             }
-            if (bw >= 84) {
+            if (false) {
               if (txt && j !== cj && bw >= 12 && bh >= 10) {
                 var fs = Math.max(7, Math.min(bh * 0.5, 18)); ctx.font = "bold " + fs + "px " + MONO;
                 ctx.fillStyle = BG; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -2200,7 +2275,89 @@ function _autoSelectTopSignal(force) {
               }
               if (hasMk) bxMark(ctx, px + bw - 12, py + bh * 0.5, resW === "win", Math.min(_tcTkFs(), bh * 0.6), resW === "win" ? GREEN : RED, BG);
             } else {
-              var cpT = (txt && j !== cj && bw >= 12 && bh >= 10) ? 1 : 0, cpN = cpT + (hasLb ? 1 : 0) + (hasMk ? 1 : 0), cpZ, cpY = py, cpC, cpF, cpL, cpW, cpR, cpK, cpM, cpMy;
+                    var wzT = (txt && j !== cj && bw >= 12 && bh >= 10) ? 1 : 0, wzE = (hasLb || hasMk) ? 1 : 0, wzF, wzK, wzSx, wzLx, wzMx, wzY = Math.round(rkTop + gRow * gh + gh / 2) + 0.5;
+                            if (wzT || wzE) {
+                              ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.setLineDash([]);
+                              ctx.fillStyle = "#000432"; ctx.strokeStyle = "#000432";
+                              ctx.font = "bold 100px " + MONO;
+                              wzF = gFs;
+                              wzK = wzF * 0.5;
+                              wzSx = px + bw / 2; if (hasLb && hasMk) { wzLx = Math.round(x0 + gw * 0.74); wzMx = Math.round(x0 + gw * 0.9); } else { wzLx = wzMx = Math.round(x0 + gw * 0.85); }
+                              wzSx = px + bw / 2;
+                              wzSx = px + bw / 2;
+                              wzSx = px + bw / 2;
+                              ctx.font = "bold " + wzF + "px " + MONO;
+                              if (wzT) ctx.fillText(txt, Math.round(x0 + gw * 0.5), wzY);
+                              if (hasLb) {
+                                                              ctx.beginPath();
+                                                              if (up2) { ctx.moveTo(wzLx, wzY - wzK * 0.7); ctx.lineTo(wzLx - wzK * 0.8, wzY + wzK * 0.6); ctx.lineTo(wzLx + wzK * 0.8, wzY + wzK * 0.6); }
+                                                              else { ctx.moveTo(wzLx, wzY + wzK * 0.7); ctx.lineTo(wzLx - wzK * 0.8, wzY - wzK * 0.6); ctx.lineTo(wzLx + wzK * 0.8, wzY - wzK * 0.6); }
+                                                              ctx.closePath(); ctx.fill();
+                                                            }
+                              if (hasMk) {
+                                ctx.lineWidth = Math.max(1.5, wzF * 0.16); ctx.beginPath();
+                                if (resW === "win") { ctx.moveTo(wzMx - wzK * 0.9, wzY); ctx.lineTo(wzMx - wzK * 0.2, wzY + wzK * 0.7); ctx.lineTo(wzMx + wzK * 0.95, wzY - wzK * 0.65); }
+                                else { ctx.moveTo(wzMx - wzK * 0.7, wzY - wzK * 0.7); ctx.lineTo(wzMx + wzK * 0.7, wzY + wzK * 0.7); ctx.moveTo(wzMx + wzK * 0.7, wzY - wzK * 0.7); ctx.lineTo(wzMx - wzK * 0.7, wzY + wzK * 0.7); }
+                                ctx.stroke();
+                              }
+                              ctx.restore();
+                            }
+                          }
+                          if (false) {
+                            var nzT = (txt && j !== cj && bw >= 12 && bh >= 10) ? 1 : 0, nzB = (hasLb && hasMk) ? 2 : ((hasLb || hasMk) ? 1 : 0), nzF, nzCw, nzCx, nzSx, nzY1, nzY2, nzK;
+                            if (nzT || nzB) {
+                              ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.setLineDash([]);
+                              ctx.fillStyle = "#000432"; ctx.strokeStyle = "#000432";
+                              ctx.font = "bold 100px " + MONO;
+                              nzF = Math.max(6, Math.min(bh * 0.4, 20, (bw - 3) * 100 / ctx.measureText("X1S").width));
+                              nzCw = nzF * 0.7 + 2; nzK = nzF * 0.5;
+                              nzCx = px + bw - nzCw / 2 - 1;
+                              nzSx = px + (nzB ? bw - nzCw : bw) / 2;
+                              ctx.font = "bold " + nzF + "px " + MONO;
+                              if (nzT) ctx.fillText(txt, nzSx, py + bh / 2 + 0.5, Math.max(4, (nzB ? bw - nzCw : bw) - 2));
+                              nzY1 = nzB === 2 ? py + bh * 0.28 : py + bh / 2;
+                              nzY2 = nzB === 2 ? py + bh * 0.72 : py + bh / 2;
+                              if (hasLb) ctx.fillText(dtS.charAt(0), nzCx, nzY1 + 0.5);
+                              if (hasMk) {
+                                ctx.lineWidth = Math.max(1.5, nzF * 0.16); ctx.beginPath();
+                        if (resW === "win") { ctx.moveTo(nzCx - nzK * 0.9, nzY2); ctx.lineTo(nzCx - nzK * 0.2, nzY2 + nzK * 0.7); ctx.lineTo(nzCx + nzK * 0.95, nzY2 - nzK * 0.65); }
+                        else { ctx.moveTo(nzCx - nzK * 0.7, nzY2 - nzK * 0.7); ctx.lineTo(nzCx + nzK * 0.7, nzY2 + nzK * 0.7); ctx.moveTo(nzCx + nzK * 0.7, nzY2 - nzK * 0.7); ctx.lineTo(nzCx - nzK * 0.7, nzY2 + nzK * 0.7); }
+                        ctx.stroke();
+                      }
+                      ctx.restore();
+                    }
+                  }
+                  if (false) {
+                    var fzT = (txt && j !== cj && bw >= 12 && bh >= 10) ? 1 : 0, fzX = fzT + (hasLb ? 1 : 0) + (hasMk ? 1 : 0), fzFx = true, fzN = 3, fzZ, fzC = px + bw / 2, fzF, fzL, fzW, fzR, fzM, fzK, fzY, fzIl, fzIm;
+                    if (fzX) {
+                      fzZ = bh / fzN; fzIl = fzFx ? 1 : fzT; fzIm = fzFx ? 2 : fzT + (hasLb ? 1 : 0);
+                                ctx.font = "bold 100px " + MONO;
+                                var fzS = Math.max(6, Math.min(fzZ * 0.8, 20, (bw - 4) * 100 / ctx.measureText("X10").width));
+                      ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.setLineDash([]);
+                      if (fzT) {
+                        ctx.font = "bold " + fzS + "px " + MONO;
+                        ctx.fillStyle = "#000432"; ctx.fillText(txt, fzC, py + fzZ / 2 + 0.5);
+                      }
+                      if (hasLb) {
+                        fzY = py + fzZ * fzIl + fzZ / 2; fzL = dtS; ctx.font = "bold " + fzS + "px " + MONO; fzF = fzS;
+                        if (ctx.measureText(fzL).width > bw - 4) fzL = dtS.charAt(0);
+                        fzW = Math.min(bw - 1, ctx.measureText(fzL).width + 5); fzR = Math.min(fzZ - 1, fzF + 4);
+                        ctx.fillStyle = "#000432";
+                        ctx.fillText(fzL, fzC, fzY + 0.5);
+                      }
+                      if (hasMk) {
+                        fzY = py + fzZ * fzIm + fzZ / 2; fzM = fzS * 0.65; fzK = fzM * 0.8;
+                        ctx.beginPath();
+                        ctx.strokeStyle = "#000432"; ctx.lineWidth = Math.max(1.5, fzS * 0.16); ctx.beginPath();
+                        if (resW === "win") { ctx.moveTo(fzC - fzK * 0.9, fzY); ctx.lineTo(fzC - fzK * 0.2, fzY + fzK * 0.7); ctx.lineTo(fzC + fzK * 0.95, fzY - fzK * 0.65); }
+                        else { ctx.moveTo(fzC - fzK * 0.7, fzY - fzK * 0.7); ctx.lineTo(fzC + fzK * 0.7, fzY + fzK * 0.7); ctx.moveTo(fzC + fzK * 0.7, fzY - fzK * 0.7); ctx.lineTo(fzC - fzK * 0.7, fzY + fzK * 0.7); }
+                        ctx.stroke();
+                      }
+                      ctx.restore();
+                    }
+                  }
+                  if (false) {
+                    var cpT = (txt && j !== cj && bw >= 12 && bh >= 10) ? 1 : 0, cpN = cpT + (hasLb ? 1 : 0) + (hasMk ? 1 : 0), cpZ, cpY = py, cpC, cpF, cpL, cpW, cpR, cpK, cpM, cpMy;
               if (cpN === 3 && bh / 3 < 11) { cpT = 0; cpN = 2; }
               if (cpN) {
                 cpZ = bh / cpN; cpC = px + bw / 2;
@@ -2595,7 +2752,7 @@ function tpFlash(ok, msg) {
   var p = document.getElementById("tradePill"); if (!p) return;
   p.style.background = ok ? "#00B85A" : "#DC2640";
   p.title = msg || "";
-  if (msg) console.log("[TRADE] " + msg);
+  if (msg) { console.log("[TRADE] " + msg); _logAdd((ok ? "OK  " : "ERR ") + msg); }
   clearTimeout(tpFlash._t);
   tpFlash._t = setTimeout(function () { p.style.background = ""; }, 1200);
 }
@@ -2746,7 +2903,10 @@ window.dvOnPoc = function (p) {
     if (+p.date_expiry) tr.exp = +p.date_expiry;
     if (+p.payout) tr.payout = +p.payout;
     if (p.profit !== undefined && p.profit !== null) tr.pnl = +p.profit;
-    if (p.is_sold || p.status === "won" || p.status === "lost") tr.status = (p.status === "won" || +p.profit > 0) ? "won" : "lost";
+    if (p.is_sold || p.status === "won" || p.status === "lost") {
+          tr.status = (p.status === "won" || +p.profit > 0) ? "won" : "lost";
+          if (!tr._lg) { tr._lg = 1; _logAdd(getPairDisplayName(tr.pair) + " " + tr.dir + " " + tr.amt + " " + tr.status.toUpperCase() + (tr.pnl !== null ? " " + (tr.pnl >= 0 ? "+" : "") + tr.pnl.toFixed(2) : "")); }
+        }
   }
 };
 
