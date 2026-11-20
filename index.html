@@ -184,29 +184,58 @@ function applyCumulative(hist, maxS) {
 function primeEngine(prices, n, minC, maxC, baseTs, preArr) {
   var kings = [], preLen = preArr ? preArr.length : 0;
   if (!(n > 0)) return { kings };
-  var step = 30, curC = 0, rowColor, rowStreak, rowCol, maxLen, hist, cur, leaders;
+  var step = 30, curC = 0, rowColor, rowStreak, rowCol, maxLen, H, HL, cur, leaders;
   var tmp = new Int32Array(Math.ceil(n / Math.max(1, minC)) + 8);
   var qR = [], qK = [], qS = [], qC1 = [], qC2 = [], mBuf = new Int32Array(512), oBuf = new Int32Array(512), mo = { c1: 0, c2: 0, pct: 0 };
   function pctOf(j, mom) { var q = Math.round(qC2[j] / qC1[j] * 100); return mom ? q : 100 - q; }
   function rec(r, colCode, s) {
-    var k = colCode === 1 ? 0 : 1, H = hist[k], h = H[r] || (H[r] = {});
-    h[s] = (h[s] || 0) + 1; if (s > maxLen[k][r]) maxLen[k][r] = s;
+    var k = colCode === 1 ? 0 : 1;
+    H[(k * curC + r) * HL + s]++; if (s > maxLen[k][r]) maxLen[k][r] = s;
   }
   function snap(inc) {
-    var r, k, raw, maxS, act, cum, i, cnt, s, nq = 0;
+    var r, k, base, maxS, act, cum, i, cnt, s, nq = 0;
     for (r = 0; r < curC; r++) for (k = 0; k < 2; k++) {
-      raw = hist[k][r]; maxS = maxLen[k][r];
+      base = (k * curC + r) * HL; maxS = maxLen[k][r];
       act = (inc && rowColor[r] === (k ? 2 : 1) && rowStreak[r] >= 1) ? rowStreak[r] : 0;
       if (act > maxS) maxS = act;
       if (!maxS) continue;
       cum = 0;
-      for (i = maxS; i >= 1; i--) { cnt = (raw ? (raw[i] || 0) : 0) + (act === i ? 1 : 0); if (cnt) cum += cnt; tmp[i] = cum; }
+      for (i = maxS; i >= 1; i--) { cnt = H[base + i] + (act === i ? 1 : 0); if (cnt) cum += cnt; tmp[i] = cum; }
       tmp[maxS + 1] = 0;
       for (s = 1; s <= maxS; s++) if (tmp[s] > 0) { qR[nq] = r; qK[nq] = k; qS[nq] = s; qC1[nq] = tmp[s]; qC2[nq] = tmp[s + 1]; nq++; }
     }
     return nq;
   }
+  var usedS = new Uint8Array(tmp.length + 2), presS = new Uint8Array(tmp.length + 2), cntB = new Int32Array(64), posB = new Int32Array(64);
   function pick(nq, mom) {
+    var j, m, maxM = -1, t, a, b, best, bp, jp, out = [], cnt, pos, nPres = 0;
+    if (mBuf.length < nq) { mBuf = new Int32Array(nq * 2); oBuf = new Int32Array(nq * 2); }
+    for (j = 0; j < nq; j++) {
+      if (mom) { if (qC1[j] <= 1) { mBuf[j] = -1; continue; } m = qC1[j] - qC2[j]; } else m = qC2[j];
+      mBuf[j] = m; if (m > maxM) maxM = m;
+      if (!presS[qS[j]]) { presS[qS[j]] = 1; nPres++; }
+    }
+    if (maxM < 0) return out;
+    if (cntB.length < maxM + 2) { cntB = new Int32Array((maxM + 2) * 2); posB = new Int32Array((maxM + 2) * 2); }
+    cnt = cntB; pos = posB; cnt.fill(0, 0, maxM + 2);
+    for (j = 0; j < nq; j++) if (mBuf[j] >= 0) cnt[mBuf[j] + 1]++;
+    for (m = 0; m <= maxM; m++) cnt[m + 1] += cnt[m];
+    for (m = 0; m <= maxM; m++) pos[m] = cnt[m];
+    for (j = 0; j < nq; j++) { m = mBuf[j]; if (m >= 0) oBuf[pos[m]++] = j; }
+    for (m = 0; m <= maxM && out.length < nPres; m++) {
+      a = cnt[m]; b = cnt[m + 1]; best = -1; bp = 0;
+      for (t = a; t < b; t++) {
+        j = oBuf[t]; if (usedS[qS[j]]) continue;
+        jp = pctOf(j, mom);
+        if (best < 0 || qC1[j] > qC1[best] || (qC1[j] === qC1[best] && (jp > bp || (jp === bp && qR[j] < qR[best])))) { best = j; bp = jp; }
+      }
+      if (best >= 0) { usedS[qS[best]] = 1; out.push(best); }
+    }
+    for (j = 0; j < nq; j++) presS[qS[j]] = 0;
+    for (t = 0; t < out.length; t++) usedS[qS[out[t]]] = 0;
+    return out;
+  }
+  function pickOld(nq, mom) {
     var j, m, maxM = -1, t, a, b, best, bp, jp, out = [], used = {}, cnt, pos;
     if (mBuf.length < nq) { mBuf = new Int32Array(nq * 2); oBuf = new Int32Array(nq * 2); }
     for (j = 0; j < nq; j++) {
@@ -232,11 +261,11 @@ function primeEngine(prices, n, minC, maxC, baseTs, preArr) {
   }
   function alive(r, k, s) { return rowColor[r] === (k ? 2 : 1) && rowStreak[r] >= s; }
   function metric(r, k, s, mom, inc) {
-    var raw = hist[k][r], maxS = maxLen[k][r], c1 = 0, c2 = 0, i, cnt;
+    var base = (k * curC + r) * HL, maxS = maxLen[k][r], c1 = 0, c2 = 0, i, cnt;
     var act = (inc && rowColor[r] === (k ? 2 : 1) && rowStreak[r] >= 1) ? rowStreak[r] : 0;
     if (act > maxS) maxS = act;
     if (maxS < s) return false;
-    for (i = maxS; i >= s; i--) { cnt = (raw ? (raw[i] || 0) : 0) + (act === i ? 1 : 0); if (cnt) { c1 += cnt; if (i >= s + 1) c2 += cnt; } }
+    for (i = maxS; i >= s; i--) { cnt = H[base + i] + (act === i ? 1 : 0); if (cnt) { c1 += cnt; if (i >= s + 1) c2 += cnt; } }
     if (c1 <= 0) return false;
     mo.c1 = c1; mo.c2 = c2; mo.pct = mom ? Math.round(c2 / c1 * 100) : 100 - Math.round(c2 / c1 * 100);
     return true;
@@ -269,7 +298,7 @@ function primeEngine(prices, n, minC, maxC, baseTs, preArr) {
   for (var c = minC; c <= maxC; c++) {
     self.postMessage({ prog: 50 + Math.round((c - minC) / (maxC - minC + 1) * 50) });
     curC = c; rowColor = new Int8Array(c); rowStreak = new Int16Array(c); rowCol = new Int32Array(c).fill(-2);
-    maxLen = [new Int16Array(c), new Int16Array(c)]; hist = [new Array(c).fill(null), new Array(c).fill(null)];
+    maxLen = [new Int16Array(c), new Int16Array(c)]; HL = Math.ceil(n / c) + 8; H = new Uint32Array(2 * c * HL);
     cur = [{}, {}]; leaders = [{}, {}];
     var nextEval = baseTs;
     for (var i = 0; i < n; i++) {
@@ -300,7 +329,7 @@ function primeEngine(prices, n, minC, maxC, baseTs, preArr) {
 self.onmessage = function (e) {
   const { pair, prices, minC, maxC, startIdx, endIdx, startTsUtc, pre, gid } = e.data;
   const baseTs = startTsUtc || 0, preArr = pre || null, preLen = preArr ? preArr.length : 0, len = prices.length;
-  if (!len) { postMessage({ pair, bestRevs: [], bestMoms: [] }); return; }
+  if (!len) { self.postMessage({ pair, bestRevs: [], bestMoms: [] }); return; }
   const sStart = startIdx !== undefined ? startIdx : 0, sEnd = endIdx !== undefined ? Math.min(endIdx, len) : len;
   const rowColor = new Int8Array(maxC), rowStreak = new Int16Array(maxC), rowCol = new Int32Array(maxC), shGMax = new Int16Array(maxC), shRMax = new Int16Array(maxC);
   const revs = [], moms = [];
@@ -347,7 +376,7 @@ self.onmessage = function (e) {
     }
   }
   const pk = gid !== undefined ? primeEngine(prices, sEnd, minC, maxC, baseTs, preArr) : null;
-  postMessage({ pair, bestRevs: revs, bestMoms: moms, gid, pk });
+  self.postMessage({ pair, bestRevs: revs, bestMoms: moms, gid, pk });
 };
 </script>
 
@@ -512,7 +541,7 @@ function _ssMsg(k, minC, maxC, pair) {
   var pd = allPairData[pair], SB = _ssBounds(k);
   return { pair: pair, prices: pd.prices.slice(SB.a, SB.b), minC: minC, maxC: maxC, startIdx: 0, endIdx: SB.b - SB.a, startTsUtc: currentStartTsUtc + SB.a, pre: SB.a > 0 ? _ssPre(SB.a, pair) : window._preArr(pair), gid: Date.now() + k };
 }
-function _ssPost(msg) {
+function _ssPostOld(msg) {
   if (scanWorker) scanWorker.postMessage(msg);
   else {
     var fn = new Function("self", document.getElementById("fftWorkerLogic").textContent);
@@ -928,7 +957,65 @@ function processVisualMatrix() {
 }
 
 var scanWorker = null;
+var POOL_N = Math.max(2, Math.min(navigator.hardwareConcurrency || 4, 8)), _wPool = [], _wJob = null, _wUrl = null;
+function _wPump() {
+  var j = _wJob; if (!j) return;
+  for (var i = 0; i < _wPool.length && j.next < j.tasks.length; i++) {
+    var w = _wPool[i]; if (w._t) continue;
+    var k = j.next++, t = j.tasks[k];
+    w._t = { j: j, k: k };
+    w.postMessage(Object.assign({}, j.msg, { minC: t.minC, maxC: t.maxC }));
+  }
+}
+function _wMsg(e) {
+  var w = this, t = w._t, d = e.data;
+  if (!t) return;
+  var j = t.j, isProg = d && d.prog !== undefined;
+  if (j !== _wJob) { if (!isProg) { w._t = null; _wPump(); } return; }
+  if (isProg) {
+    j.tasks[t.k].prog = d.prog;
+    var s = 0; j.tasks.forEach(function (x) { s += x.prog * x.w; });
+    handleWorkerMessage({ data: { prog: Math.round(s / j.span) } });
+    return;
+  }
+  w._t = null; j.parts[t.k] = d;
+  if (--j.left > 0) { _wPump(); return; }
+  _wJob = null;
+  var revs = [], moms = [], kings = [], hasPk = false, i, x, p;
+  for (i = 0; i < j.parts.length; i++) {
+    p = j.parts[i];
+    for (x = 0; x < p.bestRevs.length; x++) revs.push(p.bestRevs[x]);
+    for (x = 0; x < p.bestMoms.length; x++) moms.push(p.bestMoms[x]);
+    if (p.pk) { hasPk = true; for (x = 0; x < p.pk.kings.length; x++) kings.push(p.pk.kings[x]); }
+  }
+  console.log("scan ms", Date.now() - j.t0, getPairDisplayName(j.msg.pair));
+  handleWorkerMessage({ data: { pair: j.msg.pair, bestRevs: revs, bestMoms: moms, gid: j.msg.gid, pk: hasPk ? { kings: kings } : undefined } });
+}
+function _ssPost(msg) {
+  if (_wPool.length) {
+    var span = msg.maxC - msg.minC + 1, nCh = Math.max(1, Math.min(span, _wPool.length * 3)), per = Math.ceil(span / nCh), tasks = [], a;
+    for (a = msg.minC; a <= msg.maxC; a += per) { var b = Math.min(a + per - 1, msg.maxC); tasks.push({ minC: a, maxC: b, prog: 0, w: b - a + 1 }); }
+    _wJob = { msg: msg, tasks: tasks, next: 0, left: tasks.length, parts: new Array(tasks.length), span: span, t0: Date.now() };
+    _wPump();
+  } else {
+    var fn = new Function("self", document.getElementById("fftWorkerLogic").textContent);
+    var fake = { postMessage: d => handleWorkerMessage({ data: d }) };
+    fn(fake); fake.onmessage({ data: msg });
+  }
+}
 function _spawnScanWorker() {
+  _wPool.forEach(function (w) { try { w.terminate(); } catch (e) {} });
+  _wPool = []; _wJob = null; scanWorker = null;
+  try {
+    if (!_wUrl) _wUrl = URL.createObjectURL(new Blob([document.getElementById("fftWorkerLogic").textContent], { type: "text/javascript" }));
+    for (var i = 0; i < POOL_N; i++) { var w = new Worker(_wUrl); w._t = null; w.onmessage = _wMsg; _wPool.push(w); }
+    scanWorker = _wPool[0];
+  } catch (e) {
+    _wPool.forEach(function (w) { try { w.terminate(); } catch (e2) {} });
+    _wPool = []; scanWorker = null;
+  }
+}
+function _spawnScanWorkerOld() {
   try { if (scanWorker) scanWorker.terminate(); } catch (e) {}
   scanWorker = null;
   try {
