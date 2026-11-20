@@ -8,14 +8,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <title>WALLSPECTRUM LOCAL — MULTIPAIR</title>
 <style>
-:root{color-scheme:dark;--bw:2px;--sp:2px;--ac:#C0C0C0;--ln:var(--ac);--pf-bg:#000432;--pf-bg2:#000432;--pf-ctl:#000432;--pf-line:var(--ac);--pf-line2:var(--ac);--pf-text:var(--ac);--pf-soft:var(--ac);--pf-mute:var(--ac);--pf-fill:#000432;--pf-up:#00B85A;--pf-dn:#DC2640;--pf-gold:var(--ac);--pf-up-rgb:0,184,90;--pf-dn-rgb:220,38,64;}
+:root{color-scheme:dark;--bw:2px;--sp:2px;--ac:#4DB8FF;--ln:var(--ac);--pf-bg:#000432;--pf-bg2:#000432;--pf-ctl:#000432;--pf-line:var(--ac);--pf-line2:var(--ac);--pf-text:var(--ac);--pf-soft:var(--ac);--pf-mute:var(--ac);--pf-fill:#000432;--pf-up:#13D185;--pf-dn:#FA5A70;--pf-gold:var(--ac);--pf-up-rgb:19,209,133;--pf-dn-rgb:250,90,112;}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:#000432;color:var(--pf-text);font-family:'Roboto Mono',monospace;overflow:hidden;user-select:none;-webkit-user-select:none;}
 #main-container{height:100%;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) clamp(175px,30vh,290px);gap:0;padding:0;overflow:hidden;position:relative;background:#000432;}
 body.tc-solo #main-container{grid-template-rows:1fr 0px;gap:0;}
 body.tc-solo #wall-finder-pane{display:none!important;}
 #tcBar,.table-hdr{display:none;}
-.ctrl-row{flex:0 0 auto;display:flex;align-items:stretch;height:28px;padding:var(--sp);background:var(--pf-bg2);border:var(--bw) solid var(--ln);border-bottom:0;}
+.ctrl-row{flex:0 0 auto;display:none!important;align-items:stretch;height:28px;padding:var(--sp);background:var(--pf-bg2);border:var(--bw) solid var(--ln);border-bottom:0;}
 .ctrl-row>*{display:none!important;}
 .ctrl-row>#lvlToggleBtn{display:block!important;flex:1 1 0;min-width:0;height:100%;background:var(--ac);border:none;border-radius:0;color:#000000;font:700 11px 'Roboto Mono',monospace;letter-spacing:.1em;cursor:pointer;outline:none;}
 #canvas-viewport,#wall-finder-pane{background:var(--pf-bg);border:0;border-radius:0;}
@@ -73,14 +73,14 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #tradePill #lvlBtn2{order:14;}
 #logPanel{display:none;position:fixed;z-index:9000;padding:6px 8px;background:#000432;border:var(--bw) solid var(--ac);box-shadow:0 12px 32px rgba(0,0,0,.65);overflow-y:auto;scrollbar-width:none;color:var(--ac);font:600 11px 'Roboto Mono',monospace;}
 #logPanel::-webkit-scrollbar{display:none;}
-#logPanel div{padding:3px 0;border-bottom:1px solid rgba(192,192,192,.2);white-space:pre-wrap;word-break:break-word;}
+#logPanel div{padding:3px 0;border-bottom:1px solid rgba(77,184,255,.2);white-space:pre-wrap;word-break:break-word;}
 #tradePill #catBtn{order:12;}
 #tradePill #btDate{order:12;color-scheme:dark;}
 #tradePill #scanMin{order:30;}
 #tradePill #scanMax{order:31;}
 #tradePill input,#tradePill select,#tradePill button{background:var(--ac);border:1px solid var(--ac);border-radius:0;color:#000000;font:700 11px 'Roboto Mono',monospace;letter-spacing:.04em;outline:none;}
 #tradePill input{-webkit-user-select:text;user-select:text;-moz-appearance:textfield;}
-#tradePill input::selection{background:#000432;color:#C0C0C0;}
+#tradePill input::selection{background:#000432;color:#4DB8FF;}
 #tradePill input::-webkit-outer-spin-button,#tradePill input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 #tradePill select{cursor:pointer;-webkit-appearance:none;appearance:none;}
 #tradePill select option{background:var(--ac);color:#000000;}
@@ -99,21 +99,21 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #pairSelPanel.open{animation:psIn .12s ease-out;}
 #pairSelPanel .psBody{display:flex;max-height:calc(var(--ps-mh,350px) - 4px);}
 #pairSelPanel .psLeft{flex:1 1 0;min-width:0;max-height:calc(var(--ps-mh,350px) - 4px);display:flex;flex-direction:column;padding:6px;gap:6px;overflow:hidden;}
-#pairSelPanel .psHead{flex:0 0 auto;display:flex;align-items:center;gap:4px;padding-bottom:4px;border-bottom:1px solid rgba(192,192,192,.22);}
+#pairSelPanel .psHead{flex:0 0 auto;display:flex;align-items:center;gap:4px;padding-bottom:4px;border-bottom:1px solid rgba(77,184,255,.22);}
 #pairSelPanel .psTitle{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ac);font-size:10px;letter-spacing:.06em;opacity:.85;}
 #pairSelPanel .psGrid{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:3px;align-content:start;}
 #pairSelPanel .psGrid::-webkit-scrollbar,#pairSelPanel .psCats::-webkit-scrollbar{display:none;}
-#pairSelPanel .psCats{flex:0 0 clamp(128px,37%,168px);max-height:calc(var(--ps-mh,350px) - 4px);display:flex;flex-direction:column;gap:2px;padding:6px 6px 6px 0;border-left:1px solid rgba(192,192,192,.25);background:rgba(192,192,192,.03);overflow-y:auto;scrollbar-width:none;}
+#pairSelPanel .psCats{flex:0 0 clamp(128px,37%,168px);max-height:calc(var(--ps-mh,350px) - 4px);display:flex;flex-direction:column;gap:2px;padding:6px 6px 6px 0;border-left:1px solid rgba(77,184,255,.25);background:rgba(77,184,255,.03);overflow-y:auto;scrollbar-width:none;}
 #pairSelPanel .psCatRow{display:flex;align-items:center;width:100%;height:30px;flex:0 0 auto;border-left:3px solid transparent;color:var(--ac);transition:background .1s,color .1s,border-color .1s;}
-#pairSelPanel .psCatRow:hover{background:rgba(192,192,192,.1);}
+#pairSelPanel .psCatRow:hover{background:rgba(77,184,255,.1);}
 #pairSelPanel .psCatRow.on{background:var(--ac);color:#000000;border-left-color:#ffffff;}
 #pairSelPanel .psCatRow.psInRow{background:#000432;color:var(--ac);border:1px solid var(--ac);border-left:3px solid var(--ac);padding:0 2px;}
 #pairSelPanel button{background:transparent;border:none;border-radius:0;color:inherit;font:700 11px 'Roboto Mono',monospace;letter-spacing:.04em;cursor:pointer;outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .1s,color .1s,border-color .1s;}
-#pairSelPanel .psItem{height:28px;padding:0 4px;background:rgba(192,192,192,.04);border:1px solid rgba(192,192,192,.25);color:var(--ac);}
-#pairSelPanel .psItem:hover{border-color:var(--ac);background:rgba(192,192,192,.14);}
+#pairSelPanel .psItem{height:28px;padding:0 4px;background:rgba(77,184,255,.04);border:1px solid rgba(77,184,255,.25);color:var(--ac);}
+#pairSelPanel .psItem:hover{border-color:var(--ac);background:rgba(77,184,255,.14);}
 #pairSelPanel .psItem.on{background:var(--ac);border-color:var(--ac);color:#000000;}
-#pairSelPanel .psMini{flex:0 0 auto;height:20px;padding:0 6px;font-size:9px;letter-spacing:.06em;border:1px solid rgba(192,192,192,.35);color:var(--ac);}
-#pairSelPanel .psMini:hover{border-color:var(--ac);background:rgba(192,192,192,.15);}
+#pairSelPanel .psMini{flex:0 0 auto;height:20px;padding:0 6px;font-size:9px;letter-spacing:.06em;border:1px solid rgba(77,184,255,.35);color:var(--ac);}
+#pairSelPanel .psMini:hover{border-color:var(--ac);background:rgba(77,184,255,.15);}
 #pairSelPanel .psMini.on{background:var(--ac);border-color:var(--ac);color:#000000;}
 #pairSelPanel .psCatBtn{flex:1 1 0;min-width:0;height:100%;text-align:left;padding:0 6px;}
 #pairSelPanel .psCnt{flex:0 0 auto;padding:0 6px;font-size:9px;opacity:.55;pointer-events:none;}
@@ -121,12 +121,12 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #pairSelPanel .psCatRow.on .psRowActs,#pairSelPanel .psCatRow:hover .psRowActs,#pairSelPanel .psCatRow.del .psRowActs{display:flex;}
 #pairSelPanel .psCatRow.on .psCnt,#pairSelPanel .psCatRow:hover .psCnt,#pairSelPanel .psCatRow.del .psCnt{display:none;}
 #pairSelPanel .psAct{width:22px;height:22px;padding:0;font-size:12px;line-height:22px;text-align:center;opacity:.72;}
-#pairSelPanel .psAct:hover{opacity:1;background:rgba(192,192,192,.2);}
+#pairSelPanel .psAct:hover{opacity:1;background:rgba(77,184,255,.2);}
 #pairSelPanel .psCatRow.on .psAct:hover{background:rgba(0,4,50,.18);}
 #pairSelPanel .psAct.psDel{width:auto;padding:0 6px;background:var(--pf-dn);color:#000000;font-size:9px;font-weight:800;opacity:1;}
 #pairSelPanel .psIn{flex:1 1 0;min-width:0;height:100%;padding:0 4px;background:transparent;border:none;color:var(--ac);font:700 11px 'Roboto Mono',monospace;outline:none;-webkit-user-select:text;user-select:text;}
 #pairSelPanel .psInOk{flex:0 0 24px;height:24px;background:var(--pf-up);color:#000000;font-size:12px;line-height:24px;text-align:center;}
-#pairSelPanel .psAdd{flex:0 0 auto;margin:4px 0 0 6px;height:26px;border:1px dashed rgba(192,192,192,.45);color:var(--ac);font-size:10px;letter-spacing:.08em;}
+#pairSelPanel .psAdd{flex:0 0 auto;margin:4px 0 0 6px;height:26px;border:1px dashed rgba(77,184,255,.45);color:var(--ac);font-size:10px;letter-spacing:.08em;}
 #pairSelPanel .psAdd:hover{border-style:solid;background:var(--ac);color:#000000;}
 #bootOverlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;background:#000432;}
 #bootOverlay>div:first-child{width:min(540px,94vw);text-align:center;font-size:11px;font-weight:600;letter-spacing:.2em;color:#000000;background:var(--ac);border:1px solid var(--ac);padding:6px 12px;border-radius:10px;}
@@ -496,10 +496,10 @@ setInterval(function () {
 function _clearSel() { lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; }
 function getPairDisplayName(p) { var m = /^(frx|cry)([A-Z]{3})([A-Z]{3})$/.exec(String(p)); return m ? m[2] + "/" + m[3] : String(p); }
 var _poCache = {}, _poApplied = "";
-window._AC = "#C0C0C0";
+window._AC = "#4DB8FF";
 var _poPal = [];
 function _pairOrange(p) {
-  return "#C0C0C0";
+  return "#4DB8FF";
   p = String(p || "");
   if (_poCache[p]) return _poCache[p];
   var n = (typeof ALL_PAIRS !== "undefined" && ALL_PAIRS) ? ALL_PAIRS.indexOf(p) : -1, i;
@@ -2026,6 +2026,7 @@ function _autoSelectTopSignal(force) {
 (function () {
   var TC = { boxMode: true, follow: true, spp: 3, left: 0, yZ: 1, yOff: 0, W: 0, H: 0, dpr: 1, bxCache: null, sigMode: "MIX", allMap: null };
   var PADL = 6, PADR = 50, PADT = 4, PADB = 24, MONO = "'Roboto Mono',monospace";
+    window._AC = (getComputedStyle(document.documentElement).getPropertyValue("--ac") || "").trim() || "#4DB8FF";
   TC.wrap = document.getElementById("tcWrap"); TC.cv = document.getElementById("tcCanvas"); TC.ctx = TC.cv.getContext("2d");
 
   function tcOffset() { return (currentStartTsUtc % 86400) + 19800; }
@@ -2140,7 +2141,7 @@ function _autoSelectTopSignal(force) {
     }
   
     function tcDrawBoxes(ctx, W, H, dpr, pair, BG) {
-    var B = Math.max(1, Math.round(CYCLE) || 300), GREEN = "#00B85A", RED = "#DC2640", PF_UP = "0,184,90", PF_DN = "220,38,64", pr = allPairData[pair].prices, sEnd = 86400;
+    var B = Math.max(1, Math.round(CYCLE) || 300), GREEN = "#13D185", RED = "#FA5A70", PF_UP = "19,209,133", PF_DN = "250,90,112", pr = allPairData[pair].prices, sEnd = 86400;
     var nowF = Date.now() / 1000 - currentStartTsUtc, live = _isWithinMappedWindow() && nowF >= 0 && nowF < sEnd;
     var li = tcLastReal(pr, Math.min(live ? Math.floor(nowF) : sEnd, pr.length - 1)), lp = li >= 0 ? pr[li] : 0;
     var bxMap = {}, bxCells = null;
@@ -2191,7 +2192,7 @@ function _autoSelectTopSignal(force) {
         }
       });
     }
-    var rkTop = 0, rkBot = H, pw = W, ph = H, rkSpp = TC.spp || 3, bxPcol = "#C0C0C0";
+    var rkTop = 0, rkBot = H, pw = W, ph = H, rkSpp = TC.spp || 3, bxPcol = window._AC;
     var rkNowSec = live ? Math.floor(nowF) : Math.min(li >= 0 ? li : 0, sEnd);
     var rkOcSig = lastClickedSigId + "|" + clickCycleIndex + "|" + currentInstanceIndex;
     if (TC.ocSig !== rkOcSig) {
@@ -2578,7 +2579,7 @@ function _autoSelectTopSignal(force) {
       if (!yOf) return;
             if (r.st !== "open" && Date.now() / 1000 - r.ex > 6) return;
             var tbDone = r.st === "won" || r.st === "lost", tbWin = r.st === "won";
-            var tbCol = tbWin ? "#00B85A" : (r.st === "lost" ? "#DC2640" : window._AC);
+            var tbCol = tbWin ? "#13D185" : (r.st === "lost" ? "#FA5A70" : window._AC);
             var tbE = Math.max(0, Math.floor(r.ei)), tbX = Math.floor(r.ex - currentStartTsUtc);
             var tbK = Math.min(tbX, li >= 0 ? li : tbE, ap.length - 1);
             var tbR = tcLastReal(ap, Math.min(tbE, ap.length - 1));
@@ -2665,6 +2666,67 @@ function _autoSelectTopSignal(force) {
   document.getElementById("tcSoloBtn").onclick = () => { document.body.classList.toggle("tc-solo"); setTimeout(tcDraw, 30); };
 
   var drag = null, dtLast = 0, ptrs = {}, pinch = null;
+  
+    (function () {
+      var pill = document.getElementById("tradePill"); if (!pill) return;
+      var KEY = "wsBarOrder", holdT = 0, hx = 0, hy = 0, hEl = null, hId = -1, dEl = null, sup = false;
+      function vis() {
+        return Array.prototype.slice.call(pill.children).filter(function (e) { return e.id && getComputedStyle(e).display !== "none"; })
+          .map(function (e, i) { return { e: e, i: i, o: parseInt(getComputedStyle(e).order, 10) || 0 }; })
+          .sort(function (a, b) { return a.o - b.o || a.i - b.i; })
+          .map(function (z) { return z.e; });
+      }
+      function put(seq) { seq.forEach(function (e, k) { e.style.order = String(k + 1); }); }
+      function save() {
+        try { var m = {}; vis().forEach(function (e) { m[e.id] = e.style.order; }); localStorage.setItem(KEY, JSON.stringify(m)); } catch (x) {}
+      }
+      function load() {
+        try {
+          var m = JSON.parse(localStorage.getItem(KEY) || "null"); if (!m) return;
+          Object.keys(m).forEach(function (id) { var e = document.getElementById(id); if (e && e.parentNode === pill) e.style.order = m[id]; });
+        } catch (x) {}
+      }
+      pill.addEventListener("pointerdown", function (ev) {
+        var t = ev.target && ev.target.closest ? ev.target.closest("#tradePill > *") : null;
+        if (!t || dEl) return;
+        hEl = t; hId = ev.pointerId; hx = ev.clientX; hy = ev.clientY;
+        clearTimeout(holdT);
+        holdT = setTimeout(function () {
+          if (!hEl) return;
+          dEl = hEl; hEl = null; sup = true;
+          try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); var sl = window.getSelection(); if (sl) sl.removeAllRanges(); } catch (x) {}
+          dEl.style.opacity = "0.55"; dEl.style.outline = "2px solid #ffffff"; dEl.style.zIndex = "5";
+          try { dEl.setPointerCapture(hId); } catch (x) {}
+          try { if (navigator.vibrate) navigator.vibrate(15); } catch (x) {}
+        }, 600);
+      });
+      document.addEventListener("pointermove", function (ev) {
+        if (hEl && Math.abs(ev.clientX - hx) + Math.abs(ev.clientY - hy) > 10) { clearTimeout(holdT); hEl = null; return; }
+        if (!dEl) return;
+        ev.preventDefault();
+        var u = document.elementFromPoint(ev.clientX, ev.clientY), t = u && u.closest ? u.closest("#tradePill > *") : null;
+        if (!t || t === dEl || t.parentNode !== pill) return;
+        var seq = vis(), a = seq.indexOf(dEl), b = seq.indexOf(t); if (a < 0 || b < 0) return;
+        seq.splice(a, 1); seq.splice(b, 0, dEl); put(seq);
+      }, { passive: false });
+      function endDrag() {
+        clearTimeout(holdT); hEl = null;
+        if (!dEl) return;
+        dEl.style.opacity = ""; dEl.style.outline = ""; dEl.style.zIndex = "";
+        dEl = null; save();
+        setTimeout(function () { sup = false; }, 80);
+      }
+      document.addEventListener("pointerup", endDrag);
+      document.addEventListener("pointercancel", endDrag);
+      pill.addEventListener("click", function (ev) { if (sup) { ev.stopPropagation(); ev.preventDefault(); } }, true);
+      pill.addEventListener("contextmenu", function (ev) { ev.preventDefault(); });
+      pill.style.touchAction = "none";
+      window.wsBarReset = function () {
+        try { localStorage.removeItem(KEY); } catch (x) {}
+        Array.prototype.forEach.call(pill.children, function (e) { e.style.order = ""; });
+      };
+      load();
+    })();
     function ptrCount() { return Object.keys(ptrs).length; }
     function pinchBegin() {
       var k = Object.keys(ptrs), a = ptrs[k[0]], b = ptrs[k[1]], rc = TC.cv.getBoundingClientRect();
