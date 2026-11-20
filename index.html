@@ -20,8 +20,8 @@ body.tc-solo #wall-finder-pane{display:none!important;}
 #canvas-viewport{grid-column:1;grid-row:1;position:relative;overflow:hidden;touch-action:none;}
 #tcWrap{position:absolute;inset:var(--sp);z-index:6;background:var(--pf-bg);border-radius:0;touch-action:none;overflow:hidden;}
 #tcCanvas{display:block;position:absolute;top:0;left:0;touch-action:none;}
-#scanChartTimer{display:none!important;position:fixed;right:10px;top:8px;z-index:20;display:flex;align-items:center;justify-content:center;padding:6px 12px;font-family:'Roboto Mono',monospace;font-size:12px!important;font-weight:700;line-height:1;letter-spacing:.14em;color:var(--pf-soft);opacity:.95;background:var(--pf-fill);border:1px solid var(--pf-line2);border-radius:999px;pointer-events:none;}
-#tradeCard{position:absolute;left:14px;top:12px;z-index:8;display:flex;flex-direction:column;gap:4px;pointer-events:none;font:700 10px 'Roboto Mono',monospace;}
+#scanChartTimer{display:none!important;position:fixed;right:10px;top:8px;z-index:20;display:flex;align-items:center;justify-content:center;padding:6px 12px;font-family:'Roboto Mono',monospace;font-size:11px!important;font-weight:700;line-height:1;letter-spacing:.14em;color:var(--pf-soft);opacity:.95;background:var(--pf-fill);border:1px solid var(--pf-line2);border-radius:999px;pointer-events:none;}
+#tradeCard{position:absolute;left:14px;top:12px;z-index:8;display:flex;flex-direction:column;gap:4px;pointer-events:none;font:700 11px 'Roboto Mono',monospace;}
 .tcRow{display:flex;align-items:center;gap:10px;padding:4px 12px;border-radius:8px;background:var(--pf-fill);border:1px solid var(--pf-line2);color:var(--pf-text);font-weight:600;white-space:nowrap;}
 .tcRow b[style*="00B85A" i]{background:var(--pf-up);color:#000000!important;padding:1px 6px;border-radius:4px;}
 .tcRow b[style*="DC2640" i]{background:var(--pf-dn);color:#000000!important;padding:1px 6px;border-radius:4px;}
@@ -46,16 +46,16 @@ tr.highlight-gem>td:nth-child(4){color:#000000;font-weight:700;}
 tr.highlight-gem:hover>td{filter:none;}
 tr.highlight-gem[style*="box-shadow"]{box-shadow:none!important;filter:none!important;}
 tr.highlight-gem[style*="box-shadow"]>td{filter:none;}
-tr.highlight-gem[style*="box-shadow"]>td:first-child{border-left:5px solid var(--ac)!important;}
+tr.highlight-gem[style*="box-shadow"]>td:first-child{border-left:0!important;box-shadow:inset 5px 0 0 var(--ac)!important;}
 tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4){position:relative;color:transparent!important;}
-tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#000000;font-size:10px;font-weight:800;letter-spacing:.06em;}
+tr.highlight-gem[data-wpe][data-wph="1"]>td:nth-child(4)::after{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#000000;font-size:11px;font-weight:800;letter-spacing:.06em;}
 tr.highlight-gem[data-wpe="WARN"][data-wph="1"]>td:nth-child(4)::after{content:"HIT SOON";}
 tr.highlight-gem[data-wpe="HIT"][data-wph="1"]>td:nth-child(4)::after{content:"HIT";}
 tr.highlight-gem[data-wpe="MISS"][data-wph="1"]>td:nth-child(4)::after{content:"MISSED";}
-td:first-child .pyP{color:#000000!important;display:inline-block;vertical-align:middle;min-width:0;margin-left:6px;padding:0;border-radius:0;border:none;background:transparent;color:var(--ac);font-size:inherit;font-weight:inherit;letter-spacing:inherit;line-height:inherit;text-align:center;}
-td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-size:9px!important;font-weight:500;line-height:11px!important;letter-spacing:0;font-variant-numeric:tabular-nums;opacity:1;}
-#rangePill{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0;margin-top:0;padding:var(--sp);background:var(--pf-bg2);border:var(--bw) solid var(--ln);border-top:0;border-radius:0;font:700 10px 'Roboto Mono',monospace;white-space:nowrap;}
-#tradePill{display:flex;flex:1 1 0;flex-wrap:nowrap;align-items:center;justify-content:stretch;gap:var(--sp);width:100%;min-width:0;font:700 10px 'Roboto Mono',monospace;white-space:nowrap;}
+td:first-child .pyP{color:#000000!important;display:inline;vertical-align:baseline;min-width:0;margin-left:6px;padding:0;border-radius:0;border:none;background:transparent;color:var(--ac);font-size:inherit;font-weight:inherit;letter-spacing:inherit;line-height:inherit;text-align:center;}
+td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-size:11px!important;font-weight:500;line-height:11px!important;letter-spacing:0;font-variant-numeric:tabular-nums;opacity:1;}
+#rangePill{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0;margin-top:0;padding:var(--sp);background:var(--pf-bg2);border:var(--bw) solid var(--ln);border-top:0;border-radius:0;font:700 11px 'Roboto Mono',monospace;white-space:nowrap;}
+#tradePill{display:flex;flex:1 1 0;flex-wrap:nowrap;align-items:center;justify-content:stretch;gap:var(--sp);width:100%;min-width:0;font:700 11px 'Roboto Mono',monospace;white-space:nowrap;}
 #tradePill>*{order:20;flex:1 1 0;min-width:0;height:26px;padding:0 2px;overflow:hidden;white-space:nowrap;text-overflow:clip;text-align:center;text-align-last:center;}
 #tradePill #ssSize{order:3;}
 #tradePill #scanIntv{order:4;}
@@ -69,7 +69,7 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #tradePill #btDate{order:12;color-scheme:dark;}
 #tradePill #scanMin{order:30;}
 #tradePill #scanMax{order:31;}
-#tradePill input,#tradePill select,#tradePill button{background:var(--ac);border:1px solid var(--ac);border-radius:0;color:#000000;font:700 10px 'Roboto Mono',monospace;letter-spacing:.04em;outline:none;}
+#tradePill input,#tradePill select,#tradePill button{background:var(--ac);border:1px solid var(--ac);border-radius:0;color:#000000;font:700 11px 'Roboto Mono',monospace;letter-spacing:.04em;outline:none;}
 #tradePill input{-webkit-user-select:text;user-select:text;-moz-appearance:textfield;}
 #tradePill input::selection{background:#000432;color:#C0C0C0;}
 #tradePill input::-webkit-outer-spin-button,#tradePill input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
@@ -86,7 +86,7 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #tradePill #tpBuy{background:var(--pf-up);color:#000000;}
 #tradePill #tpSell{background:var(--pf-dn);color:#000000;}
 #bootOverlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;background:#000432;}
-#bootOverlay>div:first-child{width:min(540px,94vw);text-align:center;font-size:12px;font-weight:600;letter-spacing:.2em;color:#000000;background:var(--ac);border:1px solid var(--ac);padding:6px 12px;border-radius:10px;}
+#bootOverlay>div:first-child{width:min(540px,94vw);text-align:center;font-size:11px;font-weight:600;letter-spacing:.2em;color:#000000;background:var(--ac);border:1px solid var(--ac);padding:6px 12px;border-radius:10px;}
 #bootLogBox{width:min(540px,94vw);height:150px;padding:10px;overflow-y:auto;background:var(--ac);border:1px solid var(--ac);border-radius:10px;color:#000000;font-size:10px;line-height:1.5;}
 #bootLogBox *{color:#000000!important;}
 #bootLogBox{scrollbar-width:none;}
@@ -103,9 +103,9 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
     #tradePill{flex-wrap:wrap;}
     #tradePill>*{flex:1 1 calc(25% - var(--sp));height:30px;}
     #tradeCard{left:8px;right:8px;top:8px;}
-    .tcRow{gap:6px;padding:3px 8px;font-size:9px;overflow:hidden;}
-    td{height:30px;padding:2px 4px;font-size:10px;}
-    table{font-size:10px;}
+    .tcRow{gap:6px;padding:3px 8px;font-size:11px;overflow:hidden;}
+    td{height:30px;padding:2px 4px;font-size:11px;}
+    table{font-size:11px;}
   }
   </style>
 </head>
@@ -1679,7 +1679,7 @@ function _autoSelectTopSignal(force) {
         if (idx < i0 || idx > it.i1 || ap[idx] === -1) return;
         var ox = xOf(idx), oy = yOf(ap[idx]), sel = n === currentInstanceIndex;
         if (sel) {
-          ctx.save(); ctx.strokeStyle = PO; ctx.setLineDash([4, 4]);
+          ctx.save(); ctx.strokeStyle = PO; ctx.setLineDash([]);
           ctx.beginPath(); ctx.moveTo(ox, ptop); ctx.lineTo(ox, pbot); ctx.stroke(); ctx.restore();
         }
         var lbl = (ocUp ? "BUY" : "SELL") + (inst.isFalse ? " F" + (inst.falseSeq || 1) : "");
@@ -1693,7 +1693,7 @@ function _autoSelectTopSignal(force) {
     items.forEach(tn => {
       var tx2 = xOf(tn.idx); if (tx2 < PADL || tx2 > W - PADR || it.last < 0) return;
       var fx0 = xOf(it.last), fy0 = yOf(ap[it.last]);
-      ctx.save(); ctx.strokeStyle = it.color; ctx.setLineDash([5, 4]);
+      ctx.save(); ctx.strokeStyle = it.color; ctx.setLineDash([]);
       ctx.beginPath(); ctx.moveTo(Math.max(PADL, fx0), fy0); ctx.lineTo(tx2, fy0); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(tx2, ptop); ctx.lineTo(tx2, pbot); ctx.stroke(); ctx.restore();
       if (tn.kind === "FUT") {
@@ -1759,13 +1759,13 @@ function _autoSelectTopSignal(force) {
       var x0 = Math.max(PADL, xs), x1 = Math.min(W - PADR, xe);
       ctx.save(); ctx.beginPath(); ctx.rect(PADL, top, W - PADL - PADR, bot - top); ctx.clip();
       ctx.globalAlpha = 1;
-      ctx.strokeStyle = window._AC; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = window._AC; ctx.lineWidth = 1; ctx.setLineDash([]);
       ctx.beginPath(); ctx.moveTo(Math.round(xs) + 0.5, top); ctx.lineTo(Math.round(xs) + 0.5, bot); ctx.stroke();
       ctx.setLineDash([]);
       ctx.beginPath(); ctx.moveTo(Math.round(xe) + 0.5, top); ctx.lineTo(Math.round(xe) + 0.5, bot); ctx.stroke();
       if (yOf && r.en) {
         var ey = yOf(r.en);
-        ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(x0, ey); ctx.lineTo(x1, ey); ctx.stroke(); ctx.setLineDash([]);
+        ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x0, ey); ctx.lineTo(x1, ey); ctx.stroke(); ctx.setLineDash([]);
         ctx.beginPath(); ctx.arc(xs, ey, 4, 0, 6.283); ctx.fillStyle = window._AC; ctx.fill();
       }
       ctx.font = "bold 10px " + MONO; ctx.textAlign = "left"; ctx.textBaseline = "middle";
