@@ -329,7 +329,7 @@ function primeEngine(prices, n, minC, maxC, baseTs, preArr) {
 self.onmessage = function (e) {
   const { pair, prices, minC, maxC, startIdx, endIdx, startTsUtc, pre, gid } = e.data;
   const baseTs = startTsUtc || 0, preArr = pre || null, preLen = preArr ? preArr.length : 0, len = prices.length;
-  if (!len) { self.postMessage({ pair, bestRevs: [], bestMoms: [] }); return; }
+  if (!len) { self.postMessage({ pair, bestRevs: [], bestMoms: [], gid }); return; }
   const sStart = startIdx !== undefined ? startIdx : 0, sEnd = endIdx !== undefined ? Math.min(endIdx, len) : len;
   const rowColor = new Int8Array(maxC), rowStreak = new Int16Array(maxC), rowCol = new Int32Array(maxC), shGMax = new Int16Array(maxC), shRMax = new Int16Array(maxC);
   const revs = [], moms = [];
@@ -539,7 +539,7 @@ function _ssRow(r, c, sess) {
 }
 function _ssMsg(k, minC, maxC, pair) {
   var pd = allPairData[pair], SB = _ssBounds(k);
-  return { pair: pair, prices: pd.prices.slice(SB.a, SB.b), minC: minC, maxC: maxC, startIdx: 0, endIdx: SB.b - SB.a, startTsUtc: currentStartTsUtc + SB.a, pre: SB.a > 0 ? _ssPre(SB.a, pair) : window._preArr(pair), gid: Date.now() + k };
+  return { pair: pair, prices: pd.prices.slice(SB.a, SB.b), minC: minC, maxC: maxC, startIdx: 0, endIdx: SB.b - SB.a, startTsUtc: currentStartTsUtc + SB.a, pre: SB.a > 0 ? _ssPre(SB.a, pair) : window._preArr(pair), gid: (window._gidSeq = (window._gidSeq || 0) + 1) };
 }
 function _ssPostOld(msg) {
   if (scanWorker) scanWorker.postMessage(msg);
@@ -958,7 +958,69 @@ function processVisualMatrix() {
 
 var scanWorker = null;
 var POOL_N = Math.max(2, Math.min(navigator.hardwareConcurrency || 4, 8)), _wPool = [], _wJob = null, _wUrl = null;
-function _wPump() {
+var _wJobs = [];
+function _wPump2() {
+  for (var i = 0; i < _wPool.length; i++) {
+    var w = _wPool[i]; if (w._t) continue;
+    var j = null, q;
+    for (q = 0; q < _wJobs.length; q++) if (_wJobs[q].next < _wJobs[q].tasks.length) { j = _wJobs[q]; break; }
+    if (!j) return;
+    var k = j.next++, t = j.tasks[k];
+    w._t = { j: j, k: k };
+    w.postMessage(Object.assign({}, j.msg, { minC: t.minC, maxC: t.maxC }));
+  }
+}
+function _wMsg2(e) {
+  var w = this, t = w._t, d = e.data;
+  if (!t) return;
+  var j = t.j, isProg = d && d.prog !== undefined, ji = _wJobs.indexOf(j);
+  if (ji < 0) { if (!isProg) { w._t = null; _wPump2(); } return; }
+  if (isProg) {
+    j.tasks[t.k].prog = d.prog;
+    var s = 0; j.tasks.forEach(function (x) { s += x.prog * x.w; });
+    handleWorkerMessage({ data: { prog: Math.round(s / j.span) } });
+    return;
+  }
+  w._t = null; j.parts[t.k] = d;
+  if (--j.left > 0) { _wPump2(); return; }
+  _wJobs.splice(ji, 1);
+  _wPump2();
+  var revs = [], moms = [], kings = [], hasPk = false, i, x, p;
+  for (i = 0; i < j.parts.length; i++) {
+    p = j.parts[i];
+    for (x = 0; x < p.bestRevs.length; x++) revs.push(p.bestRevs[x]);
+    for (x = 0; x < p.bestMoms.length; x++) moms.push(p.bestMoms[x]);
+    if (p.pk) { hasPk = true; for (x = 0; x < p.pk.kings.length; x++) kings.push(p.pk.kings[x]); }
+  }
+  console.log("scan ms", Date.now() - j.t0, getPairDisplayName(j.msg.pair));
+  handleWorkerMessage({ data: { pair: j.msg.pair, bestRevs: revs, bestMoms: moms, gid: j.msg.gid, pk: hasPk ? { kings: kings } : undefined } });
+}
+function _ssPost2(msg) {
+  if (_wPool.length) {
+    var span = msg.maxC - msg.minC + 1, nCh = Math.max(1, Math.min(span, _wPool.length * 3)), per = Math.ceil(span / nCh), tasks = [], a;
+    for (a = msg.minC; a <= msg.maxC; a += per) { var b = Math.min(a + per - 1, msg.maxC); tasks.push({ minC: a, maxC: b, prog: 0, w: b - a + 1 }); }
+    _wJobs.push({ msg: msg, tasks: tasks, next: 0, left: tasks.length, parts: new Array(tasks.length), span: span, t0: Date.now() });
+    _wPump2();
+  } else {
+    var fn = new Function("self", document.getElementById("fftWorkerLogic").textContent);
+    var fake = { postMessage: d => handleWorkerMessage({ data: d }) };
+    fn(fake); fake.onmessage({ data: msg });
+  }
+}
+function _spawn2() {
+  _wPool.forEach(function (w) { try { w.terminate(); } catch (e) {} });
+  _wPool = []; _wJobs = []; window._lanes = {}; scanWorker = null;
+  try {
+    if (!_wUrl) _wUrl = URL.createObjectURL(new Blob([document.getElementById("fftWorkerLogic").textContent], { type: "text/javascript" }));
+    for (var i = 0; i < POOL_N; i++) { var w = new Worker(_wUrl); w._t = null; w.onmessage = _wMsg2; _wPool.push(w); }
+    scanWorker = _wPool[0];
+  } catch (e) {
+    _wPool.forEach(function (w) { try { w.terminate(); } catch (e2) {} });
+    _wPool = []; scanWorker = null;
+  }
+}
+function _wPump() { return _wPump2(); }
+function _wPumpV1() {
   var j = _wJob; if (!j) return;
   for (var i = 0; i < _wPool.length && j.next < j.tasks.length; i++) {
     var w = _wPool[i]; if (w._t) continue;
@@ -967,7 +1029,8 @@ function _wPump() {
     w.postMessage(Object.assign({}, j.msg, { minC: t.minC, maxC: t.maxC }));
   }
 }
-function _wMsg(e) {
+function _wMsg(e) { return _wMsg2.call(this, e); }
+function _wMsgV1(e) {
   var w = this, t = w._t, d = e.data;
   if (!t) return;
   var j = t.j, isProg = d && d.prog !== undefined;
@@ -991,7 +1054,8 @@ function _wMsg(e) {
   console.log("scan ms", Date.now() - j.t0, getPairDisplayName(j.msg.pair));
   handleWorkerMessage({ data: { pair: j.msg.pair, bestRevs: revs, bestMoms: moms, gid: j.msg.gid, pk: hasPk ? { kings: kings } : undefined } });
 }
-function _ssPost(msg) {
+function _ssPost(msg) { return _ssPost2(msg); }
+function _ssPostV1(msg) {
   if (_wPool.length) {
     var span = msg.maxC - msg.minC + 1, nCh = Math.max(1, Math.min(span, _wPool.length * 3)), per = Math.ceil(span / nCh), tasks = [], a;
     for (a = msg.minC; a <= msg.maxC; a += per) { var b = Math.min(a + per - 1, msg.maxC); tasks.push({ minC: a, maxC: b, prog: 0, w: b - a + 1 }); }
@@ -1003,7 +1067,8 @@ function _ssPost(msg) {
     fn(fake); fake.onmessage({ data: msg });
   }
 }
-function _spawnScanWorker() {
+function _spawnScanWorker() { return _spawn2(); }
+function _spawnScanWorkerV1() {
   _wPool.forEach(function (w) { try { w.terminate(); } catch (e) {} });
   _wPool = []; _wJob = null; scanWorker = null;
   try {
@@ -1071,7 +1136,8 @@ function primeSelect(kings, pair, rawRevs, rawMoms) {
 
 function handleWorkerMessage(e) {
   if (e.data && e.data.prog !== undefined) { window._scanProg = e.data.prog; _scanUi(); return; }
-  if (e.data && e.data.gid !== undefined && window._ssExpGid && e.data.gid !== window._ssExpGid) return;
+  var _ln = window._lanes[e.data.gid];
+    if (!_ln) return;
   window._scanProg = -1;
   var { pair, bestRevs, bestMoms, pk } = e.data;
   var _rv = bestRevs.slice(), _mm = bestMoms.slice();
@@ -1080,7 +1146,7 @@ function handleWorkerMessage(e) {
     ps.rev.forEach(x => _rv.push(x));
     ps.mom.forEach(x => _mm.push(x));
   }
-  var _sg = window._ssCur || 0, _jb = window._ssJob;
+  var _sg = _ln.cur || 0, _jb = _ln.job;
   _rv.forEach(x => { x.sess = _sg; });
   _mm.forEach(x => { x.sess = _sg; });
   if (_jb) {
@@ -1088,9 +1154,9 @@ function handleWorkerMessage(e) {
     _jb.moms = _jb.moms.concat(_mm);
     if (_jb.k < _jb.n) {
       _jb.k++;
-      window._ssCur = _jb.k;
+      _ln.cur = _jb.k; delete window._lanes[e.data.gid];
       var _nm = _ssMsg(_jb.k, _jb.minC, _jb.maxC, pair);
-      window._ssExpGid = _nm.gid;
+      window._lanes[_nm.gid] = _ln;
       _ssPost(_nm);
       return;
     }
@@ -1098,7 +1164,8 @@ function handleWorkerMessage(e) {
   }
   if (allPairData[pair] && activePairs.indexOf(pair) >= 0) { _pairRes[pair] = { revs: _rv, moms: _mm }; _resSave(pair); }
   _scanMerge();
-  if (_scanNext()) { renderFilteredTable(); return; }
+  delete window._lanes[e.data.gid];
+    if (_scanNext()) { renderFilteredTable(); return; }
   scanPending = 0;
   processVisualMatrix();
   renderFilteredTable();
@@ -1174,7 +1241,30 @@ function _scanMerge() {
   for (i = 0; i < activePairs.length; i++) { e = _pairRes[activePairs[i]]; if (e) { r = r.concat(e.revs); m = m.concat(e.moms); } }
   globalRevs = r; globalMoms = m;
 }
-function _scanNext() {
+function _scanLaneMax() {
+  var n = _wPool.length;
+  if (n < 2) return 1;
+  var span = Math.max(1, (window._scanMax || 1) - (window._scanMin || 1) + 1), ch = Math.max(1, Math.min(span, n * 3));
+  return Math.max(2, Math.ceil(n / ch));
+}
+function _scanNext2() {
+  var p, pd, SB, all, msg, lane, max = _scanLaneMax();
+  while (_scanQ.length && Object.keys(window._lanes).length < max) {
+    p = _scanQ.shift(); pd = allPairData[p];
+    if (!pd || !pd.times.length) continue;
+    window._scanPair = p;
+    SB = _ssBounds(); all = _ssMin > 0 && _ssSel < 1 && SB.n >= 2;
+    lane = { pair: p, job: all ? { n: SB.n, k: 1, revs: [], moms: [], minC: window._scanMin, maxC: window._scanMax } : null, cur: all ? 1 : (_ssMin > 0 ? _ssSel : 0) };
+    msg = _ssMsg(lane.cur, window._scanMin, window._scanMax, p);
+    window._lanes[msg.gid] = lane;
+    _ssPost(msg);
+  }
+  var busy = Object.keys(window._lanes).length > 0;
+  if (!busy) window._scanPair = "";
+  return busy;
+}
+function _scanNext() { return _scanNext2(); }
+function _scanNextV1() {
   var p, pd, SB, all, msg;
   while (_scanQ.length) {
     p = _scanQ.shift(); pd = allPairData[p];
@@ -1201,6 +1291,7 @@ function dispatchMultiCycleScan() {
   if (minC > maxC) { var t = minC; minC = maxC; maxC = t; }
   if (scanPending && !window._scanRestart && Date.now() - _scanStartedAt < 120000 * pl.length) return;
   if (window._scanRestart) { window._scanRestart = false; _spawnScanWorker(); _pairRes = {}; }
+    else if (scanPending) _spawnScanWorker();
   scanPending = 1; _scanStartedAt = Date.now();
   window._scanMin = minC; window._scanMax = maxC; window._ssJob = null;
   pl.sort(function (a, b) { return (_gmVis(b) ? 1 : 0) - (_gmVis(a) ? 1 : 0); });
@@ -2236,6 +2327,7 @@ window.dvOnPoc = function (p) {
 
 function _scanPairNow(p) {
   if (_scanQ.indexOf(p) < 0) { if (_gmVis(p)) _scanQ.unshift(p); else _scanQ.push(p); }
+    if (scanPending) { _scanNext(); return; }
   if (scanPending) return;
   var a = parseInt(document.getElementById("scanMin").value, 10) || 300, b = parseInt(document.getElementById("scanMax").value, 10) || 300;
   window._scanMin = Math.min(a, b); window._scanMax = Math.max(a, b); window._ssJob = null;
