@@ -85,6 +85,17 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #tradePill #tpBuy,#tradePill #tpSell{border:none;font-weight:800;letter-spacing:.1em;}
 #tradePill #tpBuy{background:var(--pf-up);color:#000000;}
 #tradePill #tpSell{background:var(--pf-dn);color:#000000;}
+#pairSelPanel{display:none;position:fixed;z-index:9000;padding:var(--sp);background:#000432;border:var(--bw) solid var(--ac);overflow-y:auto;scrollbar-width:none;font:700 11px 'Roboto Mono',monospace;}
+#pairSelPanel::-webkit-scrollbar{display:none;}
+#pairSelPanel .psTop,#pairSelPanel .psGrid{display:flex;flex-wrap:wrap;gap:var(--sp);}
+#pairSelPanel .psTop{margin-bottom:var(--sp);}
+#pairSelPanel button{flex:1 1 calc(25% - var(--sp));min-width:64px;height:30px;padding:0 4px;background:#000432;border:1px solid var(--ac);border-radius:0;color:var(--ac);font:700 11px 'Roboto Mono',monospace;letter-spacing:.04em;cursor:pointer;outline:none;}
+#pairSelPanel button.on,#pairSelPanel .psTop button{background:var(--ac);color:#000000;}
+#pairSelPanel .psGroups{display:flex;flex-wrap:wrap;gap:var(--sp);margin-bottom:var(--sp);}
+#pairSelPanel .psRow{display:flex;gap:var(--sp);width:100%;}
+#pairSelPanel .psRow .psName{flex:1 1 auto;}
+#pairSelPanel .psRow button[data-u],#pairSelPanel .psRow button[data-d]{flex:0 0 56px;min-width:0;}
+#pairSelPanel .psHint{width:100%;padding:2px 0;color:var(--ac);font-size:9px;letter-spacing:.04em;}
 #bootOverlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;background:#000432;}
 #bootOverlay>div:first-child{width:min(540px,94vw);text-align:center;font-size:11px;font-weight:600;letter-spacing:.2em;color:#000000;background:var(--ac);border:1px solid var(--ac);padding:6px 12px;border-radius:10px;}
 #bootLogBox{width:min(540px,94vw);height:150px;padding:10px;overflow-y:auto;background:var(--ac);border:1px solid var(--ac);border-radius:10px;color:#000000;font-size:10px;line-height:1.5;}
@@ -164,7 +175,7 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
         <input type="text" inputmode="numeric" id="scanIntv" value="60" title="Scan interval (seconds)" onchange="setScanInterval(this.value)">
         <button type="button" id="tpBal">D 0.00</button>
         <button type="button" id="btToggle" title="Toggle live / backtest">LIVE</button>
-        <button type="button" id="modeBtn" title="Pair group: CRY / DRV / MTL / FRX / ALL" onclick="_gmNext()">CRY</button>
+        <button type="button" id="modeBtn" title="Select pairs" onclick="_psToggle()">BTC+ETH</button>
         <input type="date" id="btDate" style="display:none" title="Backtest date (session 05:30-05:30 IST)">
       </div>
     </div>
@@ -408,7 +419,7 @@ var _fbP = (function () {
 })();
 function _fbState() {
   var g = function (id) { var e = document.getElementById(id); return e ? e.value : ""; };
-  return { ssMin: _ssMin, scanIntv: SCAN_INT, amt: g("tpAmt"), auto: !!dv.auto, mode: dv.mode, gm: _gmCur, cMin: g("scanMin"), cMax: g("scanMax") };
+  return { ssMin: _ssMin, scanIntv: SCAN_INT, amt: g("tpAmt"), auto: !!dv.auto, mode: dv.mode, gm: _gmCur, grp: _psGroups, cMin: g("scanMin"), cMax: g("scanMax") };
 }
 function _fbApply() {
   if (_fbDone) return;
@@ -416,7 +427,12 @@ function _fbApply() {
   var c = _fbCfg, el = function (id) { return document.getElementById(id); }, n, a, b, m;
   if (c && typeof c === "object") {
     n = parseInt(c.gm, 10);
-    if (n >= 0 && n < _gmList.length) _gmCur = n;
+        if (c.grp && typeof c.grp === "object") {
+          _psGroups = Object.keys(c.grp).map(function (k) { return c.grp[k]; }).filter(function (x) { return x && typeof x.n === "string" && x.p && typeof x.p === "object"; }).map(function (x) {
+            return { n: x.n, p: Object.keys(x.p).map(function (k) { return x.p[k]; }).filter(function (q) { return ALL_PAIRS.indexOf(q) >= 0; }) };
+          }).filter(function (x) { return x.p.length; });
+        }
+    
     a = parseInt(c.cMin, 10); b = parseInt(c.cMax, 10);
     if (a >= 1 && a <= 3600 && el("scanMin")) el("scanMin").value = a;
     if (b >= 1 && b <= 3600 && el("scanMax")) el("scanMax").value = b;
@@ -481,18 +497,141 @@ function _gmUi() {
   var b = document.getElementById("modeBtn");
   if (!b) return;
   var d = ALL_PAIRS.filter(function (p) { return _bootPairState[p] === "done"; }).length;
-    b.textContent = _gmList[_gmCur] + (d < ALL_PAIRS.length ? " " + d + "/" + ALL_PAIRS.length : "");
+    var sel = ALL_PAIRS.filter(function (p) { return _psSel[p] === 1; }), t;
+        t = sel.length === ALL_PAIRS.length ? "ALL" : sel.map(_psShort).join("+");
+        if (t.length > 9) t = sel.length + " PAIRS";
+        b.textContent = t + (d < ALL_PAIRS.length ? " " + d + "/" + ALL_PAIRS.length : "");
 }
 var _gmVC;
+var _psSel = { cryBTCUSD: 1 };
+var _psGroups = [];
 function _gmVis(p) {
-  var m = _gmList[_gmCur], s;
-  if (!_gmVC) _gmVC = {};
-  s = _gmVC[m];
-  if (!s) { s = _gmVC[m] = {}; _gmPairs(m).forEach(function (q) { s[q] = 1; }); }
-  return s[p] === 1;
+  return _psSel[p] === 1;
 }
-function _gmNext() {
-  _gmCur = (_gmCur + 1) % _gmList.length;
+function _psShort(p) { p = String(p); return /^cry/.test(p) ? p.slice(3).replace(/USD$/, "") : p.replace(/^frx/, ""); }
+function _psList() {
+  var f = function () { return ALL_PAIRS.filter(function (p) { return _psSel[p] === 1; }); }, l = f();
+  if (!l.length) { _psSel = { cryBTCUSD: 1 }; l = f(); }
+  return l;
+}
+function _psRender() {
+  var el = document.getElementById("pairSelPanel"), h = '<div class="psTop"><button type="button" data-g="ALL">ALL</button><button type="button" data-g="DEF">BTC</button><button type="button" data-g="SAVE">SAVE</button><button type="button" data-g="EDIT">' + (_psEdit ? 'DONE' : 'EDIT') + '</button></div>' + _psGroupsHtml();
+  if (!el) return;
+  
+  h += '<div class="psGrid">';
+  ALL_PAIRS.forEach(function (p) { h += '<button type="button" class="psItem' + (_psSel[p] === 1 ? ' on' : '') + '" data-p="' + p + '">' + _psShort(p) + '</button>'; });
+  el.innerHTML = h + '</div>';
+}
+function _psPlace() {
+  var el = document.getElementById("pairSelPanel"), b = document.getElementById("modeBtn");
+  if (!el || !b) return;
+  var r = b.getBoundingClientRect(), w = Math.min(320, window.innerWidth - 8);
+  el.style.width = w + "px";
+  el.style.left = Math.max(4, Math.min(r.left, window.innerWidth - w - 4)) + "px";
+  el.style.bottom = (window.innerHeight - r.top + 4) + "px";
+  el.style.maxHeight = Math.max(120, r.top - 12) + "px";
+}
+function _psClick(e) {
+  var t = e.target && e.target.closest ? e.target.closest("button") : null, n = {}, k, g, l, all;
+  if (!t) return;
+  if (_psGrpClick(t)) return;
+    for (k in _psSel) n[k] = 1;
+  if (t.getAttribute("data-p")) {
+    k = t.getAttribute("data-p");
+    if (n[k]) delete n[k]; else n[k] = 1;
+  } else {
+    g = t.getAttribute("data-g");
+    if (g === "ALL") ALL_PAIRS.forEach(function (q) { n[q] = 1; });
+    else if (g === "DEF") n = { cryBTCUSD: 1 };
+    else {
+      l = _gmPairs(g);
+      all = l.every(function (q) { return n[q] === 1; });
+      l.forEach(function (q) { if (all) delete n[q]; else n[q] = 1; });
+    }
+  }
+  if (!Object.keys(n).length) return;
+  _psSel = n;
+  _psRender();
+  _psApply();
+}
+function _psToggle() {
+  var el = document.getElementById("pairSelPanel");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "pairSelPanel";
+    el.addEventListener("click", _psClick);
+    document.body.appendChild(el);
+  }
+  if (el.style.display === "block") { el.style.display = "none"; return; }
+  _psRender();
+  el.style.display = "block";
+  _psPlace();
+}
+document.addEventListener("pointerdown", function (e) {
+  var el = document.getElementById("pairSelPanel");
+  if (!el || el.style.display !== "block") return;
+  if (el.contains(e.target) || e.target.id === "modeBtn") return;
+  el.style.display = "none";
+}, true);
+window.addEventListener("resize", function () {
+  var el = document.getElementById("pairSelPanel");
+  if (el && el.style.display === "block") _psPlace();
+});
+var _psEdit = 0;
+function _psEsc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function _psCur() { return ALL_PAIRS.filter(function (q) { return _psSel[q] === 1; }); }
+function _psSame(a) { var c = _psCur(); return c.length === a.length && a.every(function (q) { return _psSel[q] === 1; }); }
+function _psGroupsHtml() {
+  var h, i, g;
+  if (!_psGroups.length) return "";
+  h = '<div class="psGroups">';
+  for (i = 0; i < _psGroups.length; i++) {
+    g = _psGroups[i];
+    if (_psEdit) h += '<div class="psRow"><button type="button" class="psName" data-r="' + i + '">' + _psEsc(g.n) + '</button><button type="button" data-u="' + i + '">UPD</button><button type="button" data-d="' + i + '">DEL</button></div>';
+    else h += '<button type="button" class="psGrp' + (_psSame(g.p) ? ' on' : '') + '" data-n="' + i + '">' + _psEsc(g.n) + '</button>';
+  }
+  if (_psEdit) h += '<div class="psHint">TAP NAME = RENAME · UPD = SAVE CURRENT PAIRS · DEL = DELETE</div>';
+  return h + '</div>';
+}
+function _psGrpClick(t) {
+  var a = t.getAttribute("data-n"), r = t.getAttribute("data-r"), u = t.getAttribute("data-u"), d = t.getAttribute("data-d"), g = t.getAttribute("data-g"), s;
+  if (a !== null) {
+    if (!_psGroups[+a]) return true;
+    _psSel = {};
+    _psGroups[+a].p.forEach(function (q) { _psSel[q] = 1; });
+    _psRender();
+    _psApply();
+    return true;
+  }
+  if (g === "SAVE") {
+    s = window.prompt("Group name", "");
+    s = s ? s.trim().slice(0, 14) : "";
+    if (s) { _psGroups.push({ n: s, p: _psCur() }); _psRender(); }
+    return true;
+  }
+  if (g === "EDIT") { _psEdit = _psEdit ? 0 : 1; _psRender(); return true; }
+  if (r !== null) {
+    if (!_psGroups[+r]) return true;
+    s = window.prompt("Rename group", _psGroups[+r].n);
+    s = s ? s.trim().slice(0, 14) : "";
+    if (s) { _psGroups[+r].n = s; _psRender(); }
+    return true;
+  }
+  if (u !== null) {
+    if (_psGroups[+u]) { _psGroups[+u].p = _psCur(); _psRender(); }
+    return true;
+  }
+  if (d !== null) {
+    if (_psGroups[+d] && window.confirm("Delete group " + _psGroups[+d].n + "?")) {
+      _psGroups.splice(+d, 1);
+      if (!_psGroups.length) _psEdit = 0;
+      _psRender();
+    }
+    return true;
+  }
+  return false;
+}
+function _psApply() {
   _gmUi();
   var byVis = function (a, b) { return (_gmVis(b) ? 1 : 0) - (_gmVis(a) ? 1 : 0); };
   _scanQ.sort(byVis);
@@ -1433,8 +1572,8 @@ function renderFilteredTable() {
 function _renderTableNow() {
   _rftT = 0;
   var rev = _bestPerLevel(_wsBuild(globalRevs.filter(function (x) { return _gmVis(x.pair); }), "lvl")), mom = _bestPerLevel(_wsBuild(globalMoms.filter(function (x) { return _gmVis(x.pair); }), "lvl"));
-  var _gl = _gmPairs(_gmList[_gmCur]), _gp = _gl.filter(function (p) { return !_pairRes[p]; }).length;
-  var _ld = '<tr><td colspan="7" style="text-align:center;background:var(--pf-fill);padding:16px;">LOADING ' + _gmList[_gmCur] + ' ' + (_gl.length - _gp) + '/' + _gl.length + ' ...</td></tr>';
+  var _gl = ALL_PAIRS.filter(function (p) { return _gmVis(p); }), _gp = _gl.filter(function (p) { return !_pairRes[p]; }).length;
+  var _ld = '<tr><td colspan="7" style="text-align:center;background:var(--pf-fill);padding:16px;">LOADING PAIRS ' + (_gl.length - _gp) + '/' + _gl.length + ' ...</td></tr>';
   document.getElementById("peaksTableBodyRev").innerHTML = (!rev.length && _gp) ? _ld : _buildScannerRowsHtml(rev);
   document.getElementById("peaksTableBodyMom").innerHTML = (!mom.length && _gp) ? _ld : _buildScannerRowsHtml(mom);
   if (window.tcRedraw) window.tcRedraw();
@@ -2368,7 +2507,7 @@ function _loadRest(ctx) {
 window.onload = async function () {
   await _fbP;
   _fbApply();
-  activePairs = _gmPairs(_gmList[_gmCur]);
+  activePairs = _psList();
   DV_SYM = activePairs[0];
   _gmUi();
   var ctx = getTradingContext();
