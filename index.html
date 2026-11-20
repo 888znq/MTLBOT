@@ -2065,7 +2065,14 @@ function _autoSelectTopSignal(force) {
     ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
   }
 
-  function tcDrawBoxes(ctx, W, H, dpr, pair, BG) {
+  function bxFit(ctx, s, maxFs, w) {
+      var f = Math.max(6, maxFs);
+      ctx.font = "bold " + f + "px " + MONO;
+      while (f > 6 && ctx.measureText(s).width > w) { f -= 0.5; ctx.font = "bold " + f + "px " + MONO; }
+      return f;
+    }
+  
+    function tcDrawBoxes(ctx, W, H, dpr, pair, BG) {
     var B = Math.max(1, Math.round(CYCLE) || 300), GREEN = "#00B85A", RED = "#DC2640", PF_UP = "0,184,90", PF_DN = "220,38,64", pr = allPairData[pair].prices, sEnd = 86400;
     var nowF = Date.now() / 1000 - currentStartTsUtc, live = _isWithinMappedWindow() && nowF >= 0 && nowF < sEnd;
     var li = tcLastReal(pr, Math.min(live ? Math.floor(nowF) : sEnd, pr.length - 1)), lp = li >= 0 ? pr[li] : 0;
@@ -2168,25 +2175,60 @@ function _autoSelectTopSignal(force) {
         }
       }
       var isFut = !!(bxO && !bxO.sig && !hcCell && bxO.fut), txt = hcCell ? ("X" + hcCell.s) : (isFut ? ("X" + bxO.fut.s1) : "");
-      if (isFut) { ctx.setLineDash([]); }
-      if (txt && j !== cj && bw >= 12 && bh >= 10) {
-        var fs = Math.max(7, Math.min(bh * 0.5, 18)); ctx.font = "bold " + fs + "px " + MONO;
-        ctx.fillStyle = BG; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillStyle = "#000000"; ctx.fillText(txt, px + bw / 2, py + bh * 0.52);
-      }
-      var isSig = !!(bxO && bxO.sig);
-      if (isSig || isFut || bxIm) {
-        var up2 = isFut ? bxO.fut.up : (isSig ? bxO.up : bxInstUp);
-        var dt = (up2 ? "BUY" : "SELL") + (bxIm && !isSig && !isFut && bxIm.inst.isFalse ? " F" + (bxIm.inst.falseSeq || 1) : "");
-        ctx.save(); var lfs = Math.max(7, Math.min(10, bh - 8)), lh = Math.max(9, Math.min(14, bh - 4)); ctx.font = "bold " + lfs + "px " + MONO; var dw = ctx.measureText(dt).width + 8, cy = py + bh / 2, lx = px + bw - dw / 2 - ((bxO && (bxO.resW === "win" || bxO.resW === "loss")) ? 24 : 5);
-        ctx.fillStyle = "#000000"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(dt, lx, cy + 0.5); ctx.restore();
-      }
-      var resW = (bxO && (bxO.resW === "win" || bxO.resW === "loss")) ? bxO.resW : null;
-      if (!resW && bxInstMap && j > 0 && bxInstMap[j - 1]) {
-        var nxSec = bxInstMap[j - 1].sec + B;
-        if (nxSec <= li && pr[nxSec] !== undefined && pr[nxSec] !== -1) resW = bxInstMap[j - 1].inst.isFalse ? "loss" : "win";
-      }
-      if (resW === "win" || resW === "loss") bxMark(ctx, px + bw - 12, py + bh * 0.5, resW === "win", Math.min(_tcTkFs(), bh * 0.6), resW === "win" ? GREEN : RED, BG);
+            if (isFut) { ctx.setLineDash([]); }
+            var isSig = !!(bxO && bxO.sig), hasLb = !!(isSig || isFut || bxIm), dt = "", dtS = "", up2, fxS;
+            var resW = (bxO && (bxO.resW === "win" || bxO.resW === "loss")) ? bxO.resW : null;
+            if (!resW && bxInstMap && j > 0 && bxInstMap[j - 1]) {
+              var nxSec = bxInstMap[j - 1].sec + B;
+              if (nxSec <= li && pr[nxSec] !== undefined && pr[nxSec] !== -1) resW = bxInstMap[j - 1].inst.isFalse ? "loss" : "win";
+            }
+            var hasMk = resW === "win" || resW === "loss";
+            if (hasLb) {
+              up2 = isFut ? bxO.fut.up : (isSig ? bxO.up : bxInstUp);
+              fxS = (bxIm && !isSig && !isFut && bxIm.inst.isFalse) ? " F" + (bxIm.inst.falseSeq || 1) : "";
+              dt = (up2 ? "BUY" : "SELL") + fxS; dtS = (up2 ? "B" : "S") + fxS;
+            }
+            if (bw >= 84) {
+              if (txt && j !== cj && bw >= 12 && bh >= 10) {
+                var fs = Math.max(7, Math.min(bh * 0.5, 18)); ctx.font = "bold " + fs + "px " + MONO;
+                ctx.fillStyle = BG; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillStyle = "#000000"; ctx.fillText(txt, px + bw / 2, py + bh * 0.52);
+              }
+              if (hasLb) {
+                ctx.save(); var lfs = Math.max(7, Math.min(10, bh - 8)), lh = Math.max(9, Math.min(14, bh - 4)); ctx.font = "bold " + lfs + "px " + MONO; var dw = ctx.measureText(dt).width + 8, cy = py + bh / 2, lx = px + bw - dw / 2 - (hasMk ? 24 : 5);
+                ctx.fillStyle = "#000000"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(dt, lx, cy + 0.5); ctx.restore();
+              }
+              if (hasMk) bxMark(ctx, px + bw - 12, py + bh * 0.5, resW === "win", Math.min(_tcTkFs(), bh * 0.6), resW === "win" ? GREEN : RED, BG);
+            } else {
+              var cpT = (txt && j !== cj && bw >= 12 && bh >= 10) ? 1 : 0, cpN = cpT + (hasLb ? 1 : 0) + (hasMk ? 1 : 0), cpZ, cpY = py, cpC, cpF, cpL, cpW, cpR, cpK, cpM, cpMy;
+              if (cpN === 3 && bh / 3 < 11) { cpT = 0; cpN = 2; }
+              if (cpN) {
+                cpZ = bh / cpN; cpC = px + bw / 2;
+                ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.setLineDash([]);
+                if (cpT) {
+                  cpF = bxFit(ctx, txt, Math.min(cpZ * 0.7, 18), bw - 3);
+                  ctx.fillStyle = "#000000"; ctx.fillText(txt, cpC, cpY + cpZ / 2 + 0.5);
+                  cpY += cpZ;
+                }
+                if (hasLb) {
+                  cpL = dt; cpF = bxFit(ctx, cpL, Math.min(cpZ * 0.7, 12), bw - 6);
+                  if (ctx.measureText(cpL).width > bw - 6) { cpL = dtS; cpF = bxFit(ctx, cpL, Math.min(cpZ * 0.7, 12), bw - 6); }
+                  cpW = Math.min(bw - 1, ctx.measureText(cpL).width + 5); cpR = Math.min(cpZ - 1, cpF + 4);
+                  ctx.fillStyle = BG; ctx.fillRect(cpC - cpW / 2, cpY + cpZ / 2 - cpR / 2, cpW, cpR);
+                  ctx.fillStyle = window._AC; ctx.fillText(cpL, cpC, cpY + cpZ / 2 + 0.5);
+                  cpY += cpZ;
+                }
+                if (hasMk) {
+                  cpM = Math.max(4, Math.min(14, Math.min(bw, cpZ) / 2 - 1)); cpK = cpM * 0.6; cpMy = cpY + cpZ / 2;
+                  ctx.fillStyle = BG; ctx.beginPath(); ctx.arc(cpC, cpMy, cpM, 0, 6.283); ctx.fill();
+                  ctx.strokeStyle = resW === "win" ? GREEN : RED; ctx.lineWidth = Math.max(1.5, cpM * 0.3); ctx.beginPath();
+                  if (resW === "win") { ctx.moveTo(cpC - cpK * 0.9, cpMy); ctx.lineTo(cpC - cpK * 0.2, cpMy + cpK * 0.7); ctx.lineTo(cpC + cpK * 0.95, cpMy - cpK * 0.65); }
+                  else { ctx.moveTo(cpC - cpK * 0.7, cpMy - cpK * 0.7); ctx.lineTo(cpC + cpK * 0.7, cpMy + cpK * 0.7); ctx.moveTo(cpC + cpK * 0.7, cpMy - cpK * 0.7); ctx.lineTo(cpC - cpK * 0.7, cpMy + cpK * 0.7); }
+                  ctx.stroke();
+                }
+                ctx.restore();
+              }
+            }
           }
           ctx.restore();
           tcDrawTrades(ctx, function () { return -99999; }, null, rkTop, rkBot, W);
