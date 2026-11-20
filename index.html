@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <title>WALLSPECTRUM LOCAL — MULTIPAIR</title>
 <style>
-:root{color-scheme:dark;--bw:3px;--sp:3px;--ac:#C0C0C0;--ln:var(--ac);--pf-bg:#000000;--pf-bg2:#000000;--pf-ctl:#000000;--pf-line:var(--ac);--pf-line2:var(--ac);--pf-text:var(--ac);--pf-soft:var(--ac);--pf-mute:var(--ac);--pf-fill:#000000;--pf-up:#00FF00;--pf-dn:#FF0000;--pf-gold:var(--ac);--pf-up-rgb:0,255,0;--pf-dn-rgb:255,0,0;}
+:root{color-scheme:dark;--bw:2px;--sp:2px;--ac:#C0C0C0;--ln:var(--ac);--pf-bg:#000000;--pf-bg2:#000000;--pf-ctl:#000000;--pf-line:var(--ac);--pf-line2:var(--ac);--pf-text:var(--ac);--pf-soft:var(--ac);--pf-mute:var(--ac);--pf-fill:#000000;--pf-up:#00FF00;--pf-dn:#FF0000;--pf-gold:var(--ac);--pf-up-rgb:0,255,0;--pf-dn-rgb:255,0,0;}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:#000000;color:var(--pf-text);font-family:'Roboto Mono',monospace;overflow:hidden;user-select:none;-webkit-user-select:none;}
 #main-container{height:100%;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) clamp(175px,30vh,290px);gap:0;padding:0;overflow:hidden;position:relative;background:#000000;}
@@ -1612,17 +1612,17 @@ function _autoSelectTopSignal(force) {
     for (var gn = Math.ceil(it.lo / pxStep); gn <= Math.floor(it.hi / pxStep); gn++) {
       var gv = gn * pxStep, gy = Math.round(yOf(gv)) + 0.5;
       pxTicks.push({ v: gv, y: gy });
-      ctx.save(); ctx.strokeStyle = it.color; ctx.globalAlpha = 1; ctx.setLineDash([1, 5]); ctx.beginPath(); ctx.moveTo(PADL, gy); ctx.lineTo(W - PADR, gy); ctx.stroke(); ctx.restore();
-    }
+            ctx.save(); ctx.strokeStyle = it.color; ctx.globalAlpha = 0.15; ctx.setLineDash([]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(PADL, gy); ctx.lineTo(W - PADR, gy); ctx.stroke(); ctx.restore();
+          }
     var steps = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 14400], tstep = 14400;
     for (var k = 0; k < steps.length; k++) if (steps[k] / spp >= 78) { tstep = steps[k]; break; }
     var off = tcOffset(), firstT = Math.ceil((left + off) / tstep) * tstep - off;
-    ctx.save(); ctx.strokeStyle = it.color; ctx.globalAlpha = 1; ctx.setLineDash([1, 5]);
-    for (var t = firstT; t <= right; t += tstep) {
-      if (t < 0 || t > 86400) continue;
-      var tx = xOf(t); if (tx >= PADL && tx <= W - PADR) { ctx.beginPath(); ctx.moveTo(Math.round(tx) + 0.5, ptop); ctx.lineTo(Math.round(tx) + 0.5, pbot); ctx.stroke(); }
-    }
-    ctx.restore();
+        ctx.save(); ctx.strokeStyle = it.color; ctx.globalAlpha = 0.15; ctx.setLineDash([]); ctx.lineWidth = 1;
+            for (var t = firstT; t <= right; t += tstep) {
+          if (t < 0 || t > 86400) continue;
+          var tx = xOf(t); if (tx >= PADL && tx <= W - PADR) { ctx.beginPath(); ctx.moveTo(Math.round(tx) + 0.5, ptop); ctx.lineTo(Math.round(tx) + 0.5, pbot); ctx.stroke(); }
+        }
+        ctx.restore();
 
     ctx.strokeStyle = it.color; ctx.lineWidth = 1.8; ctx.beginPath();
     var lastX = -99999;
