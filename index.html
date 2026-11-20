@@ -1639,7 +1639,7 @@ function _brkCopy(txt) {
 }
 
 function _brkPost(msg) {
-  var tg = [window._otWin, window._drvWin, window.opener, (window.parent !== window ? window.parent : null)], seen = [], i, w;
+  var tg = [window._otWin, window._qxWin, window._drvWin, window.opener, (window.parent !== window ? window.parent : null)], seen = [], i, w;
   for (i = 0; i < tg.length; i++) {
     w = tg[i];
     if (!w || w === window || seen.indexOf(w) >= 0) continue;
@@ -1662,6 +1662,10 @@ function launchBrokers() {
 
 function launchDerivTerminal() {
   window._drvWin = window.open("https://888znq.github.io/TRM/", "derivterminal");
+}
+
+function launchQuotex() {
+  window._qxWin = window.open("https://qxbroker.com/en/trade", "quotex");
 }
 
 function manualSelectSignal(pair, c, r, s1, s2, col, type) {
