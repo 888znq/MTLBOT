@@ -2316,10 +2316,10 @@ function _autoSelectTopSignal(force) {
           }
           var rsTopY = rsPy, rsBotY = rsPy + rsBh;
           if (rsLb1 && rsSt >= 12) {
-            var rsUp1 = rsFut ? rsO1.fut.up : (rsSig1 ? rsO1.up : bxInstUp), rsFx = (rsIm1 && !rsSig1 && !rsFut && rsIm1.inst.isFalse) ? " F" + (rsIm1.inst.falseSeq || 1) : "";
-            var rsPh = 13, rsPt = (rsUp1 ? "BUY" : "SELL") + rsFx;
+            var rsUp1 = rsFut ? rsO1.fut.up : (rsSig1 ? rsO1.up : bxInstUp), rsFx = "";
+            var rsPf = Math.max(11, Math.min(16, Math.round(rsFs * 0.75))), rsPh = rsPf + 6, rsPt = (rsUp1 ? "BUY" : "SELL") + rsFx;
             ctx.font = "bold 9px " + MONO;
-            var rsPw = ctx.measureText(rsPt).width + 8, rsPy2 = rsUp1 ? rsBotY + 2 : rsTopY - rsPh - 2;
+            ctx.font = "bold " + rsPf + "px " + MONO; var rsPw = ctx.measureText(rsPt).width + 12, rsPy2 = rsUp1 ? rsBotY + 2 : rsTopY - rsPh - 2;
             ctx.fillStyle = rsInk; bxRR(ctx, Math.round(rsCx - rsPw / 2), rsPy2, rsPw, rsPh, rsPh / 2); ctx.fill();
             ctx.fillStyle = "#000432"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(rsPt, rsCx, rsPy2 + rsPh / 2 + 0.5);
             if (rsUp1) rsBotY = rsPy2 + rsPh; else rsTopY = rsPy2;
@@ -2604,7 +2604,7 @@ function _autoSelectTopSignal(force) {
         ctx.restore();
 
     ctx.strokeStyle = it.color; ctx.lineWidth = 1.8; ctx.beginPath();
-    var lastX = -99999;
+    var lastX = -99999, tkPts = [], tkSeg = null;
     for (var i2 = i0 - (i0 % st); i2 <= it.i1; i2 += st) {
       var qs = 0, qn = 0;
       for (var qk = Math.max(tkA, i2); qk < i2 + st && qk <= it.i1; qk++) if (ap[qk] !== -1) { qs += ap[qk]; qn++; }
@@ -2612,11 +2612,22 @@ function _autoSelectTopSignal(force) {
       var qc = i2 + (st - 1) / 2, q0 = qs / qn;
       if (it.last >= 0 && qc > it.last) { qc = it.last; q0 = ap[it.last]; }
       var lx = xOf(qc), ly = yOf(q0);
-      if (i2 - lastX > 600) ctx.moveTo(lx, ly); else ctx.lineTo(lx, ly);
+      if (!tkSeg || i2 - lastX > 600) { tkSeg = []; tkPts.push(tkSeg); } tkSeg.push({ x: lx, y: ly });
       lastX = i2;
     }
     ctx.stroke();
-    if (it.last >= i0 && it.last <= it.i1) { ctx.beginPath(); ctx.arc(xOf(it.last), yOf(ap[it.last]), 4.5, 0, 6.283); ctx.fillStyle = it.color; ctx.fill(); }
+    tkPts.forEach(function (sg) {
+          var n2 = sg.length, k2, ps, sm = sg;
+          if (!n2) return;
+          for (ps = 0; ps < 2; ps++) {
+            sm = sm.map(function (pt, ix) { return { x: pt.x, y: (ix === 0 || ix === n2 - 1) ? pt.y : sm[ix - 1].y * 0.25 + pt.y * 0.5 + sm[ix + 1].y * 0.25 }; });
+          }
+          ctx.save(); ctx.strokeStyle = it.color; ctx.lineWidth = 1.8; ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(sm[0].x, sm[0].y);
+          for (k2 = 1; k2 < n2 - 1; k2++) ctx.quadraticCurveTo(sm[k2].x, sm[k2].y, (sm[k2].x + sm[k2 + 1].x) / 2, (sm[k2].y + sm[k2 + 1].y) / 2);
+          if (n2 > 1) ctx.lineTo(sm[n2 - 1].x, sm[n2 - 1].y);
+          ctx.stroke(); ctx.restore();
+        });
+        if (it.last >= i0 && it.last <= it.i1) { ctx.beginPath(); ctx.arc(xOf(it.last), yOf(ap[it.last]), 4.5, 0, 6.283); ctx.fillStyle = it.color; ctx.fill(); }
 
     var sgs = TC.allMap[DV_SYM], lim = Math.min(live ? nowSec - 1 : it.len - 1, it.len - 1, 86399), marks = [], items = [];
     [sgs.rev, sgs.mom].forEach(sg0 => {
@@ -2640,9 +2651,9 @@ function _autoSelectTopSignal(force) {
       }
       ctx.beginPath(); ctx.arc(mx, my, 4, 0, 6.283); ctx.fillStyle = it.color; ctx.fill();
             if (!(lastClickedSigId && currentInstances.length)) {
-              var mUp = mk.sig.type === "REV" ? mk.sig.col === "R" : mk.sig.col === "G", mLbl = mUp ? "BUY" : "SELL", mLy = mUp ? mBot + 14 : mTop - 14;
-              if (mLy > pbot - 8) mLy = mTop - 14; else if (mLy < ptop + 8) mLy = mBot + 14;
-              ctx.save(); ctx.font = "bold 10px " + MONO; ctx.fillStyle = PO; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(mLbl, mx, mLy); ctx.restore();
+              var mUp = mk.sig.type === "REV" ? mk.sig.col === "R" : mk.sig.col === "G", mLbl = mUp ? "BUY" : "SELL", mFb = Math.max(12, Math.min(18, Math.round(_tcTkFs() * 0.5))), mOf = mFb + 4, mLy = mUp ? mBot + mOf : mTop - mOf;
+                            if (mLy > pbot - 8) mLy = mTop - mOf; else if (mLy < ptop + 8) mLy = mBot + mOf;
+                            ctx.save(); ctx.font = "bold " + mFb + "px " + MONO; ctx.fillStyle = PO; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(mLbl, mx, mLy); ctx.restore();
             }
       if (mk.win === "win" || mk.win === "loss") {
               var mFs = _tcTkFs(), mR = Math.max(8, mFs * 0.7) * 0.5 + 3, mY = mTop - mR - 2;
@@ -2661,10 +2672,10 @@ function _autoSelectTopSignal(force) {
           ctx.save(); ctx.strokeStyle = PO; ctx.setLineDash([]);
           ctx.beginPath(); ctx.moveTo(ox, ptop); ctx.lineTo(ox, pbot); ctx.stroke(); ctx.restore();
         }
-        var lbl = (ocUp ? "BUY" : "SELL") + (inst.isFalse ? " F" + (inst.falseSeq || 1) : "");
-        ctx.save(); ctx.font = "bold 10px " + MONO; var tw = ctx.measureText(lbl).width + 10, bHi = ap[idx], bLo = ap[idx], bKe = Math.min(idx + CYCLE, it.last >= 0 ? it.last : idx, it.len - 1);
+        var lbl = ocUp ? "BUY" : "SELL";
+        var lbFs = Math.max(12, Math.min(18, Math.round(_tcTkFs() * 0.5))); ctx.save(); ctx.font = "bold " + lbFs + "px " + MONO; var tw = ctx.measureText(lbl).width + 10, bHi = ap[idx], bLo = ap[idx], bKe = Math.min(idx + CYCLE, it.last >= 0 ? it.last : idx, it.len - 1);
                 for (var bk = idx; bk <= bKe; bk++) { var bv = ap[bk]; if (bv !== -1) { if (bv < bLo) bLo = bv; if (bv > bHi) bHi = bv; } }
-                var ly = ocUp ? yOf(bLo) + 14 : yOf(bHi) - 14; if (ly > pbot - 8) ly = yOf(bHi) - 14; else if (ly < ptop + 8) ly = yOf(bLo) + 14;
+                var ly = ocUp ? yOf(bLo) + lbFs + 4 : yOf(bHi) - lbFs - 4; if (ly > pbot - 8) ly = yOf(bHi) - lbFs - 4; else if (ly < ptop + 8) ly = yOf(bLo) + lbFs + 4;
         ctx.fillStyle = PO; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(lbl, ox, ly); ctx.restore();
       });
     }
@@ -2890,7 +2901,7 @@ function _autoSelectTopSignal(force) {
       var k = Object.keys(ptrs), a = ptrs[k[0]], b = ptrs[k[1]], rc = TC.cv.getBoundingClientRect();
       if (!a || !b) return;
       var dx = Math.abs(a.x - b.x), dy = Math.abs(a.y - b.y), mx = (a.x + b.x) / 2 - rc.left;
-      pinch = { axis: dx >= dy ? "x" : "y", d0: Math.max(10, dx >= dy ? dx : dy), spp: TC.spp, yZ: TC.yZ, anchor: TC.left + (mx - PADL) * TC.spp };
+      pinch = { axis: "x", d0: Math.max(10, Math.hypot(dx, dy)), spp: TC.spp, yZ: TC.yZ, anchor: TC.left + (mx - PADL) * TC.spp };
       drag = null;
     }
     function pinchMove() {
@@ -2898,7 +2909,7 @@ function _autoSelectTopSignal(force) {
       if (!a || !b || !pinch) return;
       var dx = Math.abs(a.x - b.x), dy = Math.abs(a.y - b.y), mx = (a.x + b.x) / 2 - rc.left;
       if (pinch.axis === "x") {
-        TC.spp = Math.max(0.1, Math.min(600, pinch.spp * pinch.d0 / Math.max(10, dx)));
+        TC.spp = Math.max(0.1, Math.min(600, pinch.spp * pinch.d0 / Math.max(10, Math.hypot(dx, dy)))); TC.yZ = Math.max(0.2, Math.min(40, pinch.yZ * Math.max(10, Math.hypot(dx, dy)) / pinch.d0));
         TC.follow = false;
         TC.left = pinch.anchor - (mx - PADL) * TC.spp;
         tcClamp(TC.W - PADL - PADR);
@@ -2913,7 +2924,7 @@ function _autoSelectTopSignal(force) {
           if (wmx > TC.W - PADR) TC.yZ = Math.max(0.2, Math.min(40, TC.yZ / wf));
           else {
             var wan = TC.left + (wmx - PADL) * TC.spp;
-            TC.spp = Math.max(0.1, Math.min(600, TC.spp * wf));
+            var wnS = TC.spp * wf, wnY = TC.yZ / wf; if (wnS >= 0.1 && wnS <= 600 && wnY >= 0.2 && wnY <= 40) { TC.spp = wnS; TC.yZ = wnY; }
             if (!TC.follow) { TC.left = wan - (wmx - PADL) * TC.spp; tcClamp(TC.W - PADL - PADR); }
           }
           tcDraw();
