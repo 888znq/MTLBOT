@@ -75,6 +75,8 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #logPanel::-webkit-scrollbar{display:none;}
 #logPanel div{padding:3px 0;border-bottom:1px solid rgba(77,184,255,.2);white-space:pre-wrap;word-break:break-word;}
 #tradePill #catBtn{order:12;}
+#tradePill #r0Btn{order:15;}
+#tradePill #r0Btn.on{background:#000432;border-color:var(--ac);box-shadow:inset 0 0 0 2px var(--ac);color:var(--ac);}
 #tradePill #btDate{order:12;color-scheme:dark;}
 #tradePill #scanMin{order:30;}
 #tradePill #scanMax{order:31;}
@@ -211,6 +213,7 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
                 <button type="button" id="catBtn" title="Next category" style="display:none" onclick="_catNext()">CAT</button>
         <button type="button" id="logBtn" title="Log" onclick="_logToggle()">LOG</button>
                 <button type="button" id="lvlBtn2" title="Level filter" onclick="window._wsLvlToggle()">LVL ALL</button>
+                                <button type="button" id="r0Btn" title="Row 0 only" onclick="toggleR0Only()">R0</button>
                 <input type="date" id="btDate" style="display:none" title="Backtest date (session 05:30-05:30 IST)">
       </div>
     </div>
@@ -1734,9 +1737,15 @@ function dispatchMultiCycleScan() {
 }
 
 function _wsC2(x) { return x.type === "MOM" ? (x.c1 || 0) - (x.c2 || 0) : (x.c2 || 0); }
-function _wsCmp(a, b) { return ((b.c1 || 0) - (a.c1 || 0)) || ((+b.pct || 0) - (+a.pct || 0)) || (_wsC2(a) - _wsC2(b)) || (a.c - b.c) || (a.r - b.r) || (a.s1 - b.s1); }
+function _wsCmp(a, b) {
+  if (a.type === "MOM") {
+    return ((+b.pct || 0) - (+a.pct || 0)) || ((b.c2 || 0) - (a.c2 || 0)) || ((b.c1 || 0) - (a.c1 || 0)) || (a.c - b.c) || (a.r - b.r) || (a.s1 - b.s1);
+  }
+  return ((b.c1 || 0) - (a.c1 || 0)) || ((+b.pct || 0) - (+a.pct || 0)) || (_wsC2(a) - _wsC2(b)) || (a.c - b.c) || (a.r - b.r) || (a.s1 - b.s1);
+}
 function _wsBuild(list) {
   var top = [], lf = window._wsLvl(), i, j, x, tmp, src = list, bk = null, k;
+    if (r0OnlyMode) src = list = list.filter(function (z) { return z && +z.r === 0; });
     if (list.length) {
         bk = {};
       for (i = 0; i < list.length; i++) {
@@ -1772,9 +1781,12 @@ window._wsLvlToggle = function () {
   window._wsLvlSync();
 };
 function toggleR0Only() {
-  r0OnlyMode = false;
-  var b = document.getElementById("r0OnlyBtn");
-  if (b) b.classList.remove("on");
+  r0OnlyMode = !r0OnlyMode;
+  var b = document.getElementById("r0OnlyBtn"), b2 = document.getElementById("r0Btn");
+  if (b) b.classList.toggle("on", r0OnlyMode);
+  if (b2) b2.classList.toggle("on", r0OnlyMode);
+  _clearSel();
+  if (!_autoSelectTopSignal()) renderFilteredTable();
 }
 
 function _champScore(x) {
@@ -2076,7 +2088,7 @@ function _autoSelectTopSignal(force) {
   function tcCollectAll() {
     var m = { rev: null, mom: null };
         var pick = (L, k) => {
-                  var ck = k + "|" + DV_SYM + "|" + window._wsLvl() + "|" + _psCur().join(","), c = TC.pkC || (TC.pkC = {}), g, i, v = null;
+                  var ck = k + "|" + DV_SYM + "|" + window._wsLvl() + "|" + _psCur().join(",") + "|" + r0OnlyMode, c = TC.pkC || (TC.pkC = {}), g, i, v = null;
                   if (c[k] && c[k].L === L && c[k].n === L.length && c[k].key === ck) { m[k] = c[k].v; return; }
                   g = _wsBuild(L.filter(x => _gmVis(x.pair)));
                   for (i = 0; i < g.length; i++) if (g[i].pair === DV_SYM) { v = g[i]; break; }
