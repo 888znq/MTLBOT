@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <title>WALLSPECTRUM LOCAL — MULTIPAIR</title>
 <style>
-:root{color-scheme:dark;--bw:2px;--sp:2px;--ac:#FF9F1C;--ln:var(--ac);--pf-bg:#000432;--pf-bg2:#000432;--pf-ctl:#000432;--pf-line:var(--ac);--pf-line2:var(--ac);--pf-text:var(--ac);--pf-soft:var(--ac);--pf-mute:var(--ac);--pf-fill:#000432;--pf-up:#13D185;--pf-dn:#FA5A70;--pf-gold:var(--ac);--pf-up-rgb:19,209,133;--pf-dn-rgb:250,90,112;}
+:root{color-scheme:dark;--bw:2px;--sp:2px;--ac:#FFA800;--ln:var(--ac);--pf-bg:#000432;--pf-bg2:#000432;--pf-ctl:#000432;--pf-line:var(--ac);--pf-line2:var(--ac);--pf-text:var(--ac);--pf-soft:var(--ac);--pf-mute:var(--ac);--pf-fill:#000432;--pf-up:#00FF85;--pf-dn:#FF3D5A;--pf-gold:var(--ac);--pf-up-rgb:0,255,133;--pf-dn-rgb:255,61,90;}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:#000432;color:var(--pf-text);font-family:'Roboto Mono',monospace;overflow:hidden;user-select:none;-webkit-user-select:none;}
 #main-container{height:100%;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) clamp(175px,30vh,290px);gap:0;padding:0;overflow:hidden;position:relative;background:#000432;}
@@ -82,7 +82,7 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
 #tradePill #scanMax{order:31;}
 #tradePill input,#tradePill select,#tradePill button{background:var(--ac);border:1px solid var(--ac);border-radius:0;color:#000000;font:700 11px 'Roboto Mono',monospace;letter-spacing:.04em;outline:none;}
 #tradePill input{-webkit-user-select:text;user-select:text;-moz-appearance:textfield;}
-#tradePill input::selection{background:#000432;color:#FF9F1C;}
+#tradePill input::selection{background:#000432;color:#FFA800;}
 #tradePill input::-webkit-outer-spin-button,#tradePill input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 #tradePill select{cursor:pointer;-webkit-appearance:none;appearance:none;}
 #tradePill select option{background:var(--ac);color:#000000;}
@@ -499,11 +499,11 @@ setInterval(function () {
 function _clearSel() { lastClickedSigId = ""; clickCycleIndex = -1; currentInstances = []; currentInstanceIndex = -1; }
 function getPairDisplayName(p) { var m = /^(frx|cry)([A-Z]{3})([A-Z]{3})$/.exec(String(p)); return m ? m[2] + "/" + m[3] : String(p); }
 var _poCache = {}, _poApplied = "";
-window._AC = "#FF9F1C";
+window._AC = "#FFA800";
 var _poPal = [];
 function _pairOrange(p) {
-  return "#FF9F1C";
-  p = String(p || "");
+  return "#FFA800";
+    p = String(p || "");
   if (_poCache[p]) return _poCache[p];
   var n = (typeof ALL_PAIRS !== "undefined" && ALL_PAIRS) ? ALL_PAIRS.indexOf(p) : -1, i;
   if (n >= 0 && _poPal[n]) return (_poCache[p] = _poPal[n]);
@@ -2038,7 +2038,7 @@ function _autoSelectTopSignal(force) {
 (function () {
   var TC = { boxMode: true, follow: true, spp: 3, left: 0, yZ: 1, yOff: 0, W: 0, H: 0, dpr: 1, bxCache: null, sigMode: "MIX", allMap: null };
   var PADL = 6, PADR = 50, PADT = 4, PADB = 24, MONO = "'Roboto Mono',monospace";
-    window._AC = (getComputedStyle(document.documentElement).getPropertyValue("--ac") || "").trim() || "#FF9F1C";
+    window._AC = (getComputedStyle(document.documentElement).getPropertyValue("--ac") || "").trim() || "#FFA800";
   TC.wrap = document.getElementById("tcWrap"); TC.cv = document.getElementById("tcCanvas"); TC.ctx = TC.cv.getContext("2d");
 
   function tcOffset() { return (currentStartTsUtc % 86400) + 19800; }
@@ -2153,7 +2153,7 @@ function _autoSelectTopSignal(force) {
     }
   
     function tcDrawBoxes(ctx, W, H, dpr, pair, BG) {
-    var B = Math.max(1, Math.round(CYCLE) || 300), GREEN = "#13D185", RED = "#FA5A70", PF_UP = "19,209,133", PF_DN = "250,90,112", pr = allPairData[pair].prices, sEnd = 86400;
+    var B = Math.max(1, Math.round(CYCLE) || 300), GREEN = "#00FF85", RED = "#FF3D5A", PF_UP = "0,255,133", PF_DN = "255,61,90", pr = allPairData[pair].prices, sEnd = 86400;
     var nowF = Date.now() / 1000 - currentStartTsUtc, live = _isWithinMappedWindow() && nowF >= 0 && nowF < sEnd;
     var li = tcLastReal(pr, Math.min(live ? Math.floor(nowF) : sEnd, pr.length - 1)), lp = li >= 0 ? pr[li] : 0;
     var bxMap = {}, bxCells = null;
@@ -2229,7 +2229,7 @@ function _autoSelectTopSignal(force) {
         });
       }
     }
-    var rsAu = (TC.rkB !== B) ? (TC.rkB = B, TC.spp = Math.max(0.25, Math.min(600, B / 44))) : TC.spp, rsSpp = rsAu || 3, rsInk = window._AC || "#FF9F1C", rsSB = (bxMain && bxMain.sess !== undefined && bxMain.sess !== null) ? _ssBounds(bxMain.sess) : { a: 0, b: sEnd }, rsSa = Math.max(0, rsSB.a), rsSb = Math.min(sEnd, rsSB.b), rsIn = function (jj) { var tt = jj * B + bxR0; return tt >= rsSa && tt < rsSb; }, rsAnc = (live && cj >= 0 && rsIn(cj)) ? (cj * B + bxR0) : (rkNowSec >= rsSb ? rsSb : (rkNowSec < rsSa ? rsSa : rkNowSec));
+    var rsAu = (TC.rkB !== B) ? (TC.rkB = B, TC.spp = Math.max(0.25, Math.min(600, B / 44))) : TC.spp, rsSpp = rsAu || 3, rsInk = window._AC || "#FFA800", rsSB = (bxMain && bxMain.sess !== undefined && bxMain.sess !== null) ? _ssBounds(bxMain.sess) : { a: 0, b: sEnd }, rsSa = Math.max(0, rsSB.a), rsSb = Math.min(sEnd, rsSB.b), rsIn = function (jj) { var tt = jj * B + bxR0; return tt >= rsSa && tt < rsSb; }, rsAnc = (live && cj >= 0 && rsIn(cj)) ? (cj * B + bxR0) : (rkNowSec >= rsSb ? rsSb : (rkNowSec < rsSa ? rsSa : rkNowSec));
         var rsPlW = W - PADL - PADR; if (TC.follow) TC.left = rsAnc - rsPlW * rsSpp * 0.9; else tcClamp(rsPlW);
         var rsX = function (t) { return PADL + (t - TC.left) / rsSpp; };
         var rsC = new Array(n), rsLv = 0, rsPc = 0, rsPs = 0, rsJ, rsCe, rsK0;
@@ -2278,7 +2278,7 @@ function _autoSelectTopSignal(force) {
               if (rsTx >= PADL && rsTx <= rsAxR) { ctx.save(); ctx.strokeStyle = rsInk; ctx.globalAlpha = 0.15; ctx.lineWidth = 1; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(Math.round(rsTx) + 0.5, PADT); ctx.lineTo(Math.round(rsTx) + 0.5, rsAxB); ctx.stroke(); ctx.restore(); }
               if (rsTx > PADL + 28 && rsTx < rsAxR - 28) rsTL.push({ x: rsTx, s: tcFmt(rsTt, rsTst < 60) });
             }
-            ctx.save(); ctx.strokeStyle = "rgba(255,159,28,0.45)"; ctx.lineWidth = 1; ctx.setLineDash([]); ctx.beginPath();
+            ctx.save(); ctx.strokeStyle = "rgba(255,168,0,0.45)"; ctx.lineWidth = 1; ctx.setLineDash([]); ctx.beginPath();
         for (rsJ = Math.max(1, rsJ0); rsJ <= rsJ1; rsJ++) {
           var rsLa = rsLvOf(rsJ), rsLb = rsLvOf(rsJ - 1);
           if (rsLa === null || rsLb === null || (cj >= 0 && rsJ > cj)) continue;
@@ -2412,7 +2412,7 @@ function _autoSelectTopSignal(force) {
             } else {
                     var wzT = (txt && j !== cj && bw >= 12 && bh >= 10) ? 1 : 0, wzE = (hasLb || hasMk) ? 1 : 0, wzF, wzK, wzSx, wzLx, wzMx, wzY = Math.round(rkTop + gRow * gh + gh / 2) + 0.5;
                             if (wzT || wzE) {
-                                                          var ozInk = window._AC || "#FF9F1C", ozCy = py + bh / 2, ozZh = py - bxCy, ozZw = (bxCx + bxCw) - (px + bw), ozPh, ozPw, ozFs, ozTx, ozK;
+                                                          var ozInk = window._AC || "#FFA800", ozCy = py + bh / 2, ozZh = py - bxCy, ozZw = (bxCx + bxCw) - (px + bw), ozPh, ozPw, ozFs, ozTx, ozK;
                                                           ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.setLineDash([]);
                                                           if (wzT) { ctx.font = "bold " + gFs + "px " + MONO; ctx.fillStyle = "#000000"; ctx.fillText(txt, px + bw / 2, ozCy + 0.5, Math.max(4, bw - 2)); }
                                                           if (hasLb && ozZh >= 7) {
@@ -2748,7 +2748,7 @@ function _autoSelectTopSignal(force) {
       if (!yOf) return;
             if (r.st !== "open" && Date.now() / 1000 - r.ex > 6) return;
             var tbDone = r.st === "won" || r.st === "lost", tbWin = r.st === "won";
-            var tbCol = tbWin ? "#13D185" : (r.st === "lost" ? "#FA5A70" : window._AC);
+            var tbCol = tbWin ? "#00FF85" : (r.st === "lost" ? "#FF3D5A" : window._AC);
             var tbE = Math.max(0, Math.floor(r.ei)), tbX = Math.floor(r.ex - currentStartTsUtc);
             var tbK = Math.min(tbX, li >= 0 ? li : tbE, ap.length - 1);
             var tbR = tcLastReal(ap, Math.min(tbE, ap.length - 1));
