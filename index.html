@@ -2229,7 +2229,127 @@ function _autoSelectTopSignal(force) {
         });
       }
     }
-    var gcols = 1, gsc = 1e9, gal = (B >= 60 && B <= 3600 && 3600 % B === 0), gd, gs;
+    var rsAu = (TC.rkB !== B) ? (TC.rkB = B, TC.spp = Math.max(0.25, Math.min(600, B / 44))) : TC.spp, rsSpp = rsAu || 3, rsInk = window._AC || "#4DB8FF", rsSB = (bxMain && bxMain.sess !== undefined && bxMain.sess !== null) ? _ssBounds(bxMain.sess) : { a: 0, b: sEnd }, rsSa = Math.max(0, rsSB.a), rsSb = Math.min(sEnd, rsSB.b), rsIn = function (jj) { var tt = jj * B + bxR0; return tt >= rsSa && tt < rsSb; }, rsAnc = (live && cj >= 0 && rsIn(cj)) ? (cj * B + bxR0) : (rkNowSec >= rsSb ? rsSb : (rkNowSec < rsSa ? rsSa : rkNowSec));
+        var rsPlW = W - PADL - PADR; if (TC.follow) TC.left = rsAnc - rsPlW * rsSpp * 0.9; else tcClamp(rsPlW);
+        var rsX = function (t) { return PADL + (t - TC.left) / rsSpp; };
+        var rsC = new Array(n), rsLv = 0, rsPc = 0, rsPs = 0, rsJ, rsCe, rsK0;
+        for (rsJ = 0; rsJ < n; rsJ++) {
+          rsCe = null;
+          if (!rsIn(rsJ)) rsCe = null; else if (bxCells) { if (bxCells[rsJ]) rsCe = { col: bxCells[rsJ].col, s: bxCells[rsJ].s }; }
+          else if (arr[rsJ] && rsJ !== cj) { rsK0 = arr[rsJ][3] >= arr[rsJ][0] ? 1 : 2; rsPs = (rsK0 === rsPc) ? rsPs + 1 : 1; rsPc = rsK0; rsCe = { col: rsK0, s: rsPs }; }
+          if (rsCe) { rsLv += rsCe.col === 1 ? 1 : -1; rsCe.lv = rsLv; }
+          rsC[rsJ] = rsCe;
+        }
+        var rsLL = 0, rsUp = true;
+        for (rsJ = (cj >= 0 ? cj - 1 : n - 1); rsJ >= 0; rsJ--) if (rsC[rsJ]) { rsLL = rsC[rsJ].lv; break; }
+        var rsPP = (cj >= 0) ? (bxCells ? ((cj > 0 && bxCells[cj - 1]) ? bxCells[cj - 1].p : window._preRef(pair, cj * B + bxR0 - B)) : (arr[cj] ? arr[cj][0] : -1)) : -1;
+        rsUp = !(rsPP > 0 && lp > 0 && lp < rsPP);
+        var rsLiveLv = rsLL + (rsUp ? 1 : -1);
+        var rsLvOf = function (jj) {
+          if (!rsIn(jj)) return null;
+                if (rsC[jj]) return rsC[jj].lv;
+          if (jj === cj) return rsLiveLv;
+          if (cj >= 0 && jj > cj && bxMap[jj] && bxMap[jj].fut) return rsLiveLv;
+          return null;
+        };
+        var rsJ0 = Math.max(0, Math.floor((TC.left - bxR0) / B) - 1), rsJ1 = Math.min(n - 1, Math.ceil((TC.left + W * rsSpp - bxR0) / B) + 1), rsLo = Infinity, rsHi = -Infinity, rsV;
+        for (rsJ = rsJ0; rsJ <= rsJ1; rsJ++) { rsV = rsLvOf(rsJ); if (rsV !== null) { if (rsV < rsLo) rsLo = rsV; if (rsV > rsHi) rsHi = rsV; } }
+        if (rsLo > rsHi) { rsLo = 0; rsHi = 0; }
+        var rsSt = Math.max(3, Math.min(34, Math.max(40, H - PADT - PADB - 56) / (rsHi - rsLo + 1))) * (TC.yZ || 1), rsBh = Math.max(2, Math.round(rsSt * 0.88 * dpr) / dpr), rsBw = Math.max(1, Math.min(B / rsSpp - 3, rsBh * 1.6)), rsMid = (rsLo + rsHi) / 2 + (TC.yOff || 0) * (H - PADT - PADB) / (rsSt / (TC.yZ || 1));
+        var rsY = function (lv) { return PADT + (H - PADT - PADB) / 2 - (lv - rsMid) * rsSt; };
+        ctx.font = "bold 100px " + MONO;
+        var rsMw = ctx.measureText("X10").width, rsMt = ctx.measureText("00:00").width, rsFs = Math.max(6, Math.min(18, Math.floor(rsBh * 0.5), Math.floor((rsBw - 4) * 100 / rsMw)));
+        var rsAxB = H - PADB, rsAxR = W - PADR, rsPhH = rsAxB - PADT, rsLp = {}, rsGL = [], rsTL = [], rsVj, rsLvA, rsLvB, rsGs, rsLg, rsStp = 1, rsSteps = [1, 2, 5, 10, 20, 50, 100, 200, 500], rsTs = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 14400], rsTst = 14400, rsOff = tcOffset(), rsFt0, rsTt, rsTx;
+            for (rsVj = rsJ0; rsVj <= rsJ1; rsVj++) if (rsC[rsVj]) { rsLg = bxCells ? bxCells[rsVj].p : arr[rsVj][0]; if (rsLg > 0) rsLp[rsC[rsVj].lv] = rsLg; }
+            if (cj >= 0 && lp > 0 && rsIn(cj)) rsLp[rsLiveLv] = lp;
+            rsLvA = Math.ceil(rsMid - (rsPhH / 2) / rsSt); rsLvB = Math.floor(rsMid + (rsPhH / 2) / rsSt);
+            for (rsGs = 0; rsGs < rsSteps.length; rsGs++) { rsStp = rsSteps[rsGs]; if (rsStp * rsSt >= 34) break; }
+            for (rsLg = Math.ceil(rsLvA / rsStp) * rsStp; rsLg <= rsLvB; rsLg += rsStp) {
+              var rsGy = Math.round(rsY(rsLg)) + 0.5;
+              if (rsGy < PADT || rsGy > rsAxB) continue;
+              ctx.save(); ctx.strokeStyle = rsInk; ctx.globalAlpha = 0.15; ctx.lineWidth = 1; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(PADL, rsGy); ctx.lineTo(rsAxR, rsGy); ctx.stroke(); ctx.restore();
+              if (rsLp[rsLg] !== undefined) rsGL.push({ y: rsGy, v: rsLp[rsLg] });
+            }
+            for (rsGs = 0; rsGs < rsTs.length; rsGs++) if (rsTs[rsGs] / rsSpp >= 78) { rsTst = rsTs[rsGs]; break; }
+            rsFt0 = Math.ceil((TC.left + rsOff) / rsTst) * rsTst - rsOff;
+            for (rsTt = rsFt0; rsTt <= TC.left + (rsAxR - PADL) * rsSpp; rsTt += rsTst) {
+              if (rsTt < 0 || rsTt > 86400) continue;
+              rsTx = rsX(rsTt);
+              if (rsTx >= PADL && rsTx <= rsAxR) { ctx.save(); ctx.strokeStyle = rsInk; ctx.globalAlpha = 0.15; ctx.lineWidth = 1; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(Math.round(rsTx) + 0.5, PADT); ctx.lineTo(Math.round(rsTx) + 0.5, rsAxB); ctx.stroke(); ctx.restore(); }
+              if (rsTx > PADL + 28 && rsTx < rsAxR - 28) rsTL.push({ x: rsTx, s: tcFmt(rsTt, rsTst < 60) });
+            }
+            ctx.save(); ctx.strokeStyle = "rgba(77,184,255,0.45)"; ctx.lineWidth = 1; ctx.setLineDash([]); ctx.beginPath();
+        for (rsJ = Math.max(1, rsJ0); rsJ <= rsJ1; rsJ++) {
+          var rsLa = rsLvOf(rsJ), rsLb = rsLvOf(rsJ - 1);
+          if (rsLa === null || rsLb === null || (cj >= 0 && rsJ > cj)) continue;
+          ctx.moveTo(rsX((rsJ - 1) * B + bxR0), rsY(rsLb)); ctx.lineTo(rsX(rsJ * B + bxR0), rsY(rsLa));
+        }
+        ctx.stroke(); ctx.restore();
+        for (rsJ = rsJ0; rsJ <= rsJ1; rsJ++) {
+          var rsLv1 = rsLvOf(rsJ); if (rsLv1 === null) continue;
+          var rsCe1 = rsC[rsJ], rsLive = rsJ === cj, rsFut = !rsCe1 && !rsLive, rsCx = rsX(rsJ * B + bxR0), rsCy = rsY(rsLv1);
+          var rsPx = Math.round((rsCx - rsBw / 2) * dpr) / dpr, rsPy = Math.round((rsCy - rsBh / 2) * dpr) / dpr;
+          if (rsPx > W || rsPx + rsBw < 0) continue;
+          var rsRad = Math.max(1, Math.min(rsBw, rsBh) * 0.16), rsO1 = bxMap[rsJ], rsIm1 = bxInstMap ? bxInstMap[rsJ] : null;
+          ctx.setLineDash([]); ctx.textAlign = "center"; ctx.textBaseline = "middle";
+          if (rsLive) {
+            ctx.fillStyle = bxPcol; bxRR(ctx, rsPx, rsPy, rsBw, rsBh, rsRad); ctx.fill();
+            ctx.save(); bxRR(ctx, rsPx, rsPy, rsBw, rsBh, rsRad); ctx.clip(); ctx.fillStyle = rsUp ? GREEN : RED; ctx.fillRect(rsPx, rsPy + rsBh * (1 - fr), rsBw, rsBh * fr); ctx.restore();
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; bxRR(ctx, rsPx, rsPy, rsBw, rsBh, rsRad); ctx.stroke();
+            var rsRm = bxCells ? Math.max(0, Math.ceil((rsJ * B + bxR0) - nowF)) : Math.max(0, Math.ceil(B - nowF % B));
+            if (rsBw >= 18 && rsBh >= 8) {
+              ctx.font = "bold " + Math.max(5, Math.min(rsFs, Math.floor((rsBw - 3) * 100 / rsMt))) + "px " + MONO; ctx.fillStyle = "#000000";
+              ctx.fillText(((rsRm / 60) | 0) + ":" + ("0" + rsRm % 60).slice(-2), rsCx, rsCy + 0.5);
+            }
+          } else if (rsFut) {
+            ctx.strokeStyle = rsInk; ctx.lineWidth = 1.5; bxRR(ctx, rsPx, rsPy, rsBw, rsBh, rsRad); ctx.stroke();
+            if (rsBw >= 12 && rsBh >= 10) { ctx.font = "bold " + rsFs + "px " + MONO; ctx.fillStyle = rsInk; ctx.fillText("X" + rsO1.fut.s1, rsCx, rsCy + 0.5); }
+          } else {
+            ctx.fillStyle = rsCe1.col === 1 ? GREEN : RED;
+            if (rsBw < 7 || rsBh < 7) ctx.fillRect(rsPx, rsPy, rsBw, rsBh); else { bxRR(ctx, rsPx, rsPy, rsBw, rsBh, rsRad); ctx.fill(); }
+            if (rsBw >= 12 && rsBh >= 10) { ctx.font = "bold " + rsFs + "px " + MONO; ctx.fillStyle = "#000000"; ctx.fillText("X" + rsCe1.s, rsCx, rsCy + 0.5); }
+          }
+          var rsSig1 = !!(rsO1 && rsO1.sig), rsLb1 = !!(rsSig1 || rsFut || rsIm1), rsResW = (rsO1 && (rsO1.resW === "win" || rsO1.resW === "loss")) ? rsO1.resW : null;
+          if (!rsResW && bxInstMap && rsJ > 0 && bxInstMap[rsJ - 1]) {
+            var rsNx = bxInstMap[rsJ - 1].sec + B;
+            if (rsNx <= li && pr[rsNx] !== undefined && pr[rsNx] !== -1) rsResW = bxInstMap[rsJ - 1].inst.isFalse ? "loss" : "win";
+          }
+          var rsTopY = rsPy, rsBotY = rsPy + rsBh;
+          if (rsLb1 && rsSt >= 12) {
+            var rsUp1 = rsFut ? rsO1.fut.up : (rsSig1 ? rsO1.up : bxInstUp), rsFx = (rsIm1 && !rsSig1 && !rsFut && rsIm1.inst.isFalse) ? " F" + (rsIm1.inst.falseSeq || 1) : "";
+            var rsPh = 13, rsPt = (rsUp1 ? "BUY" : "SELL") + rsFx;
+            ctx.font = "bold 9px " + MONO;
+            var rsPw = ctx.measureText(rsPt).width + 8, rsPy2 = rsUp1 ? rsBotY + 2 : rsTopY - rsPh - 2;
+            ctx.fillStyle = rsInk; bxRR(ctx, Math.round(rsCx - rsPw / 2), rsPy2, rsPw, rsPh, rsPh / 2); ctx.fill();
+            ctx.fillStyle = "#000432"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(rsPt, rsCx, rsPy2 + rsPh / 2 + 0.5);
+            if (rsUp1) rsBotY = rsPy2 + rsPh; else rsTopY = rsPy2;
+          }
+          if (rsResW) {
+            var rsK = Math.max(4, Math.min(rsBh * 0.55, 16)), rsMy = rsTopY - rsK - 2;
+            if (rsMy - rsK < 2) rsMy = rsBotY + rsK + 2;
+            ctx.save(); ctx.strokeStyle = rsInk; ctx.lineWidth = Math.max(1.8, rsK * 0.3); ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.setLineDash([]); ctx.beginPath();
+            if (rsResW === "win") { ctx.moveTo(rsCx - rsK * 0.9, rsMy); ctx.lineTo(rsCx - rsK * 0.2, rsMy + rsK * 0.7); ctx.lineTo(rsCx + rsK * 0.95, rsMy - rsK * 0.65); }
+            else { ctx.moveTo(rsCx - rsK * 0.7, rsMy - rsK * 0.7); ctx.lineTo(rsCx + rsK * 0.7, rsMy + rsK * 0.7); ctx.moveTo(rsCx + rsK * 0.7, rsMy - rsK * 0.7); ctx.lineTo(rsCx - rsK * 0.7, rsMy + rsK * 0.7); }
+            ctx.stroke(); ctx.restore();
+          }
+        }
+        ctx.restore();
+        tcDrawTrades(ctx, function () { return -99999; }, null, rkTop, rkBot, W);
+        var rsBwL = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--bw")) || 3;
+            ctx.fillStyle = BG; ctx.fillRect(rsAxR, 0, PADR, H); ctx.fillRect(0, rsAxB, W, H - rsAxB);
+            ctx.save(); ctx.setLineDash([]); ctx.lineWidth = rsBwL; ctx.strokeStyle = rsInk; ctx.lineJoin = "miter"; ctx.beginPath(); ctx.moveTo(0, rsAxB - rsBwL / 2); ctx.lineTo(rsAxR - rsBwL / 2, rsAxB - rsBwL / 2); ctx.lineTo(rsAxR - rsBwL / 2, 0); ctx.stroke(); ctx.restore();
+            var rsLy = (cj >= 0 && lp > 0 && rsIn(cj)) ? rsY(rsLiveLv) : -999, rsDc = _pxDec(pair);
+            ctx.font = "10px " + MONO; ctx.fillStyle = rsInk; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+            rsGL.forEach(function (gl) { if (gl.y > PADT + 12 && gl.y < rsAxB - 12 && Math.abs(gl.y - rsLy) > 12) ctx.fillText(gl.v.toFixed(rsDc), rsAxR + 6, gl.y); });
+            ctx.textAlign = "center";
+            rsTL.forEach(function (tl) { ctx.fillText(tl.s, tl.x, rsAxB + 12); });
+            if (rsLy !== -999) {
+              var rsLy2 = Math.max(PADT + 9, Math.min(rsAxB - 9, rsLy));
+              ctx.fillStyle = BG; ctx.fillRect(rsAxR + 2, rsLy2 - 9, PADR - 4, 18); ctx.strokeStyle = rsInk; ctx.lineWidth = 1; ctx.strokeRect(rsAxR + 2.5, rsLy2 - 8.5, PADR - 5, 17);
+              ctx.fillStyle = rsInk; ctx.font = "bold 10px " + MONO; ctx.textAlign = "center"; ctx.fillText(lp.toFixed(rsDc), W - PADR / 2, rsLy2 + 0.5);
+            }
+            return;
+            var gcols = 1, gsc = 1e9, gal = (B >= 60 && B <= 3600 && 3600 % B === 0), gd, gs;
         for (gd = 1; gd <= Math.min(n, 400); gd++) {
           if (gal && (3600 / B) % gd) continue;
           gs = Math.abs(Math.log((pw / gd) / (ph / Math.ceil(n / gd)) / 4)) + ((ph / Math.ceil(n / gd)) < 11 ? 10 : 0);
@@ -2237,14 +2357,16 @@ function _autoSelectTopSignal(force) {
         }
         var grows = Math.ceil(n / gcols), gw = pw / gcols, gh = ph / grows, bxSp = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sp")) || 3;
             ctx.font = "bold 100px " + MONO;
-            var gFs = Math.max(6, Math.min(18, Math.floor(gh * 0.72), Math.floor(gw * 0.36 * 100 / ctx.measureText("X10").width)));
+            var gFs = Math.max(6, Math.min(20, Math.floor(gh * 0.5), Math.floor(gw * 0.5 * 100 / ctx.measureText("X10").width)));
     for (var j = 0; j < n; j++) {
       var hcCell = bxCells ? bxCells[j] : null, c = arr[j], hasDat = bxCells ? (!!hcCell || j === cj) : (!!c || j === cj), bxO = bxMap[j], bxIm = bxInstMap ? bxInstMap[j] : null;
       if (!hasDat && !bxO && !bxIm) continue;
       var gCol = j % gcols, x0 = gCol * gw, x1 = x0 + gw, gRow = Math.floor(j / gcols), bxG = Math.min(bxSp, gh * 0.25), gL = gCol === 0 ? 0 : bxG / 2, gR = gCol === gcols - 1 ? 0 : bxG / 2, gT = gRow === 0 ? 0 : bxG / 2, gB = gRow === grows - 1 ? 0 : bxG / 2;
       var px = Math.round((x0 + gL) * dpr) / dpr, bw = Math.max(1, Math.round((x1 - gR) * dpr) / dpr - px), py = Math.round((rkTop + gRow * gh + gT) * dpr) / dpr;
       var bh = Math.max(2, Math.round((rkTop + (gRow + 1) * gh - gB) * dpr) / dpr - py);
-      var bxCol = bxCells ? ((!hcCell || j === cj) ? "#000000" : (hcCell.col === 1 ? GREEN : RED)) : ((!c || j === cj) ? "#000000" : (c[3] >= c[0] ? GREEN : RED)), bxRad = 0, bxLw = 1;
+            var bxCx = px, bxCw = bw, bxCy = py, bxCh = bh;
+            bw = Math.max(1, Math.round(bxCw * 0.68 * dpr) / dpr); bh = Math.max(2, Math.round(bxCh * 0.7 * dpr) / dpr); py = bxCy + bxCh - bh;
+      var bxCol = bxCells ? ((!hcCell || j === cj) ? "#000000" : (hcCell.col === 1 ? GREEN : RED)) : ((!c || j === cj) ? "#000000" : (c[3] >= c[0] ? GREEN : RED)), bxRad = Math.max(2, Math.min(bw, bh) * 0.16), bxLw = 1;
       if (bxCol === "#000000") { ctx.fillStyle = bxPcol; bxRR(ctx, px, py, bw, bh, bxRad); ctx.fill(); ctx.strokeStyle = window._AC; ctx.lineWidth = 1; ctx.stroke(); }
       else if (bw < 7 || bh < 7) { ctx.fillStyle = bxCol; ctx.fillRect(px, py, bw, bh); }
       else {
@@ -2290,6 +2412,29 @@ function _autoSelectTopSignal(force) {
             } else {
                     var wzT = (txt && j !== cj && bw >= 12 && bh >= 10) ? 1 : 0, wzE = (hasLb || hasMk) ? 1 : 0, wzF, wzK, wzSx, wzLx, wzMx, wzY = Math.round(rkTop + gRow * gh + gh / 2) + 0.5;
                             if (wzT || wzE) {
+                                                          var ozInk = window._AC || "#4DB8FF", ozCy = py + bh / 2, ozZh = py - bxCy, ozZw = (bxCx + bxCw) - (px + bw), ozPh, ozPw, ozFs, ozTx, ozK;
+                                                          ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.setLineDash([]);
+                                                          if (wzT) { ctx.font = "bold " + gFs + "px " + MONO; ctx.fillStyle = "#000000"; ctx.fillText(txt, px + bw / 2, ozCy + 0.5, Math.max(4, bw - 2)); }
+                                                          if (hasLb && ozZh >= 7) {
+                                                            ozPh = Math.min(ozZh - 1, 14); ozFs = Math.max(5, Math.min(10, ozPh - 3)); ctx.font = "bold " + ozFs + "px " + MONO;
+                                                            ozTx = dt; ozPw = ctx.measureText(ozTx).width + 8;
+                                                            if (ozPw > bxCw - 1) { ozTx = dtS; ozPw = ctx.measureText(ozTx).width + 8; }
+                                                            ozPw = Math.min(ozPw, bxCw - 1);
+                                                            var ozPx = Math.max(bxCx, Math.min(bxCx + bxCw - ozPw, px + bw / 2 - ozPw / 2)), ozPy = py - ozPh - 1;
+                                                            ctx.fillStyle = ozInk; bxRR(ctx, ozPx, ozPy, ozPw, ozPh, ozPh / 2); ctx.fill();
+                                                            ctx.fillStyle = "#000432"; ctx.fillText(ozTx, ozPx + ozPw / 2, ozPy + ozPh / 2 + 0.5);
+                                                          }
+                                                          if (hasMk && ozZw >= 3) {
+                                                            ozK = Math.max(3, Math.min(ozZw * 0.42, bh * 0.5));
+                                                            var ozMx = px + bw + ozZw / 2 + 1, ozMy = ozCy - bh * 0.12;
+                                                            ctx.strokeStyle = ozInk; ctx.lineWidth = Math.max(1.5, ozK * 0.3); ctx.beginPath();
+                                                            if (resW === "win") { ctx.moveTo(ozMx - ozK * 0.9, ozMy); ctx.lineTo(ozMx - ozK * 0.2, ozMy + ozK * 0.7); ctx.lineTo(ozMx + ozK * 0.95, ozMy - ozK * 0.65); }
+                                                            else { ctx.moveTo(ozMx - ozK * 0.7, ozMy - ozK * 0.7); ctx.lineTo(ozMx + ozK * 0.7, ozMy + ozK * 0.7); ctx.moveTo(ozMx + ozK * 0.7, ozMy - ozK * 0.7); ctx.lineTo(ozMx - ozK * 0.7, ozMy + ozK * 0.7); }
+                                                            ctx.stroke();
+                                                          }
+                                                          ctx.restore();
+                                                        }
+                                                        if (false) {
                               ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.setLineDash([]);
                               ctx.fillStyle = "#000432"; ctx.strokeStyle = "#000432";
                               ctx.font = "bold 100px " + MONO;
@@ -2431,17 +2576,18 @@ function _autoSelectTopSignal(force) {
         var j = currentInstances[currentInstanceIndex]; TC.follow = false; TC.left = (j.col * CYCLE + j.row - _cycleOff()) - plotW * spp / 2;
       }
     }
-    if (TC.follow) TC.left = nowIdx - plotW * spp * 0.4; else tcClamp(plotW);
-    var left = TC.left, right = left + plotW * spp, i0 = Math.max(0, Math.floor(left)), st = Math.max(1, Math.floor(spp / 2));
-    var it = { len: ap.length, last: apLast, color: PO, lo: Infinity, hi: -Infinity, i1: Math.min(ap.length - 1, 86400, Math.ceil(right)) };
+    var tkM = TC.allMap[DV_SYM], tkS = tkM ? (tkM.rev || tkM.mom) : null, tkSB = (tkS && tkS.sess !== undefined && tkS.sess !== null) ? _ssBounds(tkS.sess) : { a: 0, b: 86400 }, tkA = Math.max(0, tkSB.a), tkB = Math.min(86400, tkSB.b);
+        if (TC.follow) TC.left = Math.max(tkA, Math.min(tkB, nowIdx)) - plotW * spp * 0.4; else tcClamp(plotW);
+    var left = TC.left, right = left + plotW * spp, i0 = Math.max(tkA, Math.floor(left)), st = Math.max(1, Math.floor(spp / 2));
+    var it = { len: ap.length, last: apLast, color: PO, lo: Infinity, hi: -Infinity, i1: Math.min(ap.length - 1, tkB - 1, Math.ceil(right)) };
     for (var i = i0; i <= it.i1; i += st) { var pv = ap[i]; if (pv !== -1) { if (pv < it.lo) it.lo = pv; if (pv > it.hi) it.hi = pv; } }
     if (!(it.hi > it.lo)) { var v0 = it.last >= 0 ? ap[it.last] : 2000; it.lo = v0 - 1; it.hi = v0 + 1; }
     var pad0 = (it.hi - it.lo) * 0.06; it.lo -= pad0; it.hi += pad0;
     if (TC.yZ !== 1 || TC.yOff !== 0) { var a = it.hi - it.lo, c = (it.hi + it.lo) / 2 + TC.yOff * a, r = a / TC.yZ; it.lo = c - r / 2; it.hi = c + r / 2; }
     var xOf = ix => PADL + (ix - left) / spp, yOf = v => ptop + (1 - (v - it.lo) / (it.hi - it.lo)) * (pbot - ptop);
 
-    var rawStep = (it.hi - it.lo) / 5, mag = Math.pow(10, Math.floor(Math.log10(rawStep))), norm = rawStep / mag;
-    var pxStep = (norm < 1.5 ? 1 : (norm < 3 ? 2 : (norm < 7 ? 5 : 10))) * mag, pxTicks = [];
+    var rawStep = (it.hi - it.lo) * 50 / Math.max(50, pbot - ptop), mag = Math.pow(10, Math.floor(Math.log10(rawStep))), norm = rawStep / mag;
+        var pxStep = (norm <= 1 ? 1 : (norm <= 2 ? 2 : (norm <= 5 ? 5 : 10))) * mag, pxTicks = [];
     for (var gn = Math.ceil(it.lo / pxStep); gn <= Math.floor(it.hi / pxStep); gn++) {
       var gv = gn * pxStep, gy = Math.round(yOf(gv)) + 0.5;
       pxTicks.push({ v: gv, y: gy });
@@ -2461,7 +2607,7 @@ function _autoSelectTopSignal(force) {
     var lastX = -99999;
     for (var i2 = i0 - (i0 % st); i2 <= it.i1; i2 += st) {
       var qs = 0, qn = 0;
-      for (var qk = Math.max(0, i2); qk < i2 + st && qk <= it.i1; qk++) if (ap[qk] !== -1) { qs += ap[qk]; qn++; }
+      for (var qk = Math.max(tkA, i2); qk < i2 + st && qk <= it.i1; qk++) if (ap[qk] !== -1) { qs += ap[qk]; qn++; }
       if (!qn) continue;
       var qc = i2 + (st - 1) / 2, q0 = qs / qn;
       if (it.last >= 0 && qc > it.last) { qc = it.last; q0 = ap[it.last]; }
@@ -2761,7 +2907,18 @@ function _autoSelectTopSignal(force) {
       }
       tcDraw();
     }
-    TC.cv.addEventListener("pointerdown", e => {
+    TC.cv.addEventListener("wheel", e => {
+          e.preventDefault();
+          e.stopPropagation(); var wrc = TC.cv.getBoundingClientRect(), wmx = e.clientX - wrc.left, wdy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY, wf = Math.max(0.6, Math.min(1.6, Math.exp(wdy / 400)));
+          if (wmx > TC.W - PADR) TC.yZ = Math.max(0.2, Math.min(40, TC.yZ / wf));
+          else {
+            var wan = TC.left + (wmx - PADL) * TC.spp;
+            TC.spp = Math.max(0.1, Math.min(600, TC.spp * wf));
+            if (!TC.follow) { TC.left = wan - (wmx - PADL) * TC.spp; tcClamp(TC.W - PADL - PADR); }
+          }
+          tcDraw();
+        }, { passive: false });
+        TC.cv.addEventListener("pointerdown", e => {
       var rc = TC.cv.getBoundingClientRect(), x = e.clientX - rc.left, y = e.clientY - rc.top;
       ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
       try { TC.cv.setPointerCapture(e.pointerId); } catch (er) {}
