@@ -177,13 +177,13 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
       <span>XAU/USD · 05:30-05:30 IST</span>
       <input type="number" id="minPctInput" value="10" min="0" max="100" title="Min %" onchange="renderFilteredTable()">
       <select id="levelFilterSelect" onchange="window._wsLvlSync()">
-        <option value="0" selected>ALL LVL</option>
-        <option value="1">X1-X2</option><option value="2">X2-X3</option><option value="3">X3-X4</option>
+        <option value="0">ALL LVL</option>
+        <option value="1" selected>X1-X2</option><option value="2">X2-X3</option><option value="3">X3-X4</option>
         <option value="4">X4-X5</option><option value="5">X5-X6</option><option value="6">X6-X7</option>
         <option value="7">X7-X8</option><option value="8">X8-X9</option><option value="9">X9-X10</option>
       </select>
       <button type="button" id="r0OnlyBtn" onclick="toggleR0Only()">R0</button>
-      <button type="button" id="lvlToggleBtn" onclick="window._wsLvlToggle()">LVL ALL</button>
+      <button type="button" id="lvlToggleBtn" onclick="window._wsLvlToggle()">LVL X1</button>
       <span id="syncStatusText">BOOTING...</span>
       <span id="scanTimerDisplay">60s</span>
     </div>
@@ -212,7 +212,7 @@ td:first-child span[data-hold-t]{display:none;margin-top:2px;color:#000000;font-
         <button type="button" id="modeBtn" title="Select pairs" onclick="_psToggle()">BTC+ETH</button>
                 <button type="button" id="catBtn" title="Next category" style="display:none" onclick="_catNext()">CAT</button>
         <button type="button" id="logBtn" title="Log" onclick="_logToggle()">LOG</button>
-                <button type="button" id="lvlBtn2" title="Level filter" onclick="window._wsLvlToggle()">LVL ALL</button>
+                <button type="button" id="lvlBtn2" title="Level filter" onclick="window._wsLvlToggle()">LVL X1</button>
                                 <button type="button" id="r0Btn" title="Row 0 only" onclick="toggleR0Only()">R0</button>
                 <input type="date" id="btDate" style="display:none" title="Backtest date (session 05:30-05:30 IST)">
       </div>
